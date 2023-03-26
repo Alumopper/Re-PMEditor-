@@ -1,0 +1,49 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="tracks\**" />
+    <EmbeddedResource Remove="tracks\**" />
+    <None Remove="tracks\**" />
+    <Page Remove="tracks\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="code.png" />
+    <None Remove="editor.png" />
+    <None Remove="Json.xshd" />
+    <None Remove="play.png" />
+    <None Remove="settings.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Json.xshd">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\.editorconfig" Link=".editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AvalonEdit" Version="6.3.0.90" />
+    <PackageReference Include="IronPython" Version="3.4.0" />
+    <PackageReference Include="System.Management.Automation" Version="6.2.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="code.png" />
+    <Resource Include="editor.png" />
+    <Resource Include="play.png" />
+    <Resource Include="settings.png" />
+  </ItemGroup>
+
+</Project>

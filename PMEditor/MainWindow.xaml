@@ -1,0 +1,32 @@
+﻿<Window x:Class="PMEditor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PMEditor"
+        mc:Ignorable="d"
+        Title="PMEditor" Height="600" Width="1000" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen"
+        >
+    <Grid Background="#FF0B0314">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="823*"/>
+            <ColumnDefinition Width="377*"/>
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="1"/>
+        <Button Name="open" Content="打开" HorizontalAlignment="Center" Margin="0,407,0,0" VerticalAlignment="Top" Height="53" Width="177" Grid.Column="1" Click="Button_Click_1" FontSize="20" Background="#FF4B2E59" Foreground="White"/>
+        <Button Name="create" Content="新建" HorizontalAlignment="Center" VerticalAlignment="Top" Height="53" Width="177" Click="CreateButton_Click" Margin="0,494,0,0" Grid.Column="1" FontSize="20" Background="White"/>
+        <Label Content="谱面" HorizontalAlignment="Left" Height="66" Margin="29,28,0,0" VerticalAlignment="Top" Width="503" Foreground="White" FontSize="45"/>
+        <Grid HorizontalAlignment="Left" Height="434" Margin="29,113,0,0" VerticalAlignment="Top" Width="657" Grid.ColumnSpan="2">
+            <ListBox Name="trackList" Background="#FF222222" Foreground="White" FontSize="24" Margin="0,10,0,0" BorderBrush="Black" Height="432" VerticalAlignment="Top" d:ItemsSource="{d:SampleData ItemCount=5}" >
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Height="75" Width="600">
+                            <Label Content="{Binding TrackName}" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Width="449" Height="45" Foreground="White" FontSize="30"/>
+                            <Label Content="{Binding TrackAuthor}" HorizontalAlignment="Left" Margin="38,38,0,0" VerticalAlignment="Top" Width="449" FontSize="16" Foreground="White"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Grid>
+    </Grid>
+</Window>
