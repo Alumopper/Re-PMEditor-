@@ -7,13 +7,16 @@
         mc:Ignorable="d"
         Title="EditorWindow" Height="700" Width="1200" WindowStartupLocation="CenterScreen"
         WindowState="Maximized">
+    <Window.CommandBindings>
+        <CommandBinding Command="local:Commands.PlayOrPause" CanExecute="CommandBinding_CanExecute" Executed="CommandBinding_Executed" />
+    </Window.CommandBindings>
     <Window.Resources>
         <Style TargetType="Button">
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border Name="border" BorderThickness="1" Opacity="0.6">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -33,41 +36,46 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="25"/>
         </Grid.RowDefinitions>
-        <Menu Grid.Row="0" Background="#FF0B0314" BorderThickness="0,0,0,1" BorderBrush="#FF3A1662">
-
+        <Menu Grid.Row="0" Background="#FF0B0314" BorderThickness="0,0,0,1" BorderBrush="#FF3A1662" Foreground="#FFE5E5E5" Margin="0,4,0,0">
+            <MenuItem Header="文件(_F)" Margin="0,0,3,0"/>
+            <MenuItem Header="编辑(_E)" Margin="0,0,3,0"/>
+            <MenuItem Header="媒体(_M)" Margin="0,0,3,0">
+                <MenuItem Header="开始/暂停(_P)" Foreground="#FF000000" Command="local:Commands.PlayOrPause" />
+            </MenuItem>
         </Menu>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="60"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="79*"/>
+                <ColumnDefinition Width="1061*"/>
             </Grid.ColumnDefinitions>
             <StackPanel Name="buttonPanel" Grid.Column="0" Background="#FF1B0E2A">
                 <Label Name="editorButton_dis" Background="#FF2E143E" BorderBrush="White" Foreground="{x:Null}" Height="60" BorderThickness="2,0,0,0" Cursor="Hand">
                     <Image Source="/editor.png"  Margin="7,9,9,9"/>
                 </Label>
                 <Button Name="editorButton" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}" Height="60" Click="editorButton_Click" Visibility="Collapsed">
-                    <Image Source="/editor.png"  Margin="12"/>
+                    <Image Source="/editor.png"  Margin="13"/>
                 </Button>
                 <Label Name="codeButton_dis" Background="#FF2E143E" BorderBrush="White" Foreground="{x:Null}" Height="60" BorderThickness="2,0,0,0" Cursor="Hand" Visibility="Collapsed">
                     <Image Source="/code.png" Margin="7,9,9,9"/>
                 </Label>
                 <Button Name="codeButton" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}" Height="60" Click="codeButton_Click">
-                    <Image Source="/code.png" Margin="12"/>
+                    <Image Source="/code.png" Margin="13,13,13,13"/>
                 </Button>
                 <Label Name="playButton" Background="#FF2E143E" BorderBrush="White" Foreground="{x:Null}" Height="60" BorderThickness="2,0,0,0" Cursor="Hand" Visibility="Collapsed">
                     <Image Source="/play.png"  Margin="7,9,9,9"/>
                 </Label>
                 <Button Name="playButton_dis" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}" Height="60" Click="playButton_Click">
-                    <Image Source="/play.png" Margin="12"/>
+                    <Image Source="/play.png" Margin="13,13,13,13"/>
                 </Button>
                 <Label Name="settingButton_dis" Background="#FF2E143E" BorderBrush="White" Foreground="{x:Null}" Height="60" BorderThickness="2,0,0,0" Cursor="Hand" Visibility="Collapsed">
                     <Image Source="/settings.png"  Margin="7,9,9,9"/>
                 </Label>
                 <Button Name="settingButton" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}" Height="60" Click="settingButton_Click">
-                    <Image Source="/settings.png" Margin="12"/>
+                    <Image Source="/settings.png" Margin="13,13,13,13"/>
                 </Button>
             </StackPanel>
-            <Frame Name="page" Grid.Column="1" NavigationUIVisibility="Hidden"/>
+            <Frame Name="page" Grid.Column="1" NavigationUIVisibility="Hidden" Grid.ColumnSpan="2"/>
         </Grid>
         <StatusBar Background="#FF342249" Grid.Row="2">
 

@@ -23,6 +23,6 @@
             FontSize="15"
             ShowLineNumbers="True"
             IsReadOnly="True"
-            Background="#00000000"/>
+            Background="#00000000" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Hidden" WordWrap="True"/>
     </Grid>
 </Page>

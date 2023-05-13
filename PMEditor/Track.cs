@@ -118,7 +118,7 @@ namespace PMEditor
         public Line() : this(0) { }
     }
 
-    public class Note
+    public partial class Note
     {
         public int rail;
         public int noteType;

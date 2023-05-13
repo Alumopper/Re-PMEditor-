@@ -23,6 +23,15 @@ namespace PMEditor
     /// </summary>
     public partial class CreateTrack : Window
     {
+        TrackInfo trackInfo;
+        public TrackInfo TrackInfo
+        {
+            get
+            {
+                return trackInfo;
+            }
+        }
+
         public CreateTrack()
         {
             InitializeComponent();
@@ -88,10 +97,12 @@ namespace PMEditor
                 time = md.NaturalDuration.TimeSpan.TotalSeconds;
                 md.Close();
                 TrackInfo trackInfo = new(trackName, ma, ta);
+                this.trackInfo = trackInfo;
                 Directory.CreateDirectory("./tracks/" + trackName);
                 File.WriteAllText("./tracks/" + trackName + "/info.txt", trackInfo.ToString()); //info
                 File.Copy(chosenFile.FullName, "./tracks/" + trackName + "/" + chosenFile.Name, true);  //音频
                 File.WriteAllText("./tracks/" + trackName + "/track.json", new Track(trackName, ma, ta, double.Parse(bpm.Text), time, difficulty.Text).ToJsonString());
+                this.DialogResult = true;
                 this.Close();
             };
         }

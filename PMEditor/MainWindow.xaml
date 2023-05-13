@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PMEditor"
         mc:Ignorable="d"
-        Title="PMEditor" Height="600" Width="1000" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen"
+        Title="Re:PMEditor" Height="600" Width="1000" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen"
         >
     <Grid Background="#FF0B0314">
         <Grid.ColumnDefinitions>
@@ -20,9 +20,15 @@
             <ListBox Name="trackList" Background="#FF222222" Foreground="White" FontSize="24" Margin="0,10,0,0" BorderBrush="Black" Height="432" VerticalAlignment="Top" d:ItemsSource="{d:SampleData ItemCount=5}" >
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <Grid Height="75" Width="600">
+                        <Grid Height="75" Width="600" MouseDown="Grid_MouseDown">
                             <Label Content="{Binding TrackName}" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Width="449" Height="45" Foreground="White" FontSize="30"/>
                             <Label Content="{Binding TrackAuthor}" HorizontalAlignment="Left" Margin="38,38,0,0" VerticalAlignment="Top" Width="449" FontSize="16" Foreground="White"/>
+                            <Grid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="打开" Click="Button_Click_1"/>
+                                    <MenuItem Header="删除" Click="deleteTrack_Click"/>
+                                </ContextMenu>
+                            </Grid.ContextMenu>
                         </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>

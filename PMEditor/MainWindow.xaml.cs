@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace PMEditor
 {
@@ -42,7 +43,12 @@ namespace PMEditor
         private void CreateButton_Click(object sender, RoutedEventArgs e)
         {
             CreateTrack createTrack = new CreateTrack();
-            createTrack.ShowDialog();
+            if (createTrack.ShowDialog() == true)
+            {
+                EditorWindow editorWindow = new EditorWindow(createTrack.TrackInfo, Track.GetTrack(new FileInfo("./tracks/" + createTrack.TrackInfo.TrackName + "/track.json")));
+                editorWindow.Show();
+                this.Close();
+            }
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
@@ -82,6 +88,43 @@ namespace PMEditor
                         streamReader.Close();
                     }
                 }
+            }
+        }
+
+        private void deleteTrack_Click(object sender, RoutedEventArgs e)
+        {
+            //删除谱面
+            if (trackList.SelectedItem is TrackInfo curr)
+            {
+                Directory.Delete("./tracks/" + curr.TrackName, true);
+            }
+            trackList.Items.Remove(trackList.SelectedItem);
+            Flush(null, null);
+        }
+
+        int i = 0;
+        private void Grid_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.LeftButton != MouseButtonState.Pressed)
+            {
+                return;
+            }
+            i += 1;
+            DispatcherTimer timer = new DispatcherTimer()
+            {
+                Interval = new TimeSpan(0, 0, 0, 0, 100),
+            };
+            timer.Tick += (sender, e) =>
+            {
+                timer.IsEnabled = false;
+                i = 0;
+            };
+            timer.IsEnabled = true;
+            if (i == 2)
+            {
+                timer.IsEnabled = false;
+                i = 0;
+                Button_Click_1(null, null);
             }
         }
     }
