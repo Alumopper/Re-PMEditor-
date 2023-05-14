@@ -54,11 +54,24 @@ namespace PMEditor
             secondsPreBeat = 60.0 / window.track.bpm;
             secondsPreDevideBeat = secondsPreBeat / divideNum;
             window.timer.Tick += Timer_Tick;
+            Task.Run(() =>
+            {
+                while (true)
+                {
+                    Thread.Sleep(10);
+                    if (window.isPlaying)
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            Update();   
+                        });
+                    }
+                }
+            });
         }
 
         private void Timer_Tick(object? sender, EventArgs e)
         {
-            Update();
             Draw();
         }
 
