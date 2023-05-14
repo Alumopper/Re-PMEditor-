@@ -45,6 +45,14 @@ namespace PMEditor
             get { return pixelPreDividedBeat * divideNum; }
         }
 
+        SolidColorBrush tapBrush = new SolidColorBrush(
+            System.Windows.Media.Color.FromArgb(102,109,209,213)
+            );
+
+        SolidColorBrush dragBrush = new SolidColorBrush(
+            System.Windows.Media.Color.FromArgb(102, 227, 214, 76)
+            );
+
         public TrackEditorPage(EditorWindow window)
         {
             InitializeComponent();
@@ -121,10 +129,10 @@ namespace PMEditor
         }
 
         //绘图
-        private void Draw()
+        public void Draw()
         {
-            //移除除了第一个元素以外的元素（保留Grid）
-            notePanel.Children.RemoveRange(1, notePanel.Children.Count - 1);
+            //移除除了第1、2个元素以外的元素（保留Grid和矩形）
+            notePanel.Children.RemoveRange(2, notePanel.Children.Count - 1);
             VisualBrush notePanelBrush = new VisualBrush();
             notePanelBrush.Visual = notePanel;
             //绘制节拍线
@@ -172,6 +180,59 @@ namespace PMEditor
                 //更新时间
                 timeDis.Content = window.player.Position.TotalSeconds.ToString("0.00") + " / " + window.track.Length.ToString("0.00");
             }
+        }
+
+        private void notePanel_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (!window.isPlaying)
+            {
+                //获取鼠标位置，生成note位置预览
+                var mousePos = e.GetPosition(notePanel);
+                //x坐标对齐
+                mousePos.X = (int)(mousePos.X / (notePanel.ActualWidth / 9)) * (notePanel.ActualWidth / 9);
+                //y坐标对齐
+                //基准线相对坐标计算
+                double fix = 0;
+                if (window.player.Position.TotalSeconds / secondsPreDevideBeat % 1 > 0.001)
+                {
+                    fix = window.player.Position.TotalSeconds / secondsPreDevideBeat % 1 * pixelPreDividedBeat;
+                }
+                mousePos.Y = ((int)((notePanel.ActualHeight - mousePos.Y + fix) / pixelPreDividedBeat)) * pixelPreDividedBeat - fix;
+                if (window.puttingTap)
+                {
+                    notePreview.Fill = tapBrush;
+                }
+                else
+                {
+                    notePreview.Fill = dragBrush;
+                }
+                
+                //绘制note矩形
+                notePreview.Visibility = Visibility.Visible;
+                Canvas.SetLeft(notePreview, mousePos.X);
+                Canvas.SetBottom(notePreview, mousePos.Y);
+            }
+            else
+            {
+                notePreview.Visibility = Visibility.Collapsed;
+            }   
+        }
+
+        public void FlushNotePreview()
+        {
+            if (window.puttingTap)
+            {
+                notePreview.Fill = tapBrush;
+            }
+            else
+            {
+                notePreview.Fill = dragBrush;
+            }
+        }
+
+        private void notePanel_MouseLeave(object sender, MouseEventArgs e)
+        {
+            notePreview.Visibility = Visibility.Collapsed;
         }
     }
 }

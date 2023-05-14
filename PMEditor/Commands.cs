@@ -14,5 +14,11 @@ namespace PMEditor
             {
                 new KeyGesture(Key.Space)
             });
+
+        public static readonly RoutedUICommand ChangeNoteType = new RoutedUICommand(
+            "Drag/Note", "Change Note", typeof(Commands), new InputGestureCollection()
+            {
+                new KeyGesture(Key.D,ModifierKeys.Control)
+            });
     }
 }

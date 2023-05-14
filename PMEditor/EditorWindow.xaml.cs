@@ -27,6 +27,9 @@ namespace PMEditor
         public DispatcherTimer timer;
 
         public bool isPlaying = false;
+        public bool puttingTap = true;
+
+        int currPageIndex;
 
         public EditorWindow(TrackInfo info, Track track)
         {
@@ -73,6 +76,7 @@ namespace PMEditor
 
         public void SetCurrPage(int index)
         {
+            currPageIndex = index;
             //设置页面
             page.Content = pages[index];
             //刷新json
@@ -92,6 +96,7 @@ namespace PMEditor
             }
         }
 
+        //SPACE - 播放/暂停
         private void CommandBinding_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = player.HasAudio;
@@ -109,6 +114,18 @@ namespace PMEditor
                 player.Play();
                 isPlaying = true;
             }
+        }
+
+        //Shift - 改变note种类
+        private void CommandBinding_CanExecute_1(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = currPageIndex == 0;
+        }
+
+        private void CommandBinding_Executed_1(object sender, ExecutedRoutedEventArgs e)
+        {
+            puttingTap = !puttingTap;
+            (pages[0] as TrackEditorPage).FlushNotePreview();
         }
     }
     
