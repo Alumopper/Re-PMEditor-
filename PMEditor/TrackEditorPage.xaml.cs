@@ -1,4 +1,5 @@
-﻿using System;
+﻿using IronPython.Compiler.Ast;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -46,12 +47,17 @@ namespace PMEditor
         }
 
         SolidColorBrush tapBrush = new SolidColorBrush(
-            System.Windows.Media.Color.FromArgb(102,109,209,213)
+            System.Windows.Media.Color.FromArgb(102, 109, 209, 213)
             );
 
         SolidColorBrush dragBrush = new SolidColorBrush(
             System.Windows.Media.Color.FromArgb(102, 227, 214, 76)
             );
+
+        Note? willPut;
+        int lineIndex = 0;
+
+        bool noteChange = false;
 
         public TrackEditorPage(EditorWindow window)
         {
@@ -71,7 +77,7 @@ namespace PMEditor
                     {
                         Dispatcher.Invoke(() =>
                         {
-                            Update();   
+                            Update();
                         });
                     }
                 }
@@ -112,6 +118,8 @@ namespace PMEditor
             playerControler.Value = currTime * 100;
             //Lable设置
             timeDis.Content = currTime.ToString("0.00") + " / " + window.track.Length.ToString("0.00");
+            noteChange = true;
+            Update();
         }
 
 
@@ -131,8 +139,15 @@ namespace PMEditor
         //绘图
         public void Draw()
         {
-            //移除除了第1、2个元素以外的元素（保留Grid和矩形）
-            notePanel.Children.RemoveRange(2, notePanel.Children.Count - 1);
+            //移除线
+            for(int i = 0;i < notePanel.Children.Count;i++)
+            {
+                if (notePanel.Children[i] is System.Windows.Shapes.Line)
+                {
+                    notePanel.Children.RemoveAt(i);
+                    i--;
+                }
+            }
             VisualBrush notePanelBrush = new VisualBrush();
             notePanelBrush.Visual = notePanel;
             //绘制节拍线
@@ -154,7 +169,7 @@ namespace PMEditor
                     Y1 = actualY,
                     Y2 = actualY
                 };
-                if((notePanel.ActualHeight - i) % pixelPreBeat < 0.001 || (notePanel.ActualHeight - i) % pixelPreBeat > 0.999 && (notePanel.ActualHeight - i) % pixelPreBeat < 1)
+                if ((notePanel.ActualHeight - i) % pixelPreBeat < 0.001 || (notePanel.ActualHeight - i) % pixelPreBeat > 0.999 && (notePanel.ActualHeight - i) % pixelPreBeat < 1)
                 {
                     //是整拍
                     line.Stroke = new SolidColorBrush(System.Windows.Media.Color.FromRgb(237, 70, 255));
@@ -180,6 +195,35 @@ namespace PMEditor
                 //更新时间
                 timeDis.Content = window.player.Position.TotalSeconds.ToString("0.00") + " / " + window.track.Length.ToString("0.00");
             }
+            //更新note
+            if (window.isPlaying || noteChange)
+            {
+                UpdateNote();
+                noteChange = false;
+            }
+        }
+
+        private void UpdateNote()
+        {
+            //目前显示的时间范围
+            double minTime = window.player.Position.TotalSeconds;
+            double maxTime = minTime + notePanel.ActualHeight / pixelPreBeat * secondsPreBeat;
+            foreach (var line in window.track.lines)
+            {
+                foreach (var note in line.notes)
+                {
+                    if (minTime <= note.actualTime && note.actualTime <= maxTime)
+                    {
+                        note.rectangle.Visibility = Visibility.Visible;
+                        double qwq = note.actualTime - minTime;
+                        Canvas.SetBottom(note.rectangle, qwq / secondsPreBeat * pixelPreBeat);
+                    }
+                    else
+                    {
+                        note.rectangle.Visibility = Visibility.Hidden;
+                    }
+                }
+            }
         }
 
         private void notePanel_MouseMove(object sender, MouseEventArgs e)
@@ -187,17 +231,7 @@ namespace PMEditor
             if (!window.isPlaying)
             {
                 //获取鼠标位置，生成note位置预览
-                var mousePos = e.GetPosition(notePanel);
-                //x坐标对齐
-                mousePos.X = (int)(mousePos.X / (notePanel.ActualWidth / 9)) * (notePanel.ActualWidth / 9);
-                //y坐标对齐
-                //基准线相对坐标计算
-                double fix = 0;
-                if (window.player.Position.TotalSeconds / secondsPreDevideBeat % 1 > 0.001)
-                {
-                    fix = window.player.Position.TotalSeconds / secondsPreDevideBeat % 1 * pixelPreDividedBeat;
-                }
-                mousePos.Y = ((int)((notePanel.ActualHeight - mousePos.Y + fix) / pixelPreDividedBeat)) * pixelPreDividedBeat - fix;
+                var mousePos = GetAlignedPoint(e.GetPosition(notePanel));
                 if (window.puttingTap)
                 {
                     notePreview.Fill = tapBrush;
@@ -233,6 +267,56 @@ namespace PMEditor
         private void notePanel_MouseLeave(object sender, MouseEventArgs e)
         {
             notePreview.Visibility = Visibility.Collapsed;
+        }
+
+
+        MouseButtonEventArgs startState;
+
+        private void notePanel_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (window.isPlaying) return;
+            startState = e;
+        }
+
+        private void notePanel_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (window.isPlaying) return;
+            if (startState == null) return;
+            //获取时间
+            //获取鼠标位置，生成note位置预览
+            var mousePos = GetAlignedPoint(startState.GetPosition(notePanel));
+            var noteTime = GetTimeFromY(mousePos.Y);
+            Note.SetTemplate(notePreview);
+            //放置note
+            willPut ??= new Note(
+                    (int)(mousePos.X * 9 / notePanel.ActualWidth),
+                    window.puttingTap ? NoteType.Tap : NoteType.Drag,
+                    0,
+                    false,
+                    noteTime,
+                    0);
+            notePanel.Children.Add(willPut.rectangle);
+            Canvas.SetLeft(willPut.rectangle, willPut.rail * notePanel.ActualWidth / 9);
+            Canvas.SetBottom(willPut.rectangle, mousePos.Y);
+            if (!window.track.lines[lineIndex].notes.Contains(willPut))
+            {
+                window.track.lines[lineIndex].notes.Add(willPut);
+            }
+            noteChange = true;
+            willPut = null;
+        }
+
+        //调整note大小
+        private void notePanel_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            notePreview.Width = notePanel.ActualWidth / 9;
+            window.track.lines.ForEach(e =>
+            {
+                e.notes.ForEach(e =>
+                {
+                    e.rectangle.Width = notePanel.ActualWidth / 9;
+                });
+            });
         }
     }
 }

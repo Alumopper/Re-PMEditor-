@@ -34,6 +34,10 @@ namespace PMEditor
         public EditorWindow(TrackInfo info, Track track)
         {
             InitializeComponent();
+            if(track.lines.Count == 0)
+            {
+                track.lines.Add(new Line());
+            }
             this.info = info;
             this.track = track;
             this.Title = "Re:PMEditor - " + info.TrackName;

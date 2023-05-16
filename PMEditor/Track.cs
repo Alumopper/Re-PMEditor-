@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Windows.Media;
+using static System.Net.WebRequestMethods;
 
 namespace PMEditor
 {
@@ -14,13 +16,13 @@ namespace PMEditor
     /// </summary>
     public class Track
     {
-        public string trackName;
-        public string musicAuthor;
-        public string trackAuthor;
-        public double bpm;
-        public double length;
-        public string difficulty;
-        public List<Line> lines;
+        public string trackName;    //谱面名字
+        public string musicAuthor;  //曲师
+        public string trackAuthor;  //谱师
+        public double bpm;          //bpm
+        public double length;       //曲目长度
+        public string difficulty;   //谱面难度
+        public List<Line> lines;    //判定线
 
         #region getter and setter
         public string TrackName
@@ -75,6 +77,7 @@ namespace PMEditor
             this.length = length;
             this.difficulty = difficulty;
             this.lines = new();
+            lines.Add(new Line());
         }
 
         public static Track? GetTrack(FileInfo trackFile)
@@ -92,8 +95,8 @@ namespace PMEditor
 
     public class Line
     {
-        public double y;
-        public List<Note> notes;
+        public double y;        //判定线的y坐标
+        public List<Note> notes;//note
 
         #region getter and setter
         public double Y
@@ -120,13 +123,17 @@ namespace PMEditor
 
     public partial class Note
     {
-        public int rail;
-        public int noteType;
-        public int fallType;
-        public bool isFake;
-        public int time;
-        public int generTime;
-        public List<double> positions;
+        public int rail;                //轨道
+        public int noteType;            //note类型
+        public int fallType;            //掉落类型
+        public bool isFake;             //是否是假键
+        public int time;                //被判定的时间，单位tick
+        public int generTime;           //生成此note的时间，单位tick
+        public int holdTime;            //需要按住的时间，仅用于hold，单位tick
+        public List<double> positions;  //所有可能的位置
+
+        public double actualTime;       //准确的判定时间
+        public double actualHoldTime;   //准确的按住时间
 
         #region getter and setter
         public int Rail
@@ -165,15 +172,35 @@ namespace PMEditor
         }
         #endregion
 
-        public Note(int rail, int noteType, int fallType, bool isFake, int time, int generTime)
+        public Note(int rail, NoteType noteType, int fallType, bool isFake, double time, int generTime, double holdTime = 0)
         {
             this.rail = rail;
-            this.noteType = noteType;
+            this.noteType = (int)noteType;
             this.fallType = fallType;
             this.isFake = isFake;
-            this.time = time;
+            this.actualTime = time;
+            this.time = (int)(time*20);
             this.generTime = generTime;
+            this.actualHoldTime = holdTime;
+            this.holdTime = (int)(holdTime*20);
             this.positions = new();
+
+            rectangle = new System.Windows.Shapes.Rectangle()
+            {
+                Width = template.Width,
+                Height = template.Height,
+            };
+
+            if(noteType == PMEditor.NoteType.Tap)
+            {
+                rectangle.Fill = new SolidColorBrush(
+                Color.FromArgb(255, 109, 209, 213));
+            }
+            else
+            {
+                rectangle.Fill = new SolidColorBrush(
+                Color.FromArgb(255, 227, 214, 76));
+            }
         }
     }
 }
