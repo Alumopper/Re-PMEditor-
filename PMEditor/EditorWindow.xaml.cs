@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PMEditor.Operation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -130,6 +131,28 @@ namespace PMEditor
         {
             puttingTap = !puttingTap;
             (pages[0] as TrackEditorPage).FlushNotePreview();
+        }
+
+        //撤销
+        private void CommandBinding_CanExecute_2(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = OperationManager.CanUndo;
+        }
+
+        private void CommandBinding_Executed_2(object sender, ExecutedRoutedEventArgs e)
+        {
+            OperationManager.Undo();
+        }
+
+        //重做
+        private void CommandBinding_CanExecute_3(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = OperationManager.CanRedo;
+        }
+
+        private void CommandBinding_Executed_3(object sender, ExecutedRoutedEventArgs e)
+        {
+            OperationManager.ReDo();
         }
     }
     

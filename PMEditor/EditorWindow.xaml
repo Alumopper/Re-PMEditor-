@@ -10,6 +10,8 @@
     <Window.CommandBindings>
         <CommandBinding Command="local:Commands.PlayOrPause" CanExecute="CommandBinding_CanExecute" Executed="CommandBinding_Executed" />
         <CommandBinding Command="local:Commands.ChangeNoteType" CanExecute="CommandBinding_CanExecute_1" Executed="CommandBinding_Executed_1"/>
+        <CommandBinding Command="local:Commands.Undo" CanExecute="CommandBinding_CanExecute_2" Executed="CommandBinding_Executed_2"/>
+        <CommandBinding Command="local:Commands.Redo" CanExecute="CommandBinding_CanExecute_3" Executed="CommandBinding_Executed_3"/>
     </Window.CommandBindings>
     <Window.Resources>
         <Style TargetType="Button">
@@ -41,6 +43,8 @@
         <Menu Grid.Row="0" Background="#FF0B0314" BorderThickness="0,0,0,1" BorderBrush="#FF3A1662" Foreground="#FFE5E5E5" Margin="0,4,0,0">
             <MenuItem Header="文件(_F)" Margin="0,0,3,0"/>
             <MenuItem Header="编辑(_E)" Margin="0,0,3,0">
+                <MenuItem Header="撤销(_Z)" Foreground="#FF000000" Command="local:Commands.Undo"/>
+                <MenuItem Header="重做(_Y)" Foreground="#FF000000" Command="local:Commands.Redo"/>
                 <MenuItem Header="切换Note类型(_D)" Foreground="#FF000000" Command="local:Commands.ChangeNoteType"/>
             </MenuItem>
             <MenuItem Header="媒体(_M)" Margin="0,0,3,0">

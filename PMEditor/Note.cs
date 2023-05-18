@@ -1,9 +1,11 @@
-﻿using System;
+﻿using IronPython.Runtime;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation.Runspaces;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media;
 using System.Windows.Shapes;
 
 namespace PMEditor
@@ -18,6 +20,10 @@ namespace PMEditor
         public Rectangle rectangle;
 
         public NoteType type;
+
+        public bool hasJudged = false;
+
+        public MediaPlayer sound = new MediaPlayer();
 
         public static void SetTemplate(Rectangle rectangle)
         {
@@ -37,6 +43,11 @@ namespace PMEditor
                 return this.actualTime == note.actualTime && this.rail == note.rail;
             }
             return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return actualTime.GetHashCode() + rail.GetHashCode() + noteType.GetHashCode();
         }
     }
 

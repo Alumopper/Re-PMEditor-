@@ -184,6 +184,7 @@ namespace PMEditor
             this.actualHoldTime = holdTime;
             this.holdTime = (int)(holdTime*20);
             this.positions = new();
+            this.sound.MediaEnded += Sound_MediaEnded;
 
             rectangle = new System.Windows.Shapes.Rectangle()
             {
@@ -193,14 +194,22 @@ namespace PMEditor
 
             if(noteType == PMEditor.NoteType.Tap)
             {
+                sound.Open(new Uri("./assets/sounds/tap.wav",UriKind.Relative));
                 rectangle.Fill = new SolidColorBrush(
                 Color.FromArgb(255, 109, 209, 213));
             }
             else
             {
+                sound.Open(new Uri("./assets/sounds/drag.wav",UriKind.Relative));
                 rectangle.Fill = new SolidColorBrush(
                 Color.FromArgb(255, 227, 214, 76));
             }
+        }
+
+        private void Sound_MediaEnded(object? sender, EventArgs e)
+        {
+            (sender as MediaPlayer).Stop();
+            (sender as MediaPlayer).Position = new TimeSpan(0);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using IronPython.Compiler.Ast;
+using PMEditor.Operation;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -25,12 +26,7 @@ namespace PMEditor
     /// </summary>
     public partial class TrackEditorPage : Page
     {
-        EditorWindow window;
-        public EditorWindow Window
-        {
-            get { return window; }
-            set { window = value; }
-        }
+        public EditorWindow window;
 
         double secondsPreBeat;
 
@@ -82,6 +78,7 @@ namespace PMEditor
                     }
                 }
             });
+            OperationManager.editorPage = this;
         }
 
         private void Timer_Tick(object? sender, EventArgs e)
@@ -203,7 +200,7 @@ namespace PMEditor
             }
         }
 
-        private void UpdateNote()
+        public void UpdateNote()
         {
             //目前显示的时间范围
             double minTime = window.player.Position.TotalSeconds;
@@ -212,14 +209,32 @@ namespace PMEditor
             {
                 foreach (var note in line.notes)
                 {
-                    if (minTime <= note.actualTime && note.actualTime <= maxTime)
+                    //在判定线上方
+                    if(minTime <= note.actualTime)
                     {
-                        note.rectangle.Visibility = Visibility.Visible;
-                        double qwq = note.actualTime - minTime;
-                        Canvas.SetBottom(note.rectangle, qwq / secondsPreBeat * pixelPreBeat);
+                        if (note.hasJudged)
+                        {
+                            note.hasJudged = false;
+                            note.sound.Position = new TimeSpan(0);
+                        }
+                        //在可视区域内
+                        if (note.actualTime <= maxTime)
+                        {
+                            note.rectangle.Visibility = Visibility.Visible;
+                            double qwq = note.actualTime - minTime;
+                            Canvas.SetBottom(note.rectangle, qwq / secondsPreBeat * pixelPreBeat);
+                            
+                        }
                     }
+                    //在判定线下方
                     else
                     {
+                        //如果未被判定过且谱面正在被播放
+                        if((!note.hasJudged) && window.isPlaying)
+                        {
+                            note.sound.Play();
+                            note.hasJudged = true;
+                        }
                         note.rectangle.Visibility = Visibility.Hidden;
                     }
                 }
@@ -287,7 +302,7 @@ namespace PMEditor
             var mousePos = GetAlignedPoint(startState.GetPosition(notePanel));
             var noteTime = GetTimeFromY(mousePos.Y);
             Note.SetTemplate(notePreview);
-            //放置note
+            //放置note(
             willPut ??= new Note(
                     (int)(mousePos.X * 9 / notePanel.ActualWidth),
                     window.puttingTap ? NoteType.Tap : NoteType.Drag,
@@ -303,6 +318,7 @@ namespace PMEditor
                 window.track.lines[lineIndex].notes.Add(willPut);
             }
             noteChange = true;
+            OperationManager.AddOperation(new PutNoteOperation(willPut, window.track.lines[lineIndex]));
             willPut = null;
         }
 
