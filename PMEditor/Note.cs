@@ -49,6 +49,11 @@ namespace PMEditor
         {
             return actualTime.GetHashCode() + rail.GetHashCode() + noteType.GetHashCode();
         }
+
+        public override string ToString()
+        {
+            return $"{(type == PMEditor.NoteType.Tap?"Tap":"Drag")}[rail={rail},time={actualTime}]";
+        }
     }
 
     public enum NoteType{

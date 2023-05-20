@@ -12,6 +12,7 @@
         <CommandBinding Command="local:Commands.ChangeNoteType" CanExecute="CommandBinding_CanExecute_1" Executed="CommandBinding_Executed_1"/>
         <CommandBinding Command="local:Commands.Undo" CanExecute="CommandBinding_CanExecute_2" Executed="CommandBinding_Executed_2"/>
         <CommandBinding Command="local:Commands.Redo" CanExecute="CommandBinding_CanExecute_3" Executed="CommandBinding_Executed_3"/>
+        <CommandBinding Command="local:Commands.Save" CanExecute="CommandBinding_CanExecute_4" Executed="CommandBinding_Executed_4"/>
     </Window.CommandBindings>
     <Window.Resources>
         <Style TargetType="Button">
@@ -41,7 +42,9 @@
         </Grid.RowDefinitions>
         <!--工具栏-->
         <Menu Grid.Row="0" Background="#FF0B0314" BorderThickness="0,0,0,1" BorderBrush="#FF3A1662" Foreground="#FFE5E5E5" Margin="0,4,0,0">
-            <MenuItem Header="文件(_F)" Margin="0,0,3,0"/>
+            <MenuItem Header="文件(_F)" Margin="0,0,3,0">
+                <MenuItem Header="保存(_S)" Foreground="#FF000000" Command="local:Commands.Save"/>
+            </MenuItem>
             <MenuItem Header="编辑(_E)" Margin="0,0,3,0">
                 <MenuItem Header="撤销(_Z)" Foreground="#FF000000" Command="local:Commands.Undo"/>
                 <MenuItem Header="重做(_Y)" Foreground="#FF000000" Command="local:Commands.Redo"/>
@@ -89,7 +92,13 @@
         </Grid>
         <!--底部状态栏-->
         <StatusBar Background="#FF342249" Grid.Row="2">
-
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <!--操作指示栏-->
+                <TextBlock Margin="10,0,0,0" Text="初始化中" Name="operationInfo" Foreground="White"/>
+            </Grid>
         </StatusBar>
     </Grid>
 </Window>

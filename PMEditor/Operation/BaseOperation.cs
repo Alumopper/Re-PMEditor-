@@ -11,5 +11,7 @@ namespace PMEditor.Operation
         public abstract void ReDo();
 
         public abstract void Undo();
+
+        public abstract string GetInfo();
     }
 }

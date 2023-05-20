@@ -55,6 +55,8 @@ namespace PMEditor
 
         bool noteChange = false;
 
+        bool init = false;
+
         public TrackEditorPage(EditorWindow window)
         {
             InitializeComponent();
@@ -79,10 +81,29 @@ namespace PMEditor
                 }
             });
             OperationManager.editorPage = this;
+            //添加note渲染
+            window.track.lines.ForEach(line =>
+            {
+                line.notes.ForEach(note =>
+                {
+                    note.rectangle.Visibility = Visibility.Hidden;
+                    notePanel.Children.Add(note.rectangle);
+                    note.rectangle.Height = 10;
+                    note.rectangle.Width = notePanel.ActualWidth / 9;
+                });
+            });
+            init = true;
+            speedChooseBox.ItemsSource = Settings.currSetting.canSelectedSpeedList;
         }
 
         private void Timer_Tick(object? sender, EventArgs e)
         {
+            if (init)
+            {
+                UpdateNote();
+                init = false;
+                window.operationInfo.Text = "就绪";
+            }
             Draw();
         }
 
@@ -223,7 +244,7 @@ namespace PMEditor
                             note.rectangle.Visibility = Visibility.Visible;
                             double qwq = note.actualTime - minTime;
                             Canvas.SetBottom(note.rectangle, qwq / secondsPreBeat * pixelPreBeat);
-                            
+                            Canvas.SetLeft(note.rectangle, note.rail * notePanel.ActualWidth / 9);
                         }
                     }
                     //在判定线下方
@@ -301,15 +322,16 @@ namespace PMEditor
             //获取鼠标位置，生成note位置预览
             var mousePos = GetAlignedPoint(startState.GetPosition(notePanel));
             var noteTime = GetTimeFromY(mousePos.Y);
-            Note.SetTemplate(notePreview);
             //放置note(
             willPut ??= new Note(
-                    (int)(mousePos.X * 9 / notePanel.ActualWidth),
-                    window.puttingTap ? NoteType.Tap : NoteType.Drag,
-                    0,
-                    false,
-                    noteTime,
-                    0);
+                    rail:       (int)(mousePos.X * 9 / notePanel.ActualWidth),
+                    noteType:   (int)(window.puttingTap ? NoteType.Tap : NoteType.Drag),
+                    fallType:   0,
+                    isFake:     false,
+                    actualTime: noteTime,
+                    generTime:  0);
+            willPut.rectangle.Height = 10;
+            willPut.rectangle.Width = notePreview.Width;
             notePanel.Children.Add(willPut.rectangle);
             Canvas.SetLeft(willPut.rectangle, willPut.rail * notePanel.ActualWidth / 9);
             Canvas.SetBottom(willPut.rectangle, mousePos.Y);
@@ -333,6 +355,34 @@ namespace PMEditor
                     e.rectangle.Width = notePanel.ActualWidth / 9;
                 });
             });
+        }
+
+        private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            float speed;
+            try
+            {
+                speed = float.Parse(e.AddedItems[0] as string);
+            }
+            catch (Exception) 
+            {
+                speed = 1.0f;
+            }
+            //速度设置
+            if(window != null && window.player != null)
+            {
+                window.player.SpeedRatio = speed;
+            }
+        }
+
+        private void speedChooseBox_MouseEnter(object sender, MouseEventArgs e)
+        {
+            speedChooseBox.Focusable = true;
+        }
+
+        private void speedChooseBox_MouseLeave(object sender, MouseEventArgs e)
+        {
+            speedChooseBox.Focusable = false;
         }
     }
 }

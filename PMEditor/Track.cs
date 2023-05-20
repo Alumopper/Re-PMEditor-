@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Media;
+using System.Windows.Shapes;
 using static System.Net.WebRequestMethods;
 
 namespace PMEditor
@@ -161,9 +162,24 @@ namespace PMEditor
             get => time; set => time = value;
         }
 
+        public double ActualTime
+        {
+            get => actualTime; set => actualTime = value;
+        }
+
         public int GenerTime
         {
             get => generTime; set => generTime = value;
+        }
+
+        public int HoldTime
+        {
+            get => holdTime; set => holdTime = value;
+        }
+
+        public double ActualHoldTime
+        {
+            get => actualHoldTime; set => actualHoldTime = value;
         }
 
         public List<double> Positions
@@ -172,27 +188,25 @@ namespace PMEditor
         }
         #endregion
 
-        public Note(int rail, NoteType noteType, int fallType, bool isFake, double time, int generTime, double holdTime = 0)
+        public Note(int rail, int noteType, int fallType, bool isFake, double actualTime, int generTime, double actualHoldTime = 0)
         {
             this.rail = rail;
-            this.noteType = (int)noteType;
+            this.noteType = noteType;
             this.fallType = fallType;
             this.isFake = isFake;
-            this.actualTime = time;
-            this.time = (int)(time*20);
+            this.actualTime = actualTime;
+            this.time = (int)(actualTime * 20);
             this.generTime = generTime;
-            this.actualHoldTime = holdTime;
-            this.holdTime = (int)(holdTime*20);
+            this.actualHoldTime = actualHoldTime;
+            this.holdTime = (int)(actualHoldTime * 20);
             this.positions = new();
             this.sound.MediaEnded += Sound_MediaEnded;
 
-            rectangle = new System.Windows.Shapes.Rectangle()
-            {
-                Width = template.Width,
-                Height = template.Height,
-            };
+            this.type = (NoteType)Enum.Parse(typeof(NoteType), noteType.ToString());
 
-            if(noteType == PMEditor.NoteType.Tap)
+            rectangle = new Rectangle();
+
+            if(noteType == (int)PMEditor.NoteType.Tap)
             {
                 sound.Open(new Uri("./assets/sounds/tap.wav",UriKind.Relative));
                 rectangle.Fill = new SolidColorBrush(

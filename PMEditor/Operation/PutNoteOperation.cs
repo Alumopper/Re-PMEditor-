@@ -29,5 +29,10 @@ namespace PMEditor.Operation
             line.notes.Remove(note);
             note.rectangle.Visibility = System.Windows.Visibility.Hidden;
         }
+
+        public override string GetInfo()
+        {
+            return "放置"+note.ToString();
+        }
     }
 }

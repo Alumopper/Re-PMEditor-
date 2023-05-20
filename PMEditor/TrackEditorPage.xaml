@@ -25,9 +25,20 @@
                 <RowDefinition Height="43.79"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <WrapPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Grid.RowSpan="2">
-                <Label x:Name="timeDis" Content="0.1/155.33s" Width="200" Height="25" Margin="5,25,0,0" Foreground="White" FontSize="14" FontFamily="Consolas"/>
-            </WrapPanel>
+            <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Grid.RowSpan="2" Margin="10,0,10,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="{Binding ActualWidth, ElementName=notePanel, Mode=OneWay}"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="{Binding ActualWidth, ElementName=eventPanel, Mode=OneWay}" />
+                </Grid.ColumnDefinitions>
+                <Canvas Grid.Column="0">
+                    <Label x:Name="timeDis" Content="0.1/155.33s" Width="200" Height="25" Foreground="White" FontSize="14" FontFamily="Consolas" Canvas.Left="0" Canvas.Bottom="0"/>
+                    <WrapPanel Canvas.Right="0" Canvas.Bottom="0">
+                        <Label Content="倍速: " Foreground="White"/>
+                        <ComboBox SelectedIndex="0" Name="speedChooseBox" Width="60" SelectionChanged="ComboBox_SelectionChanged" Foreground="Black" MouseEnter="speedChooseBox_MouseEnter" MouseLeave="speedChooseBox_MouseLeave"/>
+                    </WrapPanel>
+                </Canvas>
+            </Grid>
             <Border BorderBrush="#FF61207B" Grid.Row="2" Grid.Column="0" BorderThickness="1,1,1,1" Margin="9,5,10,20">
                 <Canvas Name="notePanel" Background="Black" MouseWheel="notePanel_MouseWheel" ClipToBounds="True" MouseMove="notePanel_MouseMove" MouseLeave="notePanel_MouseLeave" MouseLeftButtonUp="notePanel_MouseLeftButtonUp" MouseLeftButtonDown="notePanel_MouseLeftButtonDown" SizeChanged="notePanel_SizeChanged" >
                     <Grid Width="{Binding ElementName=notePanel, Path=ActualWidth}" Height="{Binding ElementName=notePanel, Path=ActualHeight}">

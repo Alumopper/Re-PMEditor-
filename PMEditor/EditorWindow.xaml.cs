@@ -57,6 +57,7 @@ namespace PMEditor
             {
                 isPlaying = false;
             };
+            OperationManager.editorWindow = this;
         }
 
         private void editorButton_Click(object sender, RoutedEventArgs e)
@@ -99,60 +100,6 @@ namespace PMEditor
                     uIElements[i].Visibility = Visibility.Visible;
                 }
             }
-        }
-
-        //SPACE - 播放/暂停
-        private void CommandBinding_CanExecute(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = player.HasAudio;
-        }
-
-        private void CommandBinding_Executed(object sender, ExecutedRoutedEventArgs e)
-        {
-            if (isPlaying)
-            {
-                player.Pause();
-                isPlaying = false;
-            }
-            else
-            {
-                player.Play();
-                isPlaying = true;
-            }
-        }
-
-        //Shift - 改变note种类
-        private void CommandBinding_CanExecute_1(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = currPageIndex == 0;
-        }
-
-        private void CommandBinding_Executed_1(object sender, ExecutedRoutedEventArgs e)
-        {
-            puttingTap = !puttingTap;
-            (pages[0] as TrackEditorPage).FlushNotePreview();
-        }
-
-        //撤销
-        private void CommandBinding_CanExecute_2(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = OperationManager.CanUndo;
-        }
-
-        private void CommandBinding_Executed_2(object sender, ExecutedRoutedEventArgs e)
-        {
-            OperationManager.Undo();
-        }
-
-        //重做
-        private void CommandBinding_CanExecute_3(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = OperationManager.CanRedo;
-        }
-
-        private void CommandBinding_Executed_3(object sender, ExecutedRoutedEventArgs e)
-        {
-            OperationManager.ReDo();
         }
     }
     

@@ -38,6 +38,9 @@ namespace PMEditor
             watcher.Created += Flush;
             watcher.EnableRaisingEvents = true;
             Flush(null, null);
+            //设置
+            //TODO
+            Settings.currSetting = new Settings();
         }
 
         private void CreateButton_Click(object sender, RoutedEventArgs e)
