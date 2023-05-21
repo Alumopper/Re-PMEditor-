@@ -1,36 +1,31 @@
 ﻿using PMEditor.Operation;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace PMEditor
 {
     public static class Commands
     {
-        public static readonly RoutedUICommand PlayOrPause = new (
+        public static readonly RoutedUICommand PlayOrPause = new(
             "开始/暂停", "Play", typeof(Commands), new InputGestureCollection()
             {
                 new KeyGesture(Key.Space)
             });
 
-        public static readonly RoutedUICommand ChangeNoteType = new (
+        public static readonly RoutedUICommand ChangeNoteType = new(
             "Drag/Note", "Change Note", typeof(Commands), new InputGestureCollection()
             {
                 new KeyGesture(Key.D,ModifierKeys.Control)
             });
 
-        public static readonly RoutedUICommand Undo = new (
+        public static readonly RoutedUICommand Undo = new(
             "撤销", "Undo", typeof(Commands), new InputGestureCollection()
             {
                 new KeyGesture(Key.Z,ModifierKeys.Control)
             });
 
 
-        public static readonly RoutedUICommand Redo = new (
+        public static readonly RoutedUICommand Redo = new(
             "重做", "Redo", typeof(Commands), new InputGestureCollection()
             {
                 new KeyGesture(Key.Z,ModifierKeys.Control | ModifierKeys.Shift)
@@ -87,7 +82,7 @@ namespace PMEditor
         {
             var op = OperationManager.Undo();
             //更改标题
-            if(OperationManager.Index == OperationManager.savedOperationIndex)
+            if (OperationManager.HasSaved)
             {
                 this.Title = "Re:PMEditor - " + info.TrackName;
             }
@@ -106,9 +101,9 @@ namespace PMEditor
 
         private void CommandBinding_Executed_3(object sender, ExecutedRoutedEventArgs e)
         {
-            var op = OperationManager.ReDo();
+            var op = OperationManager.Redo();
             //更改标题
-            if (OperationManager.Index == OperationManager.savedOperationIndex)
+            if (OperationManager.HasSaved)
             {
                 this.Title = "Re:PMEditor - " + info.TrackName;
             }

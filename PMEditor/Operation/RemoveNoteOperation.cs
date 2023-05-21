@@ -1,24 +1,31 @@
-﻿namespace PMEditor.Operation
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace PMEditor.Operation
 {
-    public class PutNoteOperation : BaseOperation
+    public class RemoveNoteOperation : BaseOperation
     {
         Line line;
         Note note;
 
 
-        public PutNoteOperation(Note note, Line line)
+        public RemoveNoteOperation(Note note, Line line)
         {
             this.note = note;
             this.line = line;
         }
 
-        public override void Redo()
+        public override void Undo()
         {
             line.notes.Add(note);
+            OperationManager.editorPage.notePanel.Children.Add(note.rectangle);
             OperationManager.editorPage.UpdateNote();
         }
 
-        public override void Undo()
+        public override void Redo()
         {
             line.notes.Remove(note);
             OperationManager.editorPage.notePanel.Children.Remove(note.rectangle);
@@ -27,7 +34,7 @@
 
         public override string GetInfo()
         {
-            return "放置" + note.ToString();
+            return "移除" + note.ToString();
         }
     }
 }

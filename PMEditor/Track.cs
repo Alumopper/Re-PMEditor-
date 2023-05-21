@@ -1,14 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using System.Windows.Media;
-using System.Windows.Shapes;
-using static System.Net.WebRequestMethods;
 
 namespace PMEditor
 {
@@ -103,7 +97,7 @@ namespace PMEditor
         public double Y
         {
             get { return y; }
-            set { y = value; }         
+            set { y = value; }
         }
 
         public List<Note> Notes
@@ -204,26 +198,24 @@ namespace PMEditor
 
             this.type = (NoteType)Enum.Parse(typeof(NoteType), noteType.ToString());
 
-            rectangle = new Rectangle();
+            rectangle = new NoteRectangle(this);
 
-            if(noteType == (int)PMEditor.NoteType.Tap)
+            //注册点击事件
+            rectangle.MouseRightButtonUp += Rectangle_MouseRightButtonUp;
+
+            if (noteType == (int)PMEditor.NoteType.Tap)
             {
-                sound.Open(new Uri("./assets/sounds/tap.wav",UriKind.Relative));
+                sound.Open(new Uri("./assets/sounds/tap.wav", UriKind.Relative));
                 rectangle.Fill = new SolidColorBrush(
                 Color.FromArgb(255, 109, 209, 213));
             }
             else
             {
-                sound.Open(new Uri("./assets/sounds/drag.wav",UriKind.Relative));
+                sound.Open(new Uri("./assets/sounds/drag.wav", UriKind.Relative));
                 rectangle.Fill = new SolidColorBrush(
                 Color.FromArgb(255, 227, 214, 76));
             }
         }
 
-        private void Sound_MediaEnded(object? sender, EventArgs e)
-        {
-            (sender as MediaPlayer).Stop();
-            (sender as MediaPlayer).Position = new TimeSpan(0);
-        }
     }
 }

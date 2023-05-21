@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:PMEditor"
         mc:Ignorable="d"
         Title="EditorWindow" Height="700" Width="1200" WindowStartupLocation="CenterScreen"
-        WindowState="Maximized">
+        WindowState="Maximized" Closing="Window_Closing" Closed="Window_Closed">
     <Window.CommandBindings>
         <CommandBinding Command="local:Commands.PlayOrPause" CanExecute="CommandBinding_CanExecute" Executed="CommandBinding_Executed" />
         <CommandBinding Command="local:Commands.ChangeNoteType" CanExecute="CommandBinding_CanExecute_1" Executed="CommandBinding_Executed_1"/>

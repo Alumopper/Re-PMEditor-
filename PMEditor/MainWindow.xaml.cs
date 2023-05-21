@@ -1,19 +1,7 @@
-﻿using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace PMEditor
@@ -59,7 +47,7 @@ namespace PMEditor
             if (trackList.SelectedItem is TrackInfo curr)
             {
                 Track? track = Track.GetTrack(new FileInfo("./tracks/" + curr.TrackName + "/track.json"));
-                if(track != null)
+                if (track != null)
                 {
                     EditorWindow editorWindow = new EditorWindow(curr, track);
                     editorWindow.Show();
@@ -73,12 +61,12 @@ namespace PMEditor
         /// </summary>
         private void Flush(object sender, FileSystemEventArgs e)
         {
-            DirectoryInfo directoryInfo = new DirectoryInfo (@"./tracks/");
+            DirectoryInfo directoryInfo = new DirectoryInfo(@"./tracks/");
             foreach (DirectoryInfo track in directoryInfo.GetDirectories())
             {
-                foreach(FileInfo file in track.GetFiles())
+                foreach (FileInfo file in track.GetFiles())
                 {
-                    if(file.Name == "info.txt")
+                    if (file.Name == "info.txt")
                     {
                         StreamReader streamReader = new StreamReader(file.Open(FileMode.Open));
                         string? trackName = streamReader.ReadLine();

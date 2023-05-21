@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace PMEditor.Operation
 {
@@ -25,11 +21,11 @@ namespace PMEditor.Operation
         //进行过的操作的列表
         static List<BaseOperation> ops = new();
 
-        private OperationManager(){}
+        private OperationManager() { }
 
         public static bool CanRedo
         {
-            get => index < ops.Count-1 && index >= -1;
+            get => index < ops.Count - 1 && index >= -1;
         }
 
         public static bool CanUndo
@@ -37,12 +33,17 @@ namespace PMEditor.Operation
             get => index < ops.Count && index >= 0;
         }
 
-        public static BaseOperation? ReDo()
+        public static bool HasSaved
         {
-            if(index < ops.Count-1)
+            get => savedOperationIndex == index;
+        }
+
+        public static BaseOperation? Redo()
+        {
+            if (index < ops.Count - 1)
             {
                 index++;
-                ops[index].ReDo();
+                ops[index].Redo();
                 return ops[index];
             }
             return null;
@@ -50,11 +51,11 @@ namespace PMEditor.Operation
 
         public static BaseOperation? Undo()
         {
-            if(index >= 0)
+            if (index >= 0)
             {
                 ops[index].Undo();
                 index--;
-                return ops[index+1];
+                return ops[index + 1];
             }
             return null;
         }
@@ -62,7 +63,7 @@ namespace PMEditor.Operation
         public static void AddOperation(BaseOperation op)
         {
             //记录截取
-            if(index != ops.Count)
+            if (index != ops.Count)
             {
                 ops = ops.Take(index + 1).ToList();
             }

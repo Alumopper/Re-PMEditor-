@@ -1,19 +1,8 @@
-﻿using IronPython.Hosting;
-using Microsoft.Scripting.Hosting;
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Management.Automation;
-using System.Management.Automation.Runspaces;
-using System.Media;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 
 namespace PMEditor
@@ -60,13 +49,13 @@ namespace PMEditor
             p.StandardInput.WriteLine(args);
             p.StandardInput.AutoFlush = true;
             string? output = null;
-            while(!p.StandardOutput.EndOfStream)
+            while (!p.StandardOutput.EndOfStream)
             {
                 output = p.StandardOutput.ReadLine();
             }
             bpm.Text = output;
         }
-        
+
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             //打开文件

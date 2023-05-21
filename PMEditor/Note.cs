@@ -1,12 +1,9 @@
-﻿using IronPython.Runtime;
+﻿using PMEditor.Operation;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Management.Automation.Runspaces;
-using System.Text;
-using System.Threading.Tasks;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using static System.Windows.Forms.LinkLabel;
 
 namespace PMEditor
 {
@@ -15,20 +12,13 @@ namespace PMEditor
     /// </summary>
     public partial class Note
     {
-        static Rectangle template;
-
-        public Rectangle rectangle;
+        public NoteRectangle rectangle;
 
         public NoteType type;
 
         public bool hasJudged = false;
 
         public MediaPlayer sound = new MediaPlayer();
-
-        public static void SetTemplate(Rectangle rectangle)
-        {
-            Note.template = rectangle;
-        }
 
         public void SetNoteType(NoteType noteType)
         {
@@ -38,7 +28,7 @@ namespace PMEditor
 
         public override bool Equals(object? obj)
         {
-            if(obj != null && obj is Note note)
+            if (obj != null && obj is Note note)
             {
                 return this.actualTime == note.actualTime && this.rail == note.rail;
             }
@@ -52,11 +42,31 @@ namespace PMEditor
 
         public override string ToString()
         {
-            return $"{(type == PMEditor.NoteType.Tap?"Tap":"Drag")}[rail={rail},time={actualTime}]";
+            return $"{(type == PMEditor.NoteType.Tap ? "Tap" : "Drag")}[rail={rail},time={actualTime}]";
+        }
+
+        //右键删除此note
+        private void Rectangle_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            OperationManager.editorWindow.track.lines[OperationManager.editorPage.LineIndex].notes.Remove(this);
+            OperationManager.editorPage.notePanel.Children.Remove(rectangle);
+            OperationManager.AddOperation(
+                new RemoveNoteOperation(
+                    this,
+                    OperationManager.editorWindow.track.lines[OperationManager.editorPage.LineIndex]
+                    )
+                );
+        }
+
+        private void Sound_MediaEnded(object? sender, EventArgs e)
+        {
+            (sender as MediaPlayer).Stop();
+            (sender as MediaPlayer).Position = new TimeSpan(0);
         }
     }
 
-    public enum NoteType{
-        Tap,Drag,Hold
+    public enum NoteType
+    {
+        Tap, Drag, Hold
     }
 }

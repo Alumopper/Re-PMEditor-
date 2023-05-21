@@ -1,17 +1,9 @@
 ﻿using PMEditor.Operation;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace PMEditor
@@ -35,7 +27,8 @@ namespace PMEditor
         public EditorWindow(TrackInfo info, Track track)
         {
             InitializeComponent();
-            if(track.lines.Count == 0)
+
+            if (track.lines.Count == 0)
             {
                 track.lines.Add(new Line());
             }
@@ -50,7 +43,7 @@ namespace PMEditor
             pages = new List<Page>() { new TrackEditorPage(this), new CodeViewer(this) };
             SetCurrPage(0);
             player = new MediaPlayer();
-            player.Open(new Uri("./tracks/" + track.TrackName + "/" + info.trackName + ".wav",UriKind.Relative));
+            player.Open(new Uri("./tracks/" + track.TrackName + "/" + info.trackName + ".wav", UriKind.Relative));
             player.Play();
             player.Pause();
             player.MediaEnded += (object? sender, EventArgs e) =>
@@ -64,7 +57,7 @@ namespace PMEditor
         {
             SetCurrPage(0);
         }
-        
+
         private void codeButton_Click(object sender, RoutedEventArgs e)
         {
             SetCurrPage(1);
@@ -72,12 +65,12 @@ namespace PMEditor
 
         private void playButton_Click(object sender, RoutedEventArgs e)
         {
-            
+
         }
 
         private void settingButton_Click(object sender, RoutedEventArgs e)
         {
-            
+
         }
 
         public void SetCurrPage(int index)
@@ -89,9 +82,9 @@ namespace PMEditor
             (pages[1] as CodeViewer).jsonViewer.Text = track.ToJsonString();
             //设置按钮状态
             UIElementCollection uIElements = buttonPanel.Children;
-            for(int i = 0;i < uIElements.Count;i++)
+            for (int i = 0; i < uIElements.Count; i++)
             {
-                if(i == index*2+1 || (i != index*2 && i % 2 == 0))
+                if (i == index * 2 + 1 || (i != index * 2 && i % 2 == 0))
                 {
                     uIElements[i].Visibility = Visibility.Collapsed;
                 }
@@ -101,6 +94,29 @@ namespace PMEditor
                 }
             }
         }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            player.Stop();
+            isPlaying = false;
+            if (!OperationManager.HasSaved)
+            {
+                var result = MessageBox.Show("是否保存对谱面的修改", "Re:PMEditor", MessageBoxButton.YesNoCancel);
+                if (result == MessageBoxResult.Yes)
+                {
+                    CommandBinding_Executed_4(sender, null);
+                }
+                else if (result == MessageBoxResult.Cancel)
+                {
+                    e.Cancel = true;
+                }
+            }
+        }
+
+        private void Window_Closed(object sender, EventArgs e)
+        {
+
+        }
     }
-    
+
 }

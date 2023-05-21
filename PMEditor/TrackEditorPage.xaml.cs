@@ -1,23 +1,11 @@
-﻿using IronPython.Compiler.Ast;
-using PMEditor.Operation;
+﻿using PMEditor.Operation;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using static IronPython.Modules._ast;
 
 namespace PMEditor
 {
@@ -42,16 +30,20 @@ namespace PMEditor
             get { return pixelPreDividedBeat * divideNum; }
         }
 
-        SolidColorBrush tapBrush = new SolidColorBrush(
-            System.Windows.Media.Color.FromArgb(102, 109, 209, 213)
+        readonly SolidColorBrush tapBrush = new (
+            Color.FromArgb(102, 109, 209, 213)
             );
 
-        SolidColorBrush dragBrush = new SolidColorBrush(
-            System.Windows.Media.Color.FromArgb(102, 227, 214, 76)
+        readonly SolidColorBrush dragBrush = new (
+            Color.FromArgb(102, 227, 214, 76)
             );
 
         Note? willPut;
         int lineIndex = 0;
+        public int LineIndex
+        {
+            get => lineIndex;
+        }
 
         bool noteChange = false;
 
@@ -158,7 +150,7 @@ namespace PMEditor
         public void Draw()
         {
             //移除线
-            for(int i = 0;i < notePanel.Children.Count;i++)
+            for (int i = 0; i < notePanel.Children.Count; i++)
             {
                 if (notePanel.Children[i] is System.Windows.Shapes.Line)
                 {
@@ -231,7 +223,7 @@ namespace PMEditor
                 foreach (var note in line.notes)
                 {
                     //在判定线上方
-                    if(minTime <= note.actualTime)
+                    if (minTime <= note.actualTime)
                     {
                         if (note.hasJudged)
                         {
@@ -251,7 +243,7 @@ namespace PMEditor
                     else
                     {
                         //如果未被判定过且谱面正在被播放
-                        if((!note.hasJudged) && window.isPlaying)
+                        if ((!note.hasJudged) && window.isPlaying)
                         {
                             note.sound.Play();
                             note.hasJudged = true;
@@ -276,7 +268,7 @@ namespace PMEditor
                 {
                     notePreview.Fill = dragBrush;
                 }
-                
+
                 //绘制note矩形
                 notePreview.Visibility = Visibility.Visible;
                 Canvas.SetLeft(notePreview, mousePos.X);
@@ -285,7 +277,7 @@ namespace PMEditor
             else
             {
                 notePreview.Visibility = Visibility.Collapsed;
-            }   
+            }
         }
 
         public void FlushNotePreview()
@@ -324,12 +316,12 @@ namespace PMEditor
             var noteTime = GetTimeFromY(mousePos.Y);
             //放置note(
             willPut ??= new Note(
-                    rail:       (int)(mousePos.X * 9 / notePanel.ActualWidth),
-                    noteType:   (int)(window.puttingTap ? NoteType.Tap : NoteType.Drag),
-                    fallType:   0,
-                    isFake:     false,
+                    rail: (int)(mousePos.X * 9 / notePanel.ActualWidth),
+                    noteType: (int)(window.puttingTap ? NoteType.Tap : NoteType.Drag),
+                    fallType: 0,
+                    isFake: false,
                     actualTime: noteTime,
-                    generTime:  0);
+                    generTime: 0);
             willPut.rectangle.Height = 10;
             willPut.rectangle.Width = notePreview.Width;
             notePanel.Children.Add(willPut.rectangle);
@@ -364,12 +356,12 @@ namespace PMEditor
             {
                 speed = float.Parse(e.AddedItems[0] as string);
             }
-            catch (Exception) 
+            catch (Exception)
             {
                 speed = 1.0f;
             }
             //速度设置
-            if(window != null && window.player != null)
+            if (window != null && window.player != null)
             {
                 window.player.SpeedRatio = speed;
             }
