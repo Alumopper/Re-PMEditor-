@@ -1,4 +1,5 @@
 ﻿using PMEditor.Operation;
+using PMEditor.Util;
 using System;
 using System.Collections.Generic;
 using System.Windows;
@@ -21,6 +22,8 @@ namespace PMEditor
 
         public bool isPlaying = false;
         public bool puttingTap = true;
+
+        public double playerTime = 0;
 
         int currPageIndex;
 

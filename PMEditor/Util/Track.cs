@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Windows.Media;
 
 namespace PMEditor
@@ -17,7 +19,7 @@ namespace PMEditor
         public double bpm;          //bpm
         public double length;       //曲目长度
         public string difficulty;   //谱面难度
-        public List<Line> lines;    //判定线
+        public ObservableCollection<Line> lines;    //判定线
 
         #region getter and setter
         public string TrackName
@@ -56,7 +58,7 @@ namespace PMEditor
             set { difficulty = value; }
         }
 
-        public List<Line> Lines
+        public ObservableCollection<Line> Lines
         {
             get { return lines; }
             set { lines = value; }
@@ -90,6 +92,7 @@ namespace PMEditor
 
     public class Line
     {
+        public string id;       //判定线的名字
         public double y;        //判定线的y坐标
         public List<Note> notes;//note
 
@@ -105,11 +108,18 @@ namespace PMEditor
             get { return notes; }
             set { notes = value; }
         }
+
+        public string Id
+        {
+            get { return id; }
+            set { id = value; }
+        }
         #endregion
 
-        public Line(double y)
+        public Line(double y, string id = "newLine")
         {
             this.y = y;
+            this.id = id;
             this.notes = new();
         }
 
@@ -182,7 +192,20 @@ namespace PMEditor
         }
         #endregion
 
+        public Color Color
+        {
+            set
+            {
+                rectangle.Fill = new SolidColorBrush(value);
+            }
+        }
+
+        [JsonConstructor]
         public Note(int rail, int noteType, int fallType, bool isFake, double actualTime, int generTime, double actualHoldTime = 0)
+            : this(rail, noteType, fallType, isFake, actualTime, generTime, false, actualHoldTime) { }
+
+
+        public Note(int rail, int noteType, int fallType, bool isFake, double actualTime, int generTime, bool isCurrentLineNote, double actualHoldTime = 0)
         {
             this.rail = rail;
             this.noteType = noteType;
@@ -206,16 +229,18 @@ namespace PMEditor
             if (noteType == (int)PMEditor.NoteType.Tap)
             {
                 sound.Open(new Uri("./assets/sounds/tap.wav", UriKind.Relative));
-                rectangle.Fill = new SolidColorBrush(
-                Color.FromArgb(255, 109, 209, 213));
+                rectangle.Fill = isCurrentLineNote? new SolidColorBrush(tapColor) : new SolidColorBrush(tapColorButNotOnThisLine);
             }
             else
             {
                 sound.Open(new Uri("./assets/sounds/drag.wav", UriKind.Relative));
-                rectangle.Fill = new SolidColorBrush(
-                Color.FromArgb(255, 227, 214, 76));
+                rectangle.Fill = isCurrentLineNote ? new SolidColorBrush(dragColor) : new SolidColorBrush(dragColorButNotOnThisLine);
             }
         }
 
+        public readonly static Color tapColor = Color.FromArgb(255, 109, 209, 213);
+        public readonly static Color tapColorButNotOnThisLine = Color.FromArgb(128, 109, 209, 213);
+        public readonly static Color dragColor = Color.FromArgb(255, 227, 214, 76);
+        public readonly static Color dragColorButNotOnThisLine = Color.FromArgb(128, 227, 214, 76);
     }
 }

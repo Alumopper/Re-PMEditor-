@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace PMEditor
+namespace PMEditor.Util
 {
     public class Settings
     {

@@ -23,6 +23,7 @@
             line.notes.Remove(note);
             OperationManager.editorPage.notePanel.Children.Remove(note.rectangle);
             note.rectangle.Visibility = System.Windows.Visibility.Hidden;
+            OperationManager.editorPage.UpdateNote();
         }
 
         public override string GetInfo()

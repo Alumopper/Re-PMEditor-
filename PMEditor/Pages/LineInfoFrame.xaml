@@ -1,0 +1,59 @@
+﻿<Page x:Class="PMEditor.Pages.LineInfoFrame"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:PMEditor.Pages"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      Title="LineInfoFrame">
+
+    <Grid>
+        <StackPanel Margin="20,40,20,40">
+            <Label Content="判定线信息" FontWeight="Medium" FontSize="20" Foreground="White"/>
+            <StackPanel>
+                <Grid Margin="5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="382*"/>
+                        <ColumnDefinition Width="618*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Content="判定线编号" Foreground="White"/>
+                    <TextBox x:Name="lineIndex" VerticalContentAlignment="Center" Background="Transparent" Foreground="White" Grid.Column="1" IsReadOnly="True"/>
+                </Grid>
+                <Grid Margin="5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="382*"/>
+                        <ColumnDefinition Width="618*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Content="判定线名称" Foreground="White"/>
+                    <TextBox x:Name="lineID" VerticalContentAlignment="Center" Grid.Column="1" Background="Transparent" Foreground="White"  />
+                </Grid>
+                <Label Content="统计" FontWeight="Medium" FontSize="16" Foreground="White"/>
+                <Grid Margin="5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="382*"/>
+                        <ColumnDefinition Width="618*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Content="总物量" Foreground="White"/>
+                    <TextBox x:Name="generalCount" VerticalContentAlignment="Center" Background="Transparent" Foreground="White"  Grid.Column="1" IsReadOnly="True"/>
+                </Grid>
+                <Grid Margin="5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="382*"/>
+                        <ColumnDefinition Width="618*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Content="Tap物量" Foreground="White"/>
+                    <TextBox x:Name="tapCount" VerticalContentAlignment="Center" Background="Transparent" Foreground="White"  Grid.Column="1" IsReadOnly="True"/>
+                </Grid>
+                <Grid Margin="5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="382*"/>
+                        <ColumnDefinition Width="618*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Content="Drag物量" Foreground="White"/>
+                    <TextBox x:Name="dragCount" VerticalContentAlignment="Center" Background="Transparent" Foreground="White"  Grid.Column="1" IsReadOnly="True"/>
+                </Grid>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Page>

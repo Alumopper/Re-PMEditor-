@@ -1,4 +1,4 @@
-﻿namespace PMEditor
+﻿namespace PMEditor.Util
 {
     public class TrackInfo
     {
