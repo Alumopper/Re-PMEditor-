@@ -32,5 +32,10 @@ namespace PMEditor
         {
             return y / pixelPreDividedBeat * secondsPreDevideBeat + window.player.Position.TotalSeconds;
         }
+
+        public double GetYFromTime(double time)
+        {
+            return (time - window.player.Position.TotalSeconds) / secondsPreDevideBeat * pixelPreDividedBeat;
+        }
     }
 }

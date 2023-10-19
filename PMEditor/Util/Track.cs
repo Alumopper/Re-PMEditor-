@@ -92,9 +92,9 @@ namespace PMEditor
 
     public class Line
     {
-        public string id;       //判定线的名字
-        public double y;        //判定线的y坐标
-        public List<Note> notes;//note
+        public string id;           //判定线的名字
+        public double y;            //判定线的y坐标
+        public List<Note> notes;    //note
 
         #region getter and setter
         public double Y
@@ -226,12 +226,12 @@ namespace PMEditor
             //注册点击事件
             rectangle.MouseRightButtonUp += Rectangle_MouseRightButtonUp;
 
-            if (noteType == (int)PMEditor.NoteType.Tap)
+            if (noteType == (int)PMEditor.NoteType.Tap || noteType == (int)PMEditor.NoteType.Hold)
             {
                 sound.Open(new Uri("./assets/sounds/tap.wav", UriKind.Relative));
                 rectangle.Fill = isCurrentLineNote? new SolidColorBrush(tapColor) : new SolidColorBrush(tapColorButNotOnThisLine);
             }
-            else
+            else if(noteType == (int)(PMEditor.NoteType.Drag))
             {
                 sound.Open(new Uri("./assets/sounds/drag.wav", UriKind.Relative));
                 rectangle.Fill = isCurrentLineNote ? new SolidColorBrush(dragColor) : new SolidColorBrush(dragColorButNotOnThisLine);

@@ -20,6 +20,8 @@ namespace PMEditor
 
         public MediaPlayer sound = new MediaPlayer();
 
+        public Line parentLine;
+
         public void SetNoteType(NoteType noteType)
         {
             this.type = noteType;
@@ -48,14 +50,9 @@ namespace PMEditor
         //右键删除此note
         private void Rectangle_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
-            OperationManager.editorWindow.track.lines[OperationManager.editorPage.LineIndex].notes.Remove(this);
+            parentLine.notes.Remove(this);
             OperationManager.editorPage.notePanel.Children.Remove(rectangle);
-            OperationManager.AddOperation(
-                new RemoveNoteOperation(
-                    this,
-                    OperationManager.editorWindow.track.lines[OperationManager.editorPage.LineIndex]
-                    )
-                );
+            OperationManager.AddOperation(new RemoveNoteOperation(this,parentLine));
         }
 
         private void Sound_MediaEnded(object? sender, EventArgs e)
