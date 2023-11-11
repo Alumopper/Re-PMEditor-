@@ -43,8 +43,6 @@ namespace PMEditor
                 Interval = TimeSpan.FromMilliseconds(1.0 / 120)
             };
             timer.Start();
-            pages = new List<Page>() { new TrackEditorPage(this), new CodeViewer(this) };
-            SetCurrPage(0);
             player = new MediaPlayer();
             player.Open(new Uri("./tracks/" + track.TrackName + "/" + info.trackName + ".wav", UriKind.Relative));
             player.Play();
@@ -53,6 +51,8 @@ namespace PMEditor
             {
                 isPlaying = false;
             };
+            pages = new List<Page>() { new TrackEditorPage(this), new CodeViewer(this) };
+            SetCurrPage(0);
             OperationManager.editorWindow = this;
         }
 

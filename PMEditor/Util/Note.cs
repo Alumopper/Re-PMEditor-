@@ -1,9 +1,8 @@
-﻿using PMEditor.Operation;
+﻿using PMEditor.Controls;
+using PMEditor.Operation;
 using System;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Shapes;
-using static System.Windows.Forms.LinkLabel;
 
 namespace PMEditor
 {
@@ -21,6 +20,7 @@ namespace PMEditor
         public MediaPlayer sound = new MediaPlayer();
 
         public Line parentLine;
+
 
         public void SetNoteType(NoteType noteType)
         {
@@ -44,15 +44,49 @@ namespace PMEditor
 
         public override string ToString()
         {
-            return $"{(type == PMEditor.NoteType.Tap ? "Tap" : "Drag")}[rail={rail},time={actualTime}]";
+            return $"{(type == PMEditor.NoteType.Tap ? "Tap" : "Drag")}[line={parentLine.notes.IndexOf(this)},rail={rail},time={actualTime}]";
+        }
+
+        public bool IsOverlap(Note note)
+        {
+            if(!(note.rail == rail && note.parentLine == parentLine)) return false;
+            if(type == PMEditor.NoteType.Hold)
+            {
+                if(note.type == PMEditor.NoteType.Hold)
+                {
+                    return actualTime <= note.actualTime && note.actualTime <= actualTime + actualHoldTime || actualTime <= note.actualTime + note.actualHoldTime && note.actualTime + note.actualHoldTime <= actualTime + actualHoldTime;
+                }
+                else
+                {
+                    return actualTime <= note.actualTime && note.actualTime <= actualTime + actualHoldTime;
+                }
+            }
+            else
+            {
+                if(note.type == PMEditor.NoteType.Hold)
+                {
+                    return note.IsOverlap(this);
+                }
+                else
+                {
+                    return note.actualTime == actualTime;
+                }
+            }
         }
 
         //右键删除此note
         private void Rectangle_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
             parentLine.notes.Remove(this);
-            OperationManager.editorPage.notePanel.Children.Remove(rectangle);
-            OperationManager.AddOperation(new RemoveNoteOperation(this,parentLine));
+            TrackEditorPage.Instance.notePanel.Children.Remove(rectangle);
+            OperationManager.AddOperation(new RemoveNoteOperation(this, parentLine));
+        }
+
+        //左键选中此note
+        private void Rectangle_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            TrackEditorPage.Instance.infoFrame.Content = new NotePropertyPanel(this);
+            TrackEditorPage.Instance.UpdateSelectedNote(this);
         }
 
         private void Sound_MediaEnded(object? sender, EventArgs e)

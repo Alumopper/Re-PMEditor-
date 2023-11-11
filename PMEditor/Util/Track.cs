@@ -1,7 +1,9 @@
-﻿using System;
+﻿using PMEditor.Util;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Management;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
@@ -90,11 +92,12 @@ namespace PMEditor
         }
     }
 
-    public class Line
+    public partial class Line
     {
         public string id;           //判定线的名字
         public double y;            //判定线的y坐标
         public List<Note> notes;    //note
+        public List<Event> events;  //事件
 
         #region getter and setter
         public double Y
@@ -109,6 +112,12 @@ namespace PMEditor
             set { notes = value; }
         }
 
+        public List<Event> Events
+        {
+            get { return events; }
+            set { events = value; }
+        }
+
         public string Id
         {
             get { return id; }
@@ -121,6 +130,7 @@ namespace PMEditor
             this.y = y;
             this.id = id;
             this.notes = new();
+            this.events = new();
         }
 
         public Line() : this(0) { }
@@ -132,10 +142,6 @@ namespace PMEditor
         public int noteType;            //note类型
         public int fallType;            //掉落类型
         public bool isFake;             //是否是假键
-        public int time;                //被判定的时间，单位tick
-        public int generTime;           //生成此note的时间，单位tick
-        public int holdTime;            //需要按住的时间，仅用于hold，单位tick
-        public List<double> positions;  //所有可能的位置
 
         public double actualTime;       //准确的判定时间
         public double actualHoldTime;   //准确的按住时间
@@ -161,24 +167,9 @@ namespace PMEditor
             get => isFake; set => isFake = value;
         }
 
-        public int Time
-        {
-            get => time; set => time = value;
-        }
-
         public double ActualTime
         {
             get => actualTime; set => actualTime = value;
-        }
-
-        public int GenerTime
-        {
-            get => generTime; set => generTime = value;
-        }
-
-        public int HoldTime
-        {
-            get => holdTime; set => holdTime = value;
         }
 
         public double ActualHoldTime
@@ -186,10 +177,6 @@ namespace PMEditor
             get => actualHoldTime; set => actualHoldTime = value;
         }
 
-        public List<double> Positions
-        {
-            get => positions; set => positions = value;
-        }
         #endregion
 
         public Color Color
@@ -201,22 +188,18 @@ namespace PMEditor
         }
 
         [JsonConstructor]
-        public Note(int rail, int noteType, int fallType, bool isFake, double actualTime, int generTime, double actualHoldTime = 0)
-            : this(rail, noteType, fallType, isFake, actualTime, generTime, false, actualHoldTime) { }
+        public Note(int rail, int noteType, int fallType, bool isFake, double actualTime, double actualHoldTime = 0)
+            : this(rail, noteType, fallType, isFake, actualTime, false, actualHoldTime) { }
 
 
-        public Note(int rail, int noteType, int fallType, bool isFake, double actualTime, int generTime, bool isCurrentLineNote, double actualHoldTime = 0)
+        public Note(int rail, int noteType, int fallType, bool isFake, double actualTime, bool isCurrentLineNote, double actualHoldTime = 0)
         {
             this.rail = rail;
             this.noteType = noteType;
             this.fallType = fallType;
             this.isFake = isFake;
             this.actualTime = actualTime;
-            this.time = (int)(actualTime * 20);
-            this.generTime = generTime;
             this.actualHoldTime = actualHoldTime;
-            this.holdTime = (int)(actualHoldTime * 20);
-            this.positions = new();
             this.sound.MediaEnded += Sound_MediaEnded;
 
             this.type = (NoteType)Enum.Parse(typeof(NoteType), noteType.ToString());
@@ -225,22 +208,98 @@ namespace PMEditor
 
             //注册点击事件
             rectangle.MouseRightButtonUp += Rectangle_MouseRightButtonUp;
+            rectangle.MouseLeftButtonDown += Rectangle_MouseLeftButtonDown;
 
-            if (noteType == (int)PMEditor.NoteType.Tap || noteType == (int)PMEditor.NoteType.Hold)
+            if (noteType == (int)PMEditor.NoteType.Tap)
             {
                 sound.Open(new Uri("./assets/sounds/tap.wav", UriKind.Relative));
-                rectangle.Fill = isCurrentLineNote? new SolidColorBrush(tapColor) : new SolidColorBrush(tapColorButNotOnThisLine);
+                rectangle.Fill = isCurrentLineNote ? new SolidColorBrush(EditorColors.tapColor) : new SolidColorBrush(EditorColors.tapColorButNotOnThisLine);
+                rectangle.HighLightBorderBrush = new SolidColorBrush(EditorColors.tapHighlightColor);
             }
-            else if(noteType == (int)(PMEditor.NoteType.Drag))
+            else if (noteType == (int)PMEditor.NoteType.Hold)
+            {
+                sound.Open(new Uri("./assets/sounds/tap.wav", UriKind.Relative));
+                rectangle.Fill = isCurrentLineNote ? new SolidColorBrush(EditorColors.holdColor) : new SolidColorBrush(EditorColors.holdHighlightColor);
+                rectangle.HighLightBorderBrush = new SolidColorBrush(EditorColors.holdHighlightColor);
+            }
+            else if (noteType == (int)PMEditor.NoteType.Drag)
             {
                 sound.Open(new Uri("./assets/sounds/drag.wav", UriKind.Relative));
-                rectangle.Fill = isCurrentLineNote ? new SolidColorBrush(dragColor) : new SolidColorBrush(dragColorButNotOnThisLine);
+                rectangle.Fill = isCurrentLineNote ? new SolidColorBrush(EditorColors.dragColor) : new SolidColorBrush(EditorColors.dragColorButNotOnThisLine);
+                rectangle.HighLightBorderBrush = new SolidColorBrush (EditorColors.dragHighlightColor);
             }
         }
+    }
 
-        public readonly static Color tapColor = Color.FromArgb(255, 109, 209, 213);
-        public readonly static Color tapColorButNotOnThisLine = Color.FromArgb(128, 109, 209, 213);
-        public readonly static Color dragColor = Color.FromArgb(255, 227, 214, 76);
-        public readonly static Color dragColorButNotOnThisLine = Color.FromArgb(128, 227, 214, 76);
+    public partial class Event
+    {
+        public double startTime;    //开始时间
+        public double endTime;      //终止时间
+        public int typeId;       //事件类型
+        public int rail;        //轨道。仅用于显示
+        public string easeFunctionID; //缓动函数
+        public Dictionary<string, object> properties;   //属性
+
+        #region getter and setter
+        public double StartTime
+        {
+            get => startTime;
+            set => startTime = value;
+        }
+
+        public double EndTime
+        {
+            get => endTime;
+            set => endTime = value;
+        }
+
+        public int TypeId
+        {
+            get => typeId;
+            set => typeId = value;
+        }
+
+        public int Rail
+        {
+            get => rail;
+            set => rail = value;
+        }
+
+        public string EaseFunctionID
+        {
+            get => easeFunctionID;
+            set => easeFunctionID = value;
+        }
+
+
+        public Dictionary<string, object> Properties
+        {
+            get => properties;
+            set => properties = value;
+        }
+
+        #endregion
+
+        [JsonConstructor]
+        public Event(double startTime, double endTime, int rail, int typeId, string easeFunctionID, Dictionary<string, object> properties)
+        {
+            this.startTime = startTime;
+            this.endTime = endTime;
+            this.typeId = typeId;
+            this.rail = rail;
+            this.properties = properties;
+            this.easeFunctionID = easeFunctionID;
+
+            this.easeFunction = EaseFunctions.functions[easeFunctionID];
+            this.type = (EventType)Enum.Parse(typeof(EventType), typeId.ToString());
+            rectangle = new(this)
+            {
+                Fill = new SolidColorBrush(EditorColors.eventColor),
+                HighLightBorderBrush = new SolidColorBrush(EditorColors.eventHighlightColor)
+            };
+            rectangle.MouseRightButtonUp += Rectangle_MouseRightButtonUp;
+            rectangle.MouseLeftButtonDown += Rectangle_MouseLeftButtonDown;
+            this.properties = properties;
+        }
     }
 }

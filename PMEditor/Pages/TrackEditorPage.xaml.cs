@@ -1,14 +1,13 @@
 ﻿using PMEditor.Operation;
 using PMEditor.Util;
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Shapes;
 
 namespace PMEditor
 {
@@ -17,11 +16,15 @@ namespace PMEditor
     /// </summary>
     public partial class TrackEditorPage : Page
     {
+        public static TrackEditorPage Instance { get; private set; }
+
         public EditorWindow window;
 
         double secondsPreBeat;
 
         double secondsPreDevideBeat;
+
+        bool editingNote = true;
 
         //节拍分割
         int divideNum = 4;
@@ -33,28 +36,41 @@ namespace PMEditor
             get { return pixelPreDividedBeat * divideNum; }
         }
 
-        readonly SolidColorBrush tapBrush = new (
+        readonly SolidColorBrush tapBrush = new(
             Color.FromArgb(102, 109, 209, 213)
             );
 
-        readonly SolidColorBrush dragBrush = new (
+        readonly SolidColorBrush dragBrush = new(
             Color.FromArgb(102, 227, 214, 76)
             );
 
-        Note? willPut;
+        Note? willPutNote;
+        Event? willPutEvent;
         int lineIndex = 0;
         public int LineIndex
         {
             get => lineIndex;
         }
 
+        Line currLine
+        {
+            get => window.track.lines[lineIndex];
+        }
+
         bool noteChange = false;
 
         bool init = false;
 
+        //可能会加入的，事件可以翻页，防止事件太多放不下
+        int page = 0;
+
+        private List<Note> selecedNotes = new();
+        private List<Event> selectedEvents = new();
+
         public TrackEditorPage(EditorWindow window)
         {
             InitializeComponent();
+            Instance = this;
             this.window = window;
             playerControler.Maximum = window.track.Length * 100;
             timeDis.Content = "0.00" + " / " + window.track.Length.ToString("0.00");
@@ -77,14 +93,14 @@ namespace PMEditor
             });
             OperationManager.editorPage = this;
             //添加note渲染
-            foreach(var line in window.track.lines)
+            foreach (var line in window.track.lines)
             {
                 line.notes.ForEach(note =>
                 {
                     note.parentLine = line;
                     note.rectangle.Visibility = Visibility.Hidden;
                     notePanel.Children.Add(note.rectangle);
-                    if (note.holdTime != 0)
+                    if (note.actualHoldTime != 0)
                     {
                         note.rectangle.Height = GetYFromTime(note.actualTime + note.actualHoldTime) - GetYFromTime(note.actualTime);
                     }
@@ -112,10 +128,11 @@ namespace PMEditor
             Draw();
         }
 
-        private void notePanel_MouseWheel(object sender, MouseWheelEventArgs e)
+        private void panel_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             //时间设置
             window.player.Pause();
+            window.isPlaying = false;
             double currTime = window.playerTime;
             double num = e.Delta / 60.0;
             //横线自动对齐
@@ -147,7 +164,7 @@ namespace PMEditor
         }
 
         //进度条拖动
-        bool isPlayerChange = false;
+        bool isPlayerChange = false;    //是否是因为播放器播放导致的进度条移动
         private void playerControler_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (!isPlayerChange)
@@ -157,10 +174,10 @@ namespace PMEditor
                 window.playerTime = TimeSpan.FromSeconds(playerControler.Value / 100).TotalSeconds;
                 window.player.Position = TimeSpan.FromSeconds(playerControler.Value / 100);
                 timeDis.Content = window.playerTime.ToString("0.00") + " / " + window.track.Length.ToString("0.00");
+                Update();
             }
             isPlayerChange = false;
             noteChange = true;
-            Update();
         }
 
         //绘图
@@ -223,10 +240,11 @@ namespace PMEditor
                 //更新时间
                 timeDis.Content = window.playerTime.ToString("0.00") + " / " + window.track.Length.ToString("0.00");
             }
-            //更新note
+            //更新note和事件
             if (window.isPlaying || noteChange)
             {
                 UpdateNote();
+                UpdateEvent();
                 noteChange = false;
             }
         }
@@ -236,13 +254,13 @@ namespace PMEditor
             //目前显示的时间范围
             double minTime = window.playerTime;
             double maxTime = minTime + notePanel.ActualHeight / pixelPreBeat * secondsPreBeat;
-            for(int i = 0; i < window.track.lines.Count; i++)
+            for (int i = 0; i < window.track.lines.Count; i++)
             {
                 foreach (var note in window.track.lines[i].notes)
                 {
                     if (note.type == NoteType.Hold)
                     {
-                        if( minTime <= note.actualTime + note.actualHoldTime)
+                        if (minTime <= note.actualTime + note.actualHoldTime)
                         {
                             //在判定线上方
                             if (minTime <= note.actualTime)
@@ -274,7 +292,7 @@ namespace PMEditor
                             }
                             else
                             {
-                                note.rectangle.Visibility= Visibility.Hidden;
+                                note.rectangle.Visibility = Visibility.Hidden;
                             }
                         }
                         else
@@ -315,12 +333,79 @@ namespace PMEditor
             }
         }
 
+        public void UpdateEvent()
+        {
+            //目前显示的时间范围
+            double minTime = window.playerTime;
+            double maxTime = minTime + notePanel.ActualHeight / pixelPreBeat * secondsPreBeat;
+            for (int i = 0; i < window.track.lines.Count; i++)
+            {
+                foreach (var e in window.track.lines[i].events)
+                {
+                    if (minTime <= e.endTime)
+                    {
+                        //在可视区域内
+                        if (e.startTime < maxTime)
+                        {
+                            e.rectangle.Visibility = Visibility.Visible;
+                            double qwq = Math.Max(minTime, e.startTime);
+                            double pwp = Math.Min(e.endTime, maxTime);
+                            e.rectangle.Height = GetYFromTime(pwp) - GetYFromTime(qwq);
+                            Canvas.SetBottom(e.rectangle, GetYFromTime(qwq));
+                            Canvas.SetLeft(e.rectangle, e.rail * notePanel.ActualWidth / 9);
+                        }
+                        else
+                        {
+                            e.rectangle.Visibility = Visibility.Hidden;
+                        }
+                    }
+                    else
+                    {
+                        e.rectangle.Visibility = Visibility.Hidden;
+                    }
+                    continue;
+                }
+            }
+        }
+
+        public void UpdateEventTypeList()
+        {
+            for (int i = 0; i < 9; i++)
+            {
+                var textBlock = columnInfo.Children[i] as TextBlock;
+                string text;
+                if (editingNote)
+                {
+                    text = i.ToString();
+                }
+                else
+                {
+                    var type = currLine.eventList.GetType(i + page * 9);
+                    text = Event.typeString(type);
+                    if (type == EventType.Unknown)
+                    {
+                        textBlock.Foreground = new SolidColorBrush(Colors.Gray);
+                    }
+                    else if (currLine.eventList.isMainEvent(i + page * 9))
+                    {
+                        textBlock.Foreground = new SolidColorBrush(Colors.Orange);
+                    }
+                    else
+                    {
+                        textBlock.Foreground = new SolidColorBrush(Colors.Olive);
+                    }
+                }
+                textBlock.Text = text;
+
+            }
+        }
+
         private void notePanel_MouseMove(object sender, MouseEventArgs e)
         {
             if (!window.isPlaying)
             {
                 var endPos = GetAlignedPoint(e.GetPosition(notePanel));
-                if (startPos != new Point(-1,-1))
+                if (startPos != new Point(-1, -1))
                 {
                     //hold预览
                     if (endPos.Y > startPos.Y)
@@ -389,77 +474,90 @@ namespace PMEditor
             notePreview.Visibility = Visibility.Collapsed;
         }
 
+        Point startPos = new(-1, -1);
 
-        Point startPos = new(-1,-1);
-
+        //放置note
         private void notePanel_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (window.isPlaying) return;
             if (startPos == new Point(-1, -1))
             {
                 startPos = GetAlignedPoint(e.GetPosition(notePanel));
+                if (currLine.ClickOnNote(GetTimeFromY(startPos.Y), (int)Math.Round(startPos.X * 9 / notePanel.ActualWidth)))
+                {
+                    startPos = new Point(-1, -1);
+                }
             }
         }
 
+        //放置note
         private void notePanel_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             if (window.isPlaying) return;
-            if (startPos == new Point(-1,-1)) return;
+            if (startPos == new Point(-1, -1)) return;
+            if (selecedNotes.Count != 0)
+            {
+                UpdateSelectedNote(new());
+                infoFrame.Content = null;
+                startPos = new(-1,-1);
+                return;
+            }
             //获取时间
             //获取鼠标位置
             var endPos = GetAlignedPoint(e.GetPosition(notePanel));
             var startTime = GetTimeFromY(startPos.Y);
             var endTime = GetTimeFromY(endPos.Y);
-            //放置note
-            if(endTime - startTime >= secondsPreDevideBeat) 
+            int rail = (int)Math.Round(startPos.X * 9 / notePanel.ActualWidth);
+            if (currLine.ClickOnEvent(endTime, rail))
             {
-                willPut ??= new Note(
-                    rail: (int)Math.Round(startPos.X * 9 / notePanel.ActualWidth),
+                startPos = new Point(-1, -1);
+                return;
+            }
+            //放置note
+            if (endTime - startTime >= secondsPreDevideBeat)
+            {
+                willPutNote ??= new Note(
+                    rail: rail,
                     noteType: (int)NoteType.Hold,
                     fallType: 0,
                     isFake: false,
                     actualTime: startTime,
                     actualHoldTime: endTime - startTime,
-                    generTime: 0,
                     isCurrentLineNote: true);
-                willPut.rectangle.Height = endPos.Y - startPos.Y;
-                willPut.rectangle.Width = notePreview.Width;
-                notePanel.Children.Add(willPut.rectangle);
-                Canvas.SetLeft(willPut.rectangle, willPut.rail * notePanel.ActualWidth / 9);
-                Canvas.SetBottom(willPut.rectangle, startPos.Y);
+                willPutNote.rectangle.Height = endPos.Y - startPos.Y;
+                willPutNote.rectangle.Width = notePreview.Width;
             }
             else
             {
-                willPut ??= new Note(
-                    rail: (int)Math.Round(startPos.X * 9 / notePanel.ActualWidth),
+                willPutNote ??= new Note(
+                    rail: rail,
                     noteType: (int)(window.puttingTap ? NoteType.Tap : NoteType.Drag),
                     fallType: 0,
                     isFake: false,
                     actualTime: startTime,
-                    generTime: 0,
                     isCurrentLineNote: true);
-                willPut.rectangle.Height = 10;
-                willPut.rectangle.Width = notePreview.Width;
-                notePanel.Children.Add(willPut.rectangle);
-                Canvas.SetLeft(willPut.rectangle, willPut.rail * notePanel.ActualWidth / 9);
-                Canvas.SetBottom(willPut.rectangle, startPos.Y);
+                willPutNote.rectangle.Height = 10;
+                willPutNote.rectangle.Width = notePreview.Width;
             }
-            if (!window.track.lines[lineIndex].notes.Contains(willPut))
+            willPutNote.parentLine = window.track.lines[lineIndex];
+            if (!window.track.lines[lineIndex].IsNoteOverLap(willPutNote))
             {
-                window.track.lines[lineIndex].notes.Add(willPut);
-                willPut.parentLine = window.track.lines[lineIndex];
+                window.track.lines[lineIndex].notes.Add(willPutNote);
+                notePanel.Children.Add(willPutNote.rectangle);
+                Canvas.SetLeft(willPutNote.rectangle, willPutNote.rail * notePanel.ActualWidth / 9);
+                Canvas.SetBottom(willPutNote.rectangle, startPos.Y);
+                noteChange = true;
+                OperationManager.AddOperation(new PutNoteOperation(willPutNote, window.track.lines[lineIndex]));
             }
-            noteChange = true;
-            OperationManager.AddOperation(new PutNoteOperation(willPut, window.track.lines[lineIndex]));
-            willPut = null;
-            startPos = new(-1,-1);
+            willPutNote = null;
+            startPos = new(-1, -1);
         }
 
         //调整note大小
         private void notePanel_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             notePreview.Width = notePanel.ActualWidth / 9;
-            foreach(var line in window.track.lines)
+            foreach (var line in window.track.lines)
             {
                 line.notes.ForEach(e =>
                 {
@@ -498,30 +596,53 @@ namespace PMEditor
 
         private void lineListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            foreach (var note in window.track.lines[lineIndex].notes)
+            if (editingNote)
             {
-                if (note.type == NoteType.Tap || note.type == NoteType.Hold)
+                foreach (var note in window.track.lines[lineIndex].notes)
                 {
-                    note.Color = Note.tapColorButNotOnThisLine;
+                    if (note.type == NoteType.Tap)
+                    {
+                        note.Color = EditorColors.tapColorButNotOnThisLine;
+                    }
+                    else if(note.type == NoteType.Hold)
+                    {
+                        note.Color = EditorColors.holdColorButNotOnThisLine;
+                    }
+                    else
+                    {
+                        note.Color = EditorColors.dragColorButNotOnThisLine;
+                    }
                 }
-                else
+                lineIndex = lineListView.SelectedIndex;
+                foreach (var note in window.track.lines[lineIndex].notes)
                 {
-                    note.Color = Note.dragColorButNotOnThisLine;
+                    if (note.type == NoteType.Tap)
+                    {
+                        note.Color = EditorColors.tapColor;
+                    }
+                    else if (note.type == NoteType.Hold)
+                    {
+                        note.Color = EditorColors.holdColor;
+                    }
+                    else
+                    {
+                        note.Color = EditorColors.dragColor;
+                    }
                 }
             }
-            lineIndex = lineListView.SelectedIndex;
-            foreach (var note in window.track.lines[lineIndex].notes)
+            else
             {
-                if (note.type == NoteType.Tap || note.type == NoteType.Hold)
+                foreach (var ev in window.track.lines[lineIndex].events)
                 {
-                    note.Color = Note.tapColor;
+                    ev.Color = EditorColors.eventColorButNotOnThisLine;
                 }
-                else
+                lineIndex = lineListView.SelectedIndex;
+                foreach (var ev in window.track.lines[lineIndex].events)
                 {
-                    note.Color = Note.dragColor;
+                    ev.Color = EditorColors.eventColor;
                 }
+                UpdateEventTypeList();
             }
-
         }
 
         //删除
@@ -530,11 +651,7 @@ namespace PMEditor
             window.track.lines.RemoveAt(lineIndex);
         }
 
-        /// <summary>
-        /// 重命名
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        //重命名
         private void MenuItem_Click_1(object sender, RoutedEventArgs e)
         {
             Grid box = ((sender as MenuItem).Parent as ContextMenu).PlacementTarget as Grid;
@@ -543,13 +660,13 @@ namespace PMEditor
             (box.Children[1] as TextBox).SelectAll();
             box.Children[1].Visibility = Visibility.Visible;
             box.Children[1].Focus();
-            
+
         }
 
         //属性
         private void MenuItem_Click_2(object sender, RoutedEventArgs e)
         {
-            infoFrame.Content = new Pages.LineInfoFrame(window.track.lines[lineIndex],lineIndex);
+            infoFrame.Content = new Pages.LineInfoFrame(window.track.lines[lineIndex], lineIndex);
         }
 
         //新建判定线
@@ -581,7 +698,7 @@ namespace PMEditor
 
         private void TextBox_KeyDown(object sender, KeyEventArgs e)
         {
-            if(e.Key == Key.Enter)
+            if (e.Key == Key.Enter)
             {
                 Grid box = (sender as TextBox).Parent as Grid;
                 ChangeLineId((sender as TextBox).Text);
@@ -594,6 +711,192 @@ namespace PMEditor
         private void ChangeLineId(string lineId)
         {
             window.track.lines[lineIndex].Id = lineId;
+        }
+
+        //放置事件
+        private void eventPanel_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (window.isPlaying) return;
+            if (startPos == new Point(-1, -1))
+            {
+                startPos = GetAlignedPoint(e.GetPosition(eventPanel));
+                if (currLine.ClickOnEvent(GetTimeFromY(startPos.Y), (int)Math.Round(startPos.X * 9 / notePanel.ActualWidth)))
+                {
+                    startPos = new Point(-1, -1);
+                }
+            }
+        }
+
+        //放置事件
+        private void eventPanel_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (window.isPlaying) return;
+            if (startPos == new Point(-1, -1)) return;
+            if (selectedEvents.Count != 0)
+            {
+                UpdateSelectedEvent(new());
+                infoFrame.Content = null;
+                startPos = new Point(-1, -1);
+                return;
+            }
+            //获取时间
+            //获取对齐后的鼠标位置
+            var endPos = GetAlignedPoint(e.GetPosition(eventPanel));
+            var startTime = GetTimeFromY(startPos.Y);
+            var endTime = GetTimeFromY(endPos.Y);
+            //计算轨道
+            int rail = (int)Math.Round(startPos.X * 9 / eventPanel.ActualWidth) + page * 9;
+            if (currLine.ClickOnEvent(endTime, rail))
+            {
+                startPos = new Point(-1, -1);
+                return;
+            }
+            //最小时间
+            if (endTime - startTime <= secondsPreDevideBeat)
+            {
+                startPos = new Point(-1, -1);
+                return;
+            }
+            //获取事件类型
+            var type = currLine.eventList.GetType(rail);
+            if (type == EventType.Unknown)
+            {
+                type = EventType.Speed;
+                currLine.eventList.ChangeType(type, rail + page * 9);
+            }
+            Event.puttingEvent = type;
+            //放置事件
+            willPutEvent ??= new Event(
+                startTime: startTime,
+                endTime: endTime,
+                rail: rail,
+                easeFunction: "Linear"
+                );
+            willPutEvent.rectangle.Height = endPos.Y - startPos.Y;
+            willPutEvent.rectangle.Width = eventPreview.Width;
+            eventPanel.Children.Add(willPutEvent.rectangle);
+            Canvas.SetLeft(willPutEvent.rectangle, willPutEvent.rail * eventPanel.ActualWidth / 9);
+            Canvas.SetBottom(willPutEvent.rectangle, startPos.Y);
+            if (!window.track.lines[lineIndex].events.Contains(willPutEvent))
+            {
+                window.track.lines[lineIndex].events.Add(willPutEvent);
+                willPutEvent.parentLine = window.track.lines[lineIndex];
+            }
+            noteChange = true;
+            OperationManager.AddOperation(new PutEventOperation(willPutEvent, window.track.lines[lineIndex]));
+            willPutEvent = null;
+            startPos = new(-1, -1);
+            eventPreview.Visibility = Visibility.Collapsed;
+            UpdateEventTypeList();
+        }
+
+        private void eventPanel_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (!window.isPlaying)
+            {
+                var endPos = GetAlignedPoint(e.GetPosition(eventPanel));
+                if (startPos != new Point(-1, -1))
+                {
+                    //hold预览
+                    if (endPos.Y > startPos.Y)
+                    {
+                        eventPreview.Height = endPos.Y - startPos.Y;
+                        //绘制note矩形
+                        Canvas.SetLeft(eventPreview, startPos.X);
+                        Canvas.SetBottom(eventPreview, startPos.Y);
+                        eventPreview.Visibility = Visibility.Visible;
+                    }
+                }
+                else
+                {
+                    //计算拍数
+                    double mouseTime = endPos.Y / pixelPreBeat * secondsPreBeat + window.playerTime;
+                    int beat = (int)(mouseTime / secondsPreBeat);
+                    int divBeat = (int)((mouseTime % secondsPreBeat) / secondsPreDevideBeat);
+                    beatDis.Content = $"beat {beat}:{divBeat}/{divideNum}";
+                }
+            }
+            else
+            {
+                eventPanel.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void TextBlock_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (editingNote)
+            {
+                editingNote = false;
+                changeToEvent.Visibility = Visibility.Collapsed;
+                changeToNote.Visibility = Visibility.Visible;
+                eventPanel.Visibility = Visibility.Visible;
+                foreach (var note in window.track.lines[lineIndex].notes)
+                {
+                    if (note.type == NoteType.Tap || note.type == NoteType.Hold)
+                    {
+                        note.Color = EditorColors.tapColorButNotOnThisLine;
+                    }
+                    else
+                    {
+                        note.Color = EditorColors.dragColorButNotOnThisLine;
+                    }
+                }
+            }
+            else
+            {
+                editingNote = true;
+                changeToEvent.Visibility = Visibility.Visible;
+                changeToNote.Visibility = Visibility.Collapsed;
+                eventPanel.Visibility = Visibility.Hidden;
+                foreach (var note in window.track.lines[lineIndex].notes)
+                {
+                    if (note.type == NoteType.Tap || note.type == NoteType.Hold)
+                    {
+                        note.Color = EditorColors.tapColor;
+                    }
+                    else
+                    {
+                        note.Color = EditorColors.dragColor;
+                    }
+                }
+            }
+            UpdateEventTypeList();
+        }
+
+        public void UpdateSelectedNote(List<Note> note)
+        {
+            selecedNotes.ForEach(note => { note.rectangle.HighLight = false; });
+            selecedNotes = note;
+            selecedNotes.ForEach(note => { note.rectangle.HighLight = true; });
+        }
+
+        public void UpdateSelectedNote(Note note, bool multiSelect = false)
+        {
+            if (!multiSelect)
+            {
+                selecedNotes.ForEach(note => { note.rectangle.HighLight = false; });
+                selecedNotes.Clear();
+            }
+            selecedNotes.Add(note);
+            note.rectangle.HighLight = true;
+        }
+
+        public void UpdateSelectedEvent(List<Event> @events)
+        {
+            selectedEvents.ForEach(@event => { @event.rectangle.HighLight = false; });
+            selectedEvents = @events;
+            selectedEvents.ForEach(@event => { @event.rectangle.HighLight = true; });
+        }
+
+        public void UpdateSelectedEvent(Event @events, bool multiSelect = false)
+        {
+            if (!multiSelect)
+            {
+                selectedEvents.ForEach(@event => { @event.rectangle.HighLight = false; });
+                selectedEvents.Clear();
+            }
+            selectedEvents.Add(@events);
+            @events.rectangle.HighLight = true;
         }
     }
 }
