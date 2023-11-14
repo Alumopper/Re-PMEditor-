@@ -1,30 +1,53 @@
-﻿using System.Collections.Generic;
+﻿using System.Management.Automation.Language;
 
-namespace PMEditor.Util
+namespace PMEditor
 {
-    public class EventList
+    public partial class EventList
     {
-        public int Count { get => typeList.Count; }
+        public EventType type;
 
-        private List<EventType> typeList = new();
+        public Line parentLine;
 
-        public void ChangeType(EventType type, int index)
+        public EventList(Line parent)
         {
-            while (typeList.Count < index + 1)
+            this.parentLine = parent;
+            this.type = EventType.Unknown;
+            this.events = new();
+        }
+
+        public bool IsMainEvent()
+        {
+            int index = parentLine.eventLists.IndexOf(this);
+            for(int i = 0; i < parentLine.eventLists.Count; i++)
             {
-                typeList.Add(EventType.Unknown);
+                if (parentLine.eventLists[i].type == type)
+                {
+                    return i == index;
+                }
             }
-            typeList[index] = type;
+            throw new System.Exception();
         }
 
-        public EventType GetType(int index)
+        public void GroupEvent()
         {
-            return index >= typeList.Count ? EventType.Unknown : typeList[index];
-        }
+            double lastEndTime = -1;
+            Event headEvent = null;
+            foreach (var item in events)
+            {
+                if(item.startTime > lastEndTime)
+                {
+                    item.isHeaderEvent = true;
+                    item.EventGroup.Add(item);
+                    headEvent = item;
+                }
+                else if (item.startTime == lastEndTime)
+                {
+                    item.isHeaderEvent = false;
+                    headEvent.EventGroup.Add(item);
 
-        public bool isMainEvent(int index)
-        {
-            return typeList.IndexOf(typeList[index]) == index;
+                }
+                lastEndTime = item.endTime;
+            }
         }
     }
 }

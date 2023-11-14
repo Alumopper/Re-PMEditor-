@@ -54,5 +54,10 @@ namespace PMEditor.Util
                 return (float)(7.5625 * (t -= 2.625 / 2.75) * t + 0.984375);
         }
 
+        public static double Cal(double start, double end, double t, Func<double, double> function)
+        {
+            double v = function(t);
+            return start + (end - start) * v;
+        }
     }
 }

@@ -2,28 +2,30 @@
 {
     public class PutEventOperation : BaseOperation
     {
-        Line line;
+        EventList list;
         Event @event;
 
 
-        public PutEventOperation(Event @event, Line line)
+        public PutEventOperation(Event @event, EventList list)
         {
             this.@event = @event;
-            this.line = line;
+            this.list = list;
         }
 
         public override void Redo()
         {
-            line.events.Add(@event);
-            OperationManager.editorPage.UpdateNote();
+            @event.parentList.GroupEvent();
+            list.events.Add(@event);
+            TrackEditorPage.Instance.UpdateEvent();
         }
 
         public override void Undo()
         {
-            line.events.Remove(@event);
-            OperationManager.editorPage.notePanel.Children.Remove(@event.rectangle);
+            @event.parentList.GroupEvent();
+            list.events.Remove(@event);
+            TrackEditorPage.Instance.eventPanel.Children.Remove(@event.rectangle);
             @event.rectangle.Visibility = System.Windows.Visibility.Hidden;
-            OperationManager.editorPage.UpdateNote();
+            TrackEditorPage.Instance.UpdateEvent();
         }
 
         public override string GetInfo()

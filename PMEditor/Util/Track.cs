@@ -97,7 +97,7 @@ namespace PMEditor
         public string id;           //判定线的名字
         public double y;            //判定线的y坐标
         public List<Note> notes;    //note
-        public List<Event> events;  //事件
+        public List<EventList> eventLists;  //事件
 
         #region getter and setter
         public double Y
@@ -112,10 +112,10 @@ namespace PMEditor
             set { notes = value; }
         }
 
-        public List<Event> Events
+        public List<EventList> EventLists
         {
-            get { return events; }
-            set { events = value; }
+            get { return eventLists; }
+            set { eventLists = value; }
         }
 
         public string Id
@@ -123,6 +123,8 @@ namespace PMEditor
             get { return id; }
             set { id = value; }
         }
+
+        
         #endregion
 
         public Line(double y, string id = "newLine")
@@ -130,7 +132,7 @@ namespace PMEditor
             this.y = y;
             this.id = id;
             this.notes = new();
-            this.events = new();
+            this.eventLists = new();
         }
 
         public Line() : this(0) { }
@@ -206,10 +208,6 @@ namespace PMEditor
 
             rectangle = new NoteRectangle(this);
 
-            //注册点击事件
-            rectangle.MouseRightButtonUp += Rectangle_MouseRightButtonUp;
-            rectangle.MouseLeftButtonDown += Rectangle_MouseLeftButtonDown;
-
             if (noteType == (int)PMEditor.NoteType.Tap)
             {
                 sound.Open(new Uri("./assets/sounds/tap.wav", UriKind.Relative));
@@ -231,12 +229,41 @@ namespace PMEditor
         }
     }
 
+    public partial class EventList
+    {
+        public int typeId;
+        public List<Event> events;
+
+        #region getter and setter
+        public int TypeId
+        {
+            get => typeId;
+            set => typeId = value;
+        }
+
+        public List<Event> Events
+        {
+            get => events;
+            set => events = value;
+        }
+        #endregion
+
+        [JsonConstructor]
+        public EventList(int typeId, List<Event> events)
+        {
+            this.typeId = typeId;
+            this.events = events;
+            this.type = (EventType)Enum.Parse(typeof(EventType), typeId.ToString());
+        }
+    }
+
     public partial class Event
     {
         public double startTime;    //开始时间
         public double endTime;      //终止时间
         public int typeId;       //事件类型
-        public int rail;        //轨道。仅用于显示
+        public double startValue;   //开始值
+        public double endValue;     //结束值
         public string easeFunctionID; //缓动函数
         public Dictionary<string, object> properties;   //属性
 
@@ -259,18 +286,11 @@ namespace PMEditor
             set => typeId = value;
         }
 
-        public int Rail
-        {
-            get => rail;
-            set => rail = value;
-        }
-
         public string EaseFunctionID
         {
             get => easeFunctionID;
             set => easeFunctionID = value;
         }
-
 
         public Dictionary<string, object> Properties
         {
@@ -278,17 +298,30 @@ namespace PMEditor
             set => properties = value;
         }
 
+        public double StartValue
+        {
+            get => startValue;
+            set => startValue = value;
+        }
+
+        public double EndValue
+        {
+            get => endValue;
+            set => endValue = value;
+        }
+
         #endregion
 
         [JsonConstructor]
-        public Event(double startTime, double endTime, int rail, int typeId, string easeFunctionID, Dictionary<string, object> properties)
+        public Event(double startTime, double endTime, int rail, int typeId, string easeFunctionID, Dictionary<string, object> properties, double startValue, double endValue)
         {
             this.startTime = startTime;
             this.endTime = endTime;
             this.typeId = typeId;
-            this.rail = rail;
             this.properties = properties;
             this.easeFunctionID = easeFunctionID;
+            this.startValue = startValue;
+            this.endValue = endValue;
 
             this.easeFunction = EaseFunctions.functions[easeFunctionID];
             this.type = (EventType)Enum.Parse(typeof(EventType), typeId.ToString());
@@ -297,8 +330,6 @@ namespace PMEditor
                 Fill = new SolidColorBrush(EditorColors.eventColor),
                 HighLightBorderBrush = new SolidColorBrush(EditorColors.eventHighlightColor)
             };
-            rectangle.MouseRightButtonUp += Rectangle_MouseRightButtonUp;
-            rectangle.MouseLeftButtonDown += Rectangle_MouseLeftButtonDown;
             this.properties = properties;
         }
     }

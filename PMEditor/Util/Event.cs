@@ -1,5 +1,6 @@
 ﻿using PMEditor.Controls;
 using PMEditor.Operation;
+using PMEditor.Util;
 using System;
 using System.Collections.Generic;
 using System.Windows.Input;
@@ -9,11 +10,15 @@ namespace PMEditor
 {
     public partial class Event
     {
+        public EventList parentList;
+
         public static EventType puttingEvent = EventType.Speed;
 
-        public Line parentLine;
-
         public EventRectangle rectangle;
+
+        public bool isHeaderEvent;
+
+        public List<Event> EventGroup = new();
 
         public EventType type;
 
@@ -27,23 +32,8 @@ namespace PMEditor
             }
         }
 
-        public Event(double startTime, double endTime, int rail, string easeFunction)
-            : this(startTime, endTime, rail, (int)puttingEvent, easeFunction, InitProperties(puttingEvent)) { }
-
-        //右键删除此event
-        private void Rectangle_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            parentLine.events.Remove(this);
-            TrackEditorPage.Instance.eventPanel.Children.Remove(rectangle);
-            OperationManager.AddOperation(new RemoveEventOperation(this, parentLine));
-        }
-
-
-        private void Rectangle_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            TrackEditorPage.Instance.infoFrame.Content = new EventPropertyPanel(this);
-            TrackEditorPage.Instance.UpdateSelectedEvent(this);
-        }
+        public Event(double startTime, double endTime, int rail, string easeFunction, double startValue, double endValue)
+            : this(startTime, endTime, rail, (int)puttingEvent, easeFunction, InitProperties(puttingEvent), startValue, endValue) { }
 
         public static Dictionary<string, object> InitProperties(EventType type)
         {
@@ -53,10 +43,10 @@ namespace PMEditor
 
         public override string ToString()
         {
-            return $"Event[line={parentLine.Id},type={type}]";
+            return $"Event[line={parentList.parentLine.Id},type={type}]";
         }
 
-        public static string typeString(EventType type)
+        public static string TypeString(EventType type)
         {
             return type switch
             {
@@ -65,6 +55,17 @@ namespace PMEditor
                 _ => "未知"
             };
         }
+
+        public static double GetDefaultValue(EventType type)
+        {
+            return type switch
+            {
+                EventType.Speed => 1,
+                EventType.YPosition => 0,
+                _ => double.NaN
+            };
+
+        }    
     }
 
     public enum EventType

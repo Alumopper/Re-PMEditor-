@@ -2,29 +2,31 @@
 {
     internal class RemoveEventOperation : BaseOperation
     {
-        Line line;
+        EventList list;
         Event @event;
 
 
-        public RemoveEventOperation(Event e, Line line)
+        public RemoveEventOperation(Event e, EventList list)
         {
             this.@event = e;
-            this.line = line;
+            this.list = list;
         }
 
         public override void Undo()
         {
-            line.events.Add(@event);
-            OperationManager.editorPage.notePanel.Children.Add(@event.rectangle);
-            OperationManager.editorPage.UpdateNote();
+            @event.parentList.GroupEvent();
+            list.events.Add(@event);
+            OperationManager.editorPage.eventPanel.Children.Add(@event.rectangle);
+            OperationManager.editorPage.UpdateEvent();
         }
 
         public override void Redo()
         {
-            line.events.Remove(@event);
-            OperationManager.editorPage.notePanel.Children.Remove(@event.rectangle);
+            @event.parentList.GroupEvent();
+            list.events.Remove(@event);
+            OperationManager.editorPage.eventPanel.Children.Remove(@event.rectangle);
             @event.rectangle.Visibility = System.Windows.Visibility.Hidden;
-            OperationManager.editorPage.UpdateNote();
+            OperationManager.editorPage.UpdateEvent();
         }
 
         public override string GetInfo()

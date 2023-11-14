@@ -74,21 +74,6 @@ namespace PMEditor
             }
         }
 
-        //右键删除此note
-        private void Rectangle_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            parentLine.notes.Remove(this);
-            TrackEditorPage.Instance.notePanel.Children.Remove(rectangle);
-            OperationManager.AddOperation(new RemoveNoteOperation(this, parentLine));
-        }
-
-        //左键选中此note
-        private void Rectangle_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            TrackEditorPage.Instance.infoFrame.Content = new NotePropertyPanel(this);
-            TrackEditorPage.Instance.UpdateSelectedNote(this);
-        }
-
         private void Sound_MediaEnded(object? sender, EventArgs e)
         {
             (sender as MediaPlayer).Stop();

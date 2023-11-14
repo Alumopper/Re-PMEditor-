@@ -40,7 +40,7 @@ namespace PMEditor
             this.Title = "Re:PMEditor - " + info.TrackName;
             timer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(1.0 / 120)
+                Interval = TimeSpan.FromMilliseconds(1.0 / 60)
             };
             timer.Start();
             player = new MediaPlayer();

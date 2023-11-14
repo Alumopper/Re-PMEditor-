@@ -1,13 +1,12 @@
 ﻿using PMEditor.Util;
+using System.ComponentModel;
 using System.Drawing;
+using System.Xml.Serialization;
 
 namespace PMEditor
 {
     public partial class Line
     {
-        //事件种类区别
-        public EventList eventList = new();
-
         public bool IsNoteOverLap(Note note)
         {
             if (notes.Contains(note))
@@ -35,7 +34,7 @@ namespace PMEditor
                 if (item.rail != rail) continue;
                 if(item.type == NoteType.Hold)
                 {
-                    if(item.actualTime <= time && time <= item.actualTime + item.actualHoldTime)
+                    if(item.actualTime < time && time < item.actualTime + item.actualHoldTime)
                     {
                         return true;
                     }
@@ -53,15 +52,49 @@ namespace PMEditor
 
         public bool ClickOnEvent(double time, int rail)
         {
-            foreach(var item in events)
+            if (eventLists.Count <= rail) return false;
+            foreach(var item in eventLists[rail].events)
             {
-                if (item.rail != rail) continue;
-                if(item.startTime <= time && time <= item.endTime)
+                if(item.startTime < time && time < item.endTime)
                 {
                     return true;
                 }
             }
             return false;
+        }
+
+        public double GetLastEventValue(int rail)
+        {
+            var qwq = eventLists[rail].type;
+            if(qwq == EventType.Unknown)
+            {
+                return double.NaN;
+            }
+            double endValue = Event.GetDefaultValue(qwq);
+            double endTime = 0;
+            foreach(Event item in eventLists[rail].events)
+            {
+                if(item.endTime > endTime)
+                {
+                    endTime = item.endTime;
+                    endValue = item.endValue;
+                }
+            }
+            return endValue;
+        }
+
+        public EventType GetType(int index)
+        {
+            return index >= eventLists.Count ? EventType.Unknown : eventLists[index].type;
+        }
+
+        public void SetType(EventType type, int index)
+        {
+            while (eventLists.Count < index + 1)
+            {
+                eventLists.Add(new(this));
+            }
+            eventLists[index].type = type;
         }
     }
 }

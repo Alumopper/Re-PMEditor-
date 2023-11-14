@@ -1,6 +1,7 @@
 ﻿using PMEditor.Util;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace PMEditor.Controls
 {
@@ -15,12 +16,14 @@ namespace PMEditor.Controls
         {
             InitializeComponent();
             this.@event = e;
-            eventType.IsEnabled = e.parentLine.eventList.isMainEvent(e.rail) && e.parentLine.eventList.Count == 1;
+            eventType.IsEnabled = e.parentList.IsMainEvent() && e.parentList.events.Count == 1;
             startTime.Text = e.StartTime.ToString();
             endTime.Text = e.EndTime.ToString();
             functions.ItemsSource = EaseFunctions.functions.Keys;
             functions.SelectedItem = e.easeFunctionID;
             eventType.SelectedIndex = e.TypeId;
+            startValue.Text = e.StartValue.ToString();
+            endValue.Text = e.EndValue.ToString();
         }
 
         private void eventType_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -28,8 +31,15 @@ namespace PMEditor.Controls
 
         }
 
-        private void startTime_LostFocus(object sender, RoutedEventArgs e)
+        private void functions_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            @event.easeFunctionID = functions.SelectedValue.ToString();
+            @event.easeFunction = EaseFunctions.functions[@event.easeFunctionID];
+        }
+
+        private void startTime_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if(e.Key != Key.Enter) return;
             if (startTime.IsReadOnly) return;
             var qwq = double.TryParse(startTime.Text, out double value);
             if (qwq)
@@ -40,10 +50,12 @@ namespace PMEditor.Controls
             {
                 startTime.Text = @event.StartTime.ToString();
             }
+            Keyboard.ClearFocus();
         }
 
-        private void endTime_LostFocus(object sender, RoutedEventArgs e)
+        private void endTime_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
+            if (e.Key != Key.Enter) return;
             if (endTime.IsReadOnly) return;
             var qwq = double.TryParse(endTime.Text, out double value);
             if (qwq)
@@ -54,12 +66,39 @@ namespace PMEditor.Controls
             {
                 endTime.Text = @event.EndTime.ToString();
             }
+            Keyboard.ClearFocus();
         }
 
-        private void functions_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void startValue_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            @event.easeFunctionID = functions.SelectedValue.ToString();
-            @event.easeFunction = EaseFunctions.functions[@event.easeFunctionID];
+            if (e.Key != Key.Enter) return;
+            if (startValue.IsReadOnly) return;
+            var qwq = double.TryParse(startValue.Text, out double value);
+            if (qwq)
+            {
+                @event.startValue = value;
+            }
+            else
+            {
+                startValue.Text = @event.startValue.ToString();
+            }
+            Keyboard.ClearFocus();
+        }
+
+        private void endValue_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            if (endValue.IsReadOnly) return;
+            var qwq = double.TryParse(endValue.Text, out double value);
+            if (qwq)
+            {
+                @event.endValue = value;
+            }
+            else
+            {
+                endValue.Text = @event.endValue.ToString();
+            }
+            Keyboard.ClearFocus();
         }
     }
 }

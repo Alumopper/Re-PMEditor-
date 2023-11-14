@@ -151,16 +151,23 @@
                     <!--note放置区域-->
                     <Canvas Name="notePanel" Background="Transparent" ClipToBounds="True" MouseMove="notePanel_MouseMove" MouseLeave="notePanel_MouseLeave" MouseLeftButtonUp="notePanel_MouseLeftButtonUp" MouseLeftButtonDown="notePanel_MouseLeftButtonDown" SizeChanged="notePanel_SizeChanged">
                         <Rectangle Name="notePreview"
-                               Width="{Binding ActualWidth, ElementName=rectangle, Mode=OneWay}"
-                               Height="10"/>
+                            Width="{Binding ActualWidth, ElementName=rectangle, Mode=OneWay}"
+                            Height="10"/>
+                        <Rectangle x:Name="noteMovePreview"
+                            Width="{Binding ActualWidth, ElementName=rectangle, Mode=OneWay}"
+                            Height="10"/>
                     </Canvas>
                     <!--事件放置区域-->
                     <Canvas x:Name="eventPanel" Background="Transparent" ClipToBounds="True" Visibility="Hidden"
-                            MouseLeftButtonDown="eventPanel_MouseLeftButtonDown" MouseLeftButtonUp="eventPanel_MouseLeftButtonUp" MouseMove="eventPanel_MouseMove">
+                            MouseLeftButtonDown="eventPanel_MouseLeftButtonDown" MouseLeftButtonUp="eventPanel_MouseLeftButtonUp" MouseMove="eventPanel_MouseMove"
+                            SizeChanged="eventPanel_SizeChanged">
                         <Rectangle Name="eventPreview"
                                Width="{Binding ActualWidth, ElementName=rectangle, Mode=OneWay}"
                                Fill="#8055FF9E" Visibility="Collapsed"
                                Height="10"/>
+                        <Rectangle x:Name="eventMovePreview"
+                            Width="{Binding ActualWidth, ElementName=rectangle, Mode=OneWay}"
+                            Height="10"/>
                     </Canvas>
                 </Grid>
             </Border>

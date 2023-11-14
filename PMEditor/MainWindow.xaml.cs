@@ -1,9 +1,9 @@
-﻿using System;
+﻿using PMEditor.Util;
+using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
-using PMEditor.Util;
 
 namespace PMEditor
 {
@@ -15,6 +15,10 @@ namespace PMEditor
         public MainWindow()
         {
             InitializeComponent();
+#if DEBUG
+            DebugWindow debugWindow = new();
+            debugWindow.Show();
+#endif
             //文件夹修改监视
             FileSystemWatcher watcher = new FileSystemWatcher(@"./tracks/")
             {

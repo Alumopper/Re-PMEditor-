@@ -6,7 +6,9 @@
              xmlns:local="clr-namespace:PMEditor"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-        <Rectangle Name="rect"/>
+    <Grid MouseRightButtonUp="Rectangle_MouseRightButtonUp" MouseLeftButtonDown="Rectangle_MouseLeftButtonDown" MouseMove="Grid_MouseMove">
+        <Border x:Name="highLightBorder" BorderThickness="0">
+            <Rectangle Name="rect"/>
+        </Border>
     </Grid>
 </UserControl>
