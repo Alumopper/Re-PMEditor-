@@ -15,16 +15,16 @@
         public override void Undo()
         {
             line.notes.Add(note);
-            OperationManager.editorPage.notePanel.Children.Add(note.rectangle);
-            OperationManager.editorPage.UpdateNote();
+            TrackEditorPage.Instance.notePanel.Children.Add(note.rectangle);
+            TrackEditorPage.Instance.UpdateNote();
         }
 
         public override void Redo()
         {
             line.notes.Remove(note);
-            OperationManager.editorPage.notePanel.Children.Remove(note.rectangle);
+            TrackEditorPage.Instance.notePanel.Children.Remove(note.rectangle);
             note.rectangle.Visibility = System.Windows.Visibility.Hidden;
-            OperationManager.editorPage.UpdateNote();
+            TrackEditorPage.Instance.UpdateNote();
         }
 
         public override string GetInfo()

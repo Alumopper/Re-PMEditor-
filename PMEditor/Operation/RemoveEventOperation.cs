@@ -16,17 +16,17 @@
         {
             @event.parentList.GroupEvent();
             list.events.Add(@event);
-            OperationManager.editorPage.eventPanel.Children.Add(@event.rectangle);
-            OperationManager.editorPage.UpdateEvent();
+            TrackEditorPage.Instance.eventPanel.Children.Add(@event.rectangle);
+            TrackEditorPage.Instance.UpdateEvent();
         }
 
         public override void Redo()
         {
             @event.parentList.GroupEvent();
             list.events.Remove(@event);
-            OperationManager.editorPage.eventPanel.Children.Remove(@event.rectangle);
+            TrackEditorPage.Instance.eventPanel.Children.Remove(@event.rectangle);
             @event.rectangle.Visibility = System.Windows.Visibility.Hidden;
-            OperationManager.editorPage.UpdateEvent();
+            TrackEditorPage.Instance.UpdateEvent();
         }
 
         public override string GetInfo()

@@ -1,4 +1,5 @@
 ﻿using PMEditor.Operation;
+using PMEditor.Pages;
 using PMEditor.Util;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,8 @@ namespace PMEditor
     /// </summary>
     public partial class EditorWindow : Window
     {
+        public static EditorWindow Instance { get; private set; }
+
         public TrackInfo info;
         public Track track;
         public List<Page> pages;
@@ -31,6 +34,7 @@ namespace PMEditor
         {
             InitializeComponent();
 
+            Instance = this;
             if (track.lines.Count == 0)
             {
                 track.lines.Add(new Line());
@@ -51,9 +55,8 @@ namespace PMEditor
             {
                 isPlaying = false;
             };
-            pages = new List<Page>() { new TrackEditorPage(this), new CodeViewer(this) };
+            pages = new List<Page>() { new TrackEditorPage(), new CodeViewer(), new TrackPreview2D(track)};
             SetCurrPage(0);
-            OperationManager.editorWindow = this;
         }
 
         private void editorButton_Click(object sender, RoutedEventArgs e)
@@ -68,7 +71,7 @@ namespace PMEditor
 
         private void playButton_Click(object sender, RoutedEventArgs e)
         {
-
+            SetCurrPage(2);
         }
 
         private void settingButton_Click(object sender, RoutedEventArgs e)
@@ -116,9 +119,14 @@ namespace PMEditor
             }
         }
 
-        private void Window_Closed(object sender, EventArgs e)
+        //导出为snbt
+        private void MenuItem_Click(object sender, RoutedEventArgs e)
         {
+        }
 
+        //导出为mcfunction
+        private void MenuItem_Click_1(object sender, RoutedEventArgs e)
+        {
         }
     }
 

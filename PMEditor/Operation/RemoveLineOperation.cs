@@ -16,14 +16,14 @@
 
         public override void Redo()
         {
-            OperationManager.editorWindow.track.lines.Remove(line);
-            OperationManager.editorPage.UpdateNote();
+            EditorWindow.Instance.track.lines.Remove(line);
+            TrackEditorPage.Instance.UpdateNote();
         }
 
         public override void Undo()
         {
-            OperationManager.editorWindow.track.lines.Add(line);
-            OperationManager.editorPage.UpdateNote();
+            EditorWindow.Instance.track.lines.Add(line);
+            TrackEditorPage.Instance.UpdateNote();
         }
     }
 }

@@ -90,7 +90,7 @@ namespace PMEditor
                 double height = er.EventHeight;
                 for(double i = 0; i <= height; i++)
                 {
-                    double value = EaseFunctions.Cal(e.startValue, e.endValue, i / height, e.easeFunction);
+                    double value = EaseFunctions.Interpolate(e.startValue, e.endValue, i / height, e.easeFunction);
                     Point point = new((value - min) / (max - min) * width, height - i);
                     if(pathFigure.Segments.Count == 0)
                     {

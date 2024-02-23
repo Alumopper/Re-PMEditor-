@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:PMEditor"
         mc:Ignorable="d"
         Title="EditorWindow" Height="700" Width="1200" WindowStartupLocation="CenterScreen"
-        WindowState="Maximized" Closing="Window_Closing" Closed="Window_Closed">
+        WindowState="Maximized" Closing="Window_Closing">
     <Window.CommandBindings>
         <CommandBinding Command="local:Commands.PlayOrPause" CanExecute="CommandBinding_CanExecute" Executed="CommandBinding_Executed" />
         <CommandBinding Command="local:Commands.ChangeNoteType" CanExecute="CommandBinding_CanExecute_1" Executed="CommandBinding_Executed_1"/>
@@ -44,6 +44,10 @@
         <Menu Grid.Row="0" Background="#FF0B0314" BorderThickness="0,0,0,1" BorderBrush="#FF3A1662" Foreground="#FFE5E5E5" Margin="0,4,0,0">
             <MenuItem Header="文件(_F)" Margin="0,0,3,0">
                 <MenuItem Header="保存(_S)" Foreground="#FF000000" Command="local:Commands.Save"/>
+                <MenuItem Header="另存为...(_E)" Foreground="#FF000000">
+                    <MenuItem Header="SNBT(_S)" Foreground="#FF000000" Click="MenuItem_Click"/>
+                    <MenuItem Header="MCF(_S)" Foreground="#FF000000" Click="MenuItem_Click_1"/>
+                </MenuItem>
             </MenuItem>
             <MenuItem Header="编辑(_E)" Margin="0,0,3,0">
                 <MenuItem Header="撤销(_Z)" Foreground="#FF000000" Command="local:Commands.Undo"/>

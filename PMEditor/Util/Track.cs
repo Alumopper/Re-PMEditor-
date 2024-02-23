@@ -313,7 +313,7 @@ namespace PMEditor
         #endregion
 
         [JsonConstructor]
-        public Event(double startTime, double endTime, int rail, int typeId, string easeFunctionID, Dictionary<string, object> properties, double startValue, double endValue)
+        public Event(double startTime, double endTime, int typeId, string easeFunctionID, Dictionary<string, object> properties, double startValue, double endValue)
         {
             this.startTime = startTime;
             this.endTime = endTime;

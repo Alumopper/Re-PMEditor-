@@ -32,8 +32,8 @@ namespace PMEditor
             }
         }
 
-        public Event(double startTime, double endTime, int rail, string easeFunction, double startValue, double endValue)
-            : this(startTime, endTime, rail, (int)puttingEvent, easeFunction, InitProperties(puttingEvent), startValue, endValue) { }
+        public Event(double startTime, double endTime, string easeFunction, double startValue, double endValue)
+            : this(startTime, endTime, (int)puttingEvent, easeFunction, InitProperties(puttingEvent), startValue, endValue) { }
 
         public static Dictionary<string, object> InitProperties(EventType type)
         {

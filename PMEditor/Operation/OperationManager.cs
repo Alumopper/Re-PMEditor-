@@ -14,10 +14,6 @@ namespace PMEditor.Operation
 
         public static int savedOperationIndex = index;
 
-        public static TrackEditorPage editorPage;
-
-        public static EditorWindow editorWindow;
-
         //进行过的操作的列表
         static List<BaseOperation> ops = new();
 
@@ -69,7 +65,7 @@ namespace PMEditor.Operation
             }
             ops.Add(op);
             //更改标题
-            editorWindow.Title = "Re:PMEditor - " + editorWindow.info.TrackName + " *";
+            EditorWindow.Instance.Title = "Re:PMEditor - " + EditorWindow.Instance.info.TrackName + " *";
             index++;
         }
     }

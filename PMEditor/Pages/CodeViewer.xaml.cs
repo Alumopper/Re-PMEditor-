@@ -12,14 +12,8 @@ namespace PMEditor
     /// </summary>
     public partial class CodeViewer : Page
     {
-        EditorWindow window;
-        public EditorWindow Window
-        {
-            get { return window; }
-            set { window = value; }
-        }
 
-        public CodeViewer(EditorWindow editorWindow)
+        public CodeViewer()
         {
             IHighlightingDefinition highlightingDefinition;
             string projName = Assembly.GetExecutingAssembly().GetName().Name;
@@ -30,8 +24,7 @@ namespace PMEditor
             }
             HighlightingManager.Instance.RegisterHighlighting("JsonHighlighting", new string[] { ".json" }, highlightingDefinition);
             InitializeComponent();
-            this.window = editorWindow;
-            jsonViewer.Text = window.track.ToJsonString();
+            jsonViewer.Text = EditorWindow.Instance.track.ToJsonString();
             jsonViewer.SyntaxHighlighting = HighlightingManager.Instance.GetDefinition("JsonHighlighting");
         }
     }

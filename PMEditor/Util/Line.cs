@@ -96,5 +96,35 @@ namespace PMEditor
             }
             eventLists[index].type = type;
         }
+
+        //获得此时的时间
+        public double GetSpeed(double time)
+        {
+            double speed = 1;
+            foreach (var list in eventLists)
+            {
+                if(list.type != EventType.Speed) continue;
+                double value = 0;
+                foreach(var e in list.Events)
+                {
+                    if (e.endTime <= time) value = e.endValue;
+                    if (e.startTime <= time && time <= e.endTime)
+                    {
+                        value = EaseFunctions.Interpolate(e.startValue, e.endValue, (time - e.startTime)/(e.endTime - e.startTime), e.easeFunction);
+                        break;
+                    }
+                    if(e.endTime > time) break;
+                }
+                if (list.IsMainEvent())
+                {
+                    speed = value;
+                }
+                else
+                {
+                    speed += value;
+                }
+            }
+            return speed;
+        }
     }
 }

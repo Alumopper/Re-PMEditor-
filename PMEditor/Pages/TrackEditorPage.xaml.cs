@@ -2,6 +2,7 @@
 using PMEditor.Util;
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -9,6 +10,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Ribbon;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace PMEditor
 {
@@ -17,17 +19,30 @@ namespace PMEditor
     /// </summary>
     public partial class TrackEditorPage : Page
     {
+
+        static readonly SolidColorBrush tapBrush = new(
+            Color.FromArgb(102, 109, 209, 213)
+            );
+
+        static readonly SolidColorBrush dragBrush = new(
+            Color.FromArgb(102, 227, 214, 76)
+            );
+
         public static TrackEditorPage Instance { get; private set; }
 
         public const double FPS = double.NaN;
 
-        public EditorWindow window;
+        public EditorWindow window { get => EditorWindow.Instance; }
 
         double secondsPreBeat;
 
         double secondsPreDevideBeat;
 
         bool editingNote = true;
+
+        bool previewing = false;
+
+        NBTTrack nbtTrack;
 
         //节拍分割
         int divideNum = 4;
@@ -38,14 +53,6 @@ namespace PMEditor
         {
             get { return pixelPreDividedBeat * divideNum; }
         }
-
-        readonly SolidColorBrush tapBrush = new(
-            Color.FromArgb(102, 109, 209, 213)
-            );
-
-        readonly SolidColorBrush dragBrush = new(
-            Color.FromArgb(102, 227, 214, 76)
-            );
 
         Note? willPutNote;
         Event? willPutEvent;
@@ -78,18 +85,22 @@ namespace PMEditor
         private List<Note> selecedNotes = new();
         private List<Event> selectedEvents = new();
 
-        public TrackEditorPage(EditorWindow window)
+        //可预览的范围
+        double previewRange;
+
+        //可预览的起始时间点
+        double previewStartTime = 0;
+
+        public TrackEditorPage()
         {
             InitializeComponent();
             Instance = this;
-            this.window = window;
             playerControler.Maximum = window.track.Length * 100;
             timeDis.Content = "0.00" + " / " + window.track.Length.ToString("0.00");
             secondsPreBeat = 60.0 / window.track.bpm;
             secondsPreDevideBeat = secondsPreBeat / divideNum;
             //window.timer.Tick += Timer_Tick;
             CompositionTarget.Rendering += Tick;
-            OperationManager.editorPage = this;
             //添加note渲染和事件渲染
             foreach (var line in window.track.lines)
             {
@@ -113,6 +124,7 @@ namespace PMEditor
                     line.eventLists[i].parentLine = line;
                     line.eventLists[i].events.ForEach(e =>
                     {
+                        e.parentList = line.eventLists[i];
                         line.SetType(e.type, i);
                         e.rectangle.Visibility = Visibility.Hidden;
                         eventPanel.Children.Add(e.rectangle);
@@ -126,6 +138,7 @@ namespace PMEditor
             lineListView.ItemsSource = window.track.lines;
             lineListView.SelectedIndex = 0;
             init = true;
+            previewRange = 30.0 / window.track.length;
         }
 
         private DateTime lastRenderTime = DateTime.MinValue;
@@ -147,6 +160,7 @@ namespace PMEditor
                 window.operationInfo.Text = "就绪";
             }
             Draw();
+            DrawPreview();
             UpdateFunctionCurve();
         }
 
@@ -250,6 +264,87 @@ namespace PMEditor
                     line.StrokeThickness = 1;
                 }
                 notePanel.Children.Add(line);
+            }
+        }
+
+        //绘制谱面预览
+        public void DrawPreview()
+        {
+            double width = trackPreview.ActualWidth;
+            double height = trackPreview.ActualHeight;
+            trackPreview.Children.Clear();
+            //绘制谱面
+            foreach (var line in window.track.lines)
+            {
+                foreach (var note in line.notes)
+                {
+                    if (note.type == NoteType.Hold)
+                    {
+                        double x = note.rail * width / 9;
+                        double y = (note.actualTime - previewStartTime) / (window.track.Length * previewRange) * height;
+                        double w = width / 9;
+                        double h = note.actualHoldTime / (window.track.Length * previewRange) * height;
+                        System.Windows.Shapes.Rectangle rect = new()
+                        {
+                            Width = w,
+                            Height = h,
+                            Fill = new SolidColorBrush(EditorColors.holdColor)
+                        };
+                        trackPreview.Children.Add(rect);
+                        Canvas.SetLeft(rect, x);
+                        Canvas.SetBottom(rect, y);
+                    }
+                    else
+                    {
+                        double x = note.rail * width / 9;
+                        double y = (note.actualTime - previewStartTime) / (window.track.Length * previewRange) * height;
+                        double w = width / 9;
+                        double h = 2;
+                        System.Windows.Shapes.Rectangle rect = new()
+                        {
+                            Width = w,
+                            Height = h,
+                            Fill = note.type == NoteType.Tap ? new SolidColorBrush(EditorColors.tapColor) : new SolidColorBrush(EditorColors.dragColor)
+                        };
+                        trackPreview.Children.Add(rect);
+                        Canvas.SetLeft(rect, x);
+                        Canvas.SetBottom(rect, y);
+                    }
+                }
+            }
+            //绘制时间线
+            double timeLineY = height - (window.playerTime - previewStartTime) / (window.track.Length * previewRange) * height;
+            System.Windows.Shapes.Line timeLine = new()
+            {
+                X1 = 0,
+                X2 = width,
+                Y1 = timeLineY,
+                Y2 = timeLineY,
+                Stroke = new SolidColorBrush(Colors.Red),
+                StrokeThickness = 2
+            };
+            trackPreview.Children.Add(timeLine);
+        }
+
+        public void DrawTrackWithEvent()
+        {
+            double height = trackPreviewWithEvent.ActualHeight;
+            double width = trackPreviewWithEvent.ActualWidth;
+            trackPreviewWithEvent.Children.Clear();
+            //绘制note
+            foreach (var line in window.track.lines)
+            {
+                foreach (var note in line.notes)
+                {
+                    if (note.type == NoteType.Hold)
+                    {
+
+                    }
+                    else
+                    {
+
+                    }
+                }
             }
         }
 
@@ -944,7 +1039,6 @@ namespace PMEditor
             willPutEvent ??= new Event(
                 startTime: startTime,
                 endTime: endTime,
-                rail: rail,
                 easeFunction: "Linear",
                 startValue: v,
                 endValue: v
@@ -1135,6 +1229,97 @@ namespace PMEditor
             isDraging = isSelecting;
             dragStartPoint = GetAlignedPoint(Mouse.GetPosition(eventPanel));
         }
+ 
+        private void trackPreview_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            //时间设置
+            if (Keyboard.IsKeyDown(Key.LeftCtrl))
+            {
+                previewRange = Math.Min(previewRange + 0.1 * e.Delta / 60.0, 1.0);
+                previewRange = Math.Max(10 / window.track.Length, previewRange);
+            }
+            else
+            {
+                Update();
+                noteChange = true;
+                window.player.Pause();
+                window.isPlaying = false;
+                double t = window.playerTime + e.Delta / 120.0 * window.track.Length * previewRange / 10.0;
+                t = Math.Max(0, t);
+                t = Math.Min(window.track.Length * previewRange + previewStartTime, t);
+                //调整预览窗格
+                if(t - previewStartTime > window.track.Length * previewRange)
+                {
+                    previewStartTime = t - window.track.Length * previewRange;
+                }
+                else if (t < previewStartTime)
+                {
+                    previewStartTime = t;
+                }
+                window.playerTime = t;
+                window.player.Position = TimeSpan.FromSeconds(window.playerTime);
+                playerControler.Value = window.playerTime * 100;
+                timeDis.Content = window.playerTime.ToString("0.00") + " / " + window.track.Length.ToString("0.00");
+            }
+        }
 
+        private void trackPreview_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            //获取鼠标位置
+            var pos = Mouse.GetPosition(trackPreview);
+            double time = (trackPreview.ActualHeight - pos.Y) / trackPreview.ActualHeight * window.track.Length * previewRange + previewStartTime;
+            window.player.Position = TimeSpan.FromSeconds(time);
+            window.playerTime = time;
+            //更新进度条
+            playerControler.Value = window.playerTime * 100;
+            //暂停播放器
+            window.player.Pause();
+            window.isPlaying = false;
+            //更新时间
+            timeDis.Content = window.playerTime.ToString("0.00") + " / " + window.track.Length.ToString("0.00");
+            Update();
+        }
+
+        private void EditOrPreviewChanged(object sender, EventArgs e)
+        {
+
+            if (previewing)
+            {
+                //切换至谱面编辑
+                previewing = false;
+                if (editingNote)
+                {
+                    notePanel.Visibility = Visibility.Visible;
+                    trackPreviewWithEvent.Visibility = Visibility.Hidden;
+                }
+                else
+                {
+                    eventPanel.Visibility = Visibility.Visible;
+                    trackPreviewWithEvent.Visibility = Visibility.Hidden;
+                }
+            }
+            else
+            {
+                //切换至预览
+                nbtTrack = NBTTrack.FromTrack(window.track);
+                editingNote = true;
+                if (editingNote)
+                {
+                    notePanel.Visibility = Visibility.Hidden;
+                    trackPreviewWithEvent.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    eventPanel.Visibility = Visibility.Hidden;
+                    trackPreviewWithEvent.Visibility = Visibility.Visible;
+                }
+                DrawTrackWithEvent();
+            }
+        }
+
+        private void trackPreviewWithEvent_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+
+        }
     }
 }
