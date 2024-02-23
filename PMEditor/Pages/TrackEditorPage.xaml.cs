@@ -1141,43 +1141,6 @@ namespace PMEditor
 
         private void TextBlock_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (editingNote)
-            {
-                editingNote = false;
-                changeToEvent.Visibility = Visibility.Collapsed;
-                changeToNote.Visibility = Visibility.Visible;
-                eventPanel.Visibility = Visibility.Visible;
-                foreach (var note in window.track.lines[lineIndex].notes)
-                {
-                    if (note.type == NoteType.Tap || note.type == NoteType.Hold)
-                    {
-                        note.Color = EditorColors.tapColorButNotOnThisLine;
-                    }
-                    else
-                    {
-                        note.Color = EditorColors.dragColorButNotOnThisLine;
-                    }
-                }
-            }
-            else
-            {
-                editingNote = true;
-                changeToEvent.Visibility = Visibility.Visible;
-                changeToNote.Visibility = Visibility.Collapsed;
-                eventPanel.Visibility = Visibility.Hidden;
-                foreach (var note in window.track.lines[lineIndex].notes)
-                {
-                    if (note.type == NoteType.Tap || note.type == NoteType.Hold)
-                    {
-                        note.Color = EditorColors.tapColor;
-                    }
-                    else
-                    {
-                        note.Color = EditorColors.dragColor;
-                    }
-                }
-            }
-            UpdateEventTypeList();
         }
 
         public void UpdateSelectedNote(List<Note> note)
@@ -1280,9 +1243,13 @@ namespace PMEditor
             Update();
         }
 
-        private void EditOrPreviewChanged(object sender, EventArgs e)
+        private void trackPreviewWithEvent_SizeChanged(object sender, SizeChangedEventArgs e)
         {
 
+        }
+
+        private void EditOrPreviewChanged(object sender, EventArgs e)
+        {
             if (previewing)
             {
                 //切换至谱面编辑
@@ -1302,7 +1269,7 @@ namespace PMEditor
             {
                 //切换至预览
                 nbtTrack = NBTTrack.FromTrack(window.track);
-                editingNote = true;
+                previewing = true;
                 if (editingNote)
                 {
                     notePanel.Visibility = Visibility.Hidden;
@@ -1317,9 +1284,41 @@ namespace PMEditor
             }
         }
 
-        private void trackPreviewWithEvent_SizeChanged(object sender, SizeChangedEventArgs e)
+        private void NoteOrEvent_ContentChanged(object sender, EventArgs e)
         {
-
+            if (editingNote)
+            {
+                editingNote = false;
+                eventPanel.Visibility = Visibility.Visible;
+                foreach (var note in window.track.lines[lineIndex].notes)
+                {
+                    if (note.type == NoteType.Tap || note.type == NoteType.Hold)
+                    {
+                        note.Color = EditorColors.tapColorButNotOnThisLine;
+                    }
+                    else
+                    {
+                        note.Color = EditorColors.dragColorButNotOnThisLine;
+                    }
+                }
+            }
+            else
+            {
+                editingNote = true;
+                eventPanel.Visibility = Visibility.Hidden;
+                foreach (var note in window.track.lines[lineIndex].notes)
+                {
+                    if (note.type == NoteType.Tap || note.type == NoteType.Hold)
+                    {
+                        note.Color = EditorColors.tapColor;
+                    }
+                    else
+                    {
+                        note.Color = EditorColors.dragColor;
+                    }
+                }
+            }
+            UpdateEventTypeList();
         }
     }
 }

@@ -183,76 +183,23 @@
                         MouseWheel="trackPreview_MouseWheel" PreviewMouseLeftButtonDown="trackPreview_PreviewMouseLeftButtonDown"/>
             </Border>
             <!--切换编辑模式-->
-            <TextBlock x:Name="changeToEvent" Grid.Row="3" Grid.Column="0" Margin="0,0,10,0"
-                       Foreground="White" Background="#FF8B2FFF"
-                       Height="16" Width="50" FontSize="12"
-                       HorizontalAlignment="Right" VerticalAlignment="Top"
-                       TextAlignment="Center" Text="Note"
-                       MouseLeftButtonDown="TextBlock_MouseLeftButtonDown">
-                <TextBlock.Resources>
-                    <Style TargetType="TextBlock">
-                        <Style.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#FFB25BFF"/>
-                                <Trigger.EnterActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <ColorAnimation Storyboard.TargetProperty="Background.Color" To="#FFB25BFF" Duration="0:0:0.1"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </Trigger.EnterActions>
-                                <Trigger.ExitActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <ColorAnimation Storyboard.TargetProperty="Background.Color" To="#FF8B2FFF" Duration="0:0:0.1"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </Trigger.ExitActions>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </TextBlock.Resources>
-            </TextBlock>
-            <TextBlock x:Name="changeToNote" Grid.Row="3" Grid.Column="0" Margin="0,0,10,0" Visibility="Collapsed"
-                       Foreground="White" Background="#FF1467FF"
-                       Height="16" Width="50" FontSize="12"
-                       HorizontalAlignment="Right" VerticalAlignment="Top"
-                       TextAlignment="Center" Text="事件"
-                       MouseLeftButtonDown="TextBlock_MouseLeftButtonDown">
-                <TextBlock.Resources>
-                    <Style TargetType="TextBlock">
-                        <Style.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#FF4C8BFF"/>
-                                <Trigger.EnterActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <ColorAnimation Storyboard.TargetProperty="Background.Color" To="#FF4C8BFF" Duration="0:0:0.1"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </Trigger.EnterActions>
-                                <Trigger.ExitActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <ColorAnimation Storyboard.TargetProperty="Background.Color" To="#FF4C8BFF" Duration="0:0:0.1"/>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </Trigger.ExitActions>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </TextBlock.Resources>
-            </TextBlock>
+            <t:RotatingButton x:Name="NoteOrEvent" Height="16" Width="50"
+                           Grid.Row="3" Grid.Column="0"
+                           Margin="0,0,0,10"
+                           ContentChanged="NoteOrEvent_ContentChanged"
+                           HorizontalAlignment="Right" VerticalAlignment="Top">
+                <TextBlock Foreground="White" FontSize="12" TextAlignment="Center" Text="Note" t:RotatingButton.ContextBackgroundProperty="#FF8B2FFF"/>
+                <TextBlock Foreground="White" FontSize="12" TextAlignment="Center" Text="事件" t:RotatingButton.ContextBackgroundProperty="#FF8AAFFF"/>
+            </t:RotatingButton>
             <!--切换预览模式-->
-            <t:CycleButton x:Name="EditOrPreview" Height="16" Width="50" 
+            <t:RotatingButton x:Name="EditOrPreview" Height="16" Width="50" 
                            Grid.Row="3" Grid.Column="0"
                            Margin="10,0,0,0"
-                           ContentChanged="EditOrPreviewChanged" HorizontalAlignment="Left" VerticalAlignment="Top">
-                <t:CycleButton.Contents>
-                    <TextBlock Foreground="White" FontSize="12" TextAlignment="Center" Text="编辑" t:CycleButton.ContextBackgroundProperty="#FF8B2FFF"/>
-                    <TextBlock Foreground="White" FontSize="12" TextAlignment="Center" Text="预览" t:CycleButton.ContextBackgroundProperty="#FF8AAFFF"/>
-                </t:CycleButton.Contents>
-            </t:CycleButton>
+                           ContentChanged="EditOrPreviewChanged" 
+                           HorizontalAlignment="Left" VerticalAlignment="Top">
+                <TextBlock Foreground="White" FontSize="12" TextAlignment="Center" Text="编辑" t:RotatingButton.ContextBackgroundProperty="#FF8B2FFF"/>
+                <TextBlock Foreground="White" FontSize="12" TextAlignment="Center" Text="预览" t:RotatingButton.ContextBackgroundProperty="#FF8AAFFF"/>
+            </t:RotatingButton>
         </Grid>
         <!-- 音符/判定线信息编辑区 -->
         <Grid Grid.Column="3">
