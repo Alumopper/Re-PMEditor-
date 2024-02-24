@@ -174,7 +174,8 @@
                     </Canvas>
                     <!--谱面预览区（有事件）-->
                     <Canvas x:Name="trackPreviewWithEvent" Background="Transparent" ClipToBounds="True" Visibility="Hidden"
-                            SizeChanged="trackPreviewWithEvent_SizeChanged"/>
+                            SizeChanged="trackPreviewWithEvent_SizeChanged">
+                    </Canvas>
                 </Grid>
             </Border>
             <!--谱面预览（无事件，纯配置）-->

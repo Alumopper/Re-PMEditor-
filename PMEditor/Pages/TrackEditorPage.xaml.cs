@@ -2,6 +2,7 @@
 using PMEditor.Util;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Ribbon;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace PMEditor
@@ -141,6 +143,7 @@ namespace PMEditor
             previewRange = 30.0 / window.track.length;
         }
 
+        //渲染主循环
         private DateTime lastRenderTime = DateTime.MinValue;
         private void Tick(object? sender, EventArgs e)
         {
@@ -150,6 +153,7 @@ namespace PMEditor
             {
                 Update();
             }
+            //初始化的时候进行第一次绘制
             if (init && notePanel.ActualWidth != 0)
             {
                 UpdateNote();
@@ -159,7 +163,7 @@ namespace PMEditor
                 init = false;
                 window.operationInfo.Text = "就绪";
             }
-            Draw();
+            DrawLines();
             DrawPreview();
             UpdateFunctionCurve();
         }
@@ -219,7 +223,7 @@ namespace PMEditor
         }
 
         //绘制辅助线
-        public void Draw()
+        public void DrawLines()
         {
             //移除线
             for (int i = 0; i < notePanel.Children.Count; i++)
@@ -328,21 +332,50 @@ namespace PMEditor
 
         public void DrawTrackWithEvent()
         {
+            //清空画布
+            trackPreviewWithEvent.Children.OfType<Rectangle>()
+                .ToList()
+                .ForEach(trackPreview.Children.Remove);
             double height = trackPreviewWithEvent.ActualHeight;
             double width = trackPreviewWithEvent.ActualWidth;
             trackPreviewWithEvent.Children.Clear();
             //绘制note
-            foreach (var line in window.track.lines)
+            //如果谱面正在播放，就直接让note按照对应速度移动
+            //如果谱面没有播放，就计算note的位置
+            double time = window.playerTime;
+            double noteWidth = trackPreviewWithEvent.ActualWidth / 9;
+            foreach(var line in nbtTrack.lines)
             {
-                foreach (var note in line.notes)
+                foreach(var note in line.notes)
                 {
-                    if (note.type == NoteType.Hold)
+                    if(note is NBTHold hold)
                     {
-
+                        
                     }
                     else
                     {
-
+                        if (note.summonTime <= time && time <= note.judgeTime)
+                        {
+                            Rectangle noteRec = new()
+                            {
+                                Width = noteWidth,
+                                Height = 10,
+                                Fill = note.type == (int)NoteType.Tap ? new SolidColorBrush(EditorColors.tapColor) : new SolidColorBrush(EditorColors.dragColor)
+                            };
+                            //计算note的位置
+                            double i = time;
+                            double locate = 0;
+                            for (; i < note.judgeTime - 1 / Settings.currSetting.Tick; i += 1 / Settings.currSetting.Tick)
+                            {
+                                locate += line.line.GetSpeed(i) / Settings.currSetting.Tick;
+                            }
+                            //计算差值保证帧数
+                            double delta = note.judgeTime - i;
+                            locate += line.line.GetSpeed(i) * delta;
+                            locate = locate / 10 * trackPreviewWithEvent.ActualHeight;
+                            trackPreviewWithEvent.Children.Add(noteRec);
+                            Canvas.SetBottom(noteRec, locate);
+                        }
                     }
                 }
             }
@@ -360,16 +393,24 @@ namespace PMEditor
                 //更新时间
                 timeDis.Content = window.playerTime.ToString("0.00") + " / " + window.track.Length.ToString("0.00");
             }
-            //更新note和事件
-            if (window.isPlaying || noteChange)
+            if (previewing)
             {
-                UpdateNote();
-                noteChange = false;
+                //更新谱面预览
+                DrawTrackWithEvent();
             }
-            if(window.isPlaying || eventChange)
+            else
             {
-                UpdateEvent();
-                eventChange = false;
+                //更新note和事件
+                if (window.isPlaying || noteChange)
+                {
+                    UpdateNote();
+                    noteChange = false;
+                }
+                if (window.isPlaying || eventChange)
+                {
+                    UpdateEvent();
+                    eventChange = false;
+                }
             }
         }
 
@@ -1245,7 +1286,6 @@ namespace PMEditor
 
         private void trackPreviewWithEvent_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-
         }
 
         private void EditOrPreviewChanged(object sender, EventArgs e)
@@ -1268,6 +1308,7 @@ namespace PMEditor
             else
             {
                 //切换至预览
+                //刷新NBT
                 nbtTrack = NBTTrack.FromTrack(window.track);
                 previewing = true;
                 if (editingNote)

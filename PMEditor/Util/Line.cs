@@ -97,7 +97,11 @@ namespace PMEditor
             eventLists[index].type = type;
         }
 
-        //获得此时的时间
+        /// <summary>
+        /// 获得此时的速度
+        /// </summary>
+        /// <param name="time">时间，单位秒</param>
+        /// <returns></returns>
         public double GetSpeed(double time)
         {
             double speed = 1;
