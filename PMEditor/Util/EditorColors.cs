@@ -18,8 +18,31 @@ namespace PMEditor.Util
         public readonly static Color holdColor = Color.FromArgb(255, 37, 122, 181);
         public readonly static Color holdColorButNotOnThisLine = Color.FromArgb(128, 37, 122, 181);
         public readonly static Color holdHighlightColor = Color.FromArgb(128, 25,82,122);
-        public readonly static Color eventColor = Color.FromArgb(255, 80, 242, 150);
-        public readonly static Color eventColorButNotOnThisLine = Color.FromArgb(128, 80, 242, 150);
-        public readonly static Color eventHighlightColor = Color.FromArgb(255, 34, 102, 63);
+        
+        public readonly static Color YEventColor = Color.FromArgb(255, 80, 242, 150);
+        public readonly static Color YHighlightColor = Color.FromArgb(128, 80, 242, 150);
+        public readonly static Color speedEventColor = Color.FromArgb(255, 172, 100, 255);
+        public readonly static Color speedHighlightColor = Color.FromArgb(128, 172, 100, 255);
+    
+        public static Color GetEventColor(EventType eventType)
+        {
+            return eventType switch
+            {
+                EventType.Speed => speedEventColor,
+                EventType.YPosition => YEventColor,
+                _ => Colors.White,
+            };
+        }
+
+        public static Color GetEventHighlightColor(EventType eventType)
+        {
+            return eventType switch
+            {
+                EventType.Speed => speedHighlightColor,
+                EventType.YPosition => YHighlightColor,
+                _ => Colors.White,
+            };
+        }
+
     }
 }

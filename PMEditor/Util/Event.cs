@@ -35,6 +35,16 @@ namespace PMEditor
         public Event(double startTime, double endTime, string easeFunction, double startValue, double endValue)
             : this(startTime, endTime, (int)puttingEvent, easeFunction, InitProperties(puttingEvent), startValue, endValue) { }
 
+        public void SetType(EventType type)
+        {
+            this.type = type;
+            this.typeId = (int)type;
+            easeFunction = EaseFunctions.functions[easeFunctionID];
+            rectangle.UpdateText();
+            this.rectangle.Fill = new SolidColorBrush(EditorColors.GetEventColor(type));
+            this.rectangle.HighLightBorderBrush = new SolidColorBrush(EditorColors.GetEventHighlightColor(type));
+        }
+
         public static Dictionary<string, object> InitProperties(EventType type)
         {
             Dictionary<string, object> re = new();
@@ -60,7 +70,7 @@ namespace PMEditor
         {
             return type switch
             {
-                EventType.Speed => 1,
+                EventType.Speed => 10,
                 EventType.YPosition => 0,
                 _ => double.NaN
             };

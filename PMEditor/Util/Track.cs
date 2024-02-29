@@ -325,10 +325,11 @@ namespace PMEditor
 
             this.easeFunction = EaseFunctions.functions[easeFunctionID];
             this.type = (EventType)Enum.Parse(typeof(EventType), typeId.ToString());
+
             rectangle = new(this)
             {
-                Fill = new SolidColorBrush(EditorColors.eventColor),
-                HighLightBorderBrush = new SolidColorBrush(EditorColors.eventHighlightColor)
+                Fill = new SolidColorBrush(EditorColors.GetEventColor(type)),
+                HighLightBorderBrush = new SolidColorBrush(EditorColors.GetEventHighlightColor(type))
             };
             this.properties = properties;
         }

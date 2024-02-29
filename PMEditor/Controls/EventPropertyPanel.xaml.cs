@@ -12,11 +12,12 @@ namespace PMEditor.Controls
     {
         Event @event;
 
+        bool init = true;
+
         public EventPropertyPanel(Event e)
         {
             InitializeComponent();
             this.@event = e;
-            eventType.IsEnabled = e.parentList.IsMainEvent() && e.parentList.events.Count == 1;
             startTime.Text = e.StartTime.ToString();
             endTime.Text = e.EndTime.ToString();
             functions.ItemsSource = EaseFunctions.functions.Keys;
@@ -26,18 +27,36 @@ namespace PMEditor.Controls
             endValue.Text = e.EndValue.ToString();
         }
 
-        private void eventType_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        //事件类型修改
+        private void EventType_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-
+            if(init)
+            {
+                init = false;
+                return;
+            }
+            //修改整个轨道上此类事件的类型
+            if(@event.parentList.events.Count > 1)
+            {
+                var result = MessageBox.Show(
+                    "此轨道上有多个事件，无法修改类型\n可前往设置修改不再弹出提示",
+                    "PMEditor",
+                    MessageBoxButton.OKCancel,
+                    MessageBoxImage.Warning
+                    );
+                if (result != MessageBoxResult.OK) return;
+            }
+            @event.parentList.SetType((EventType)eventType.SelectedIndex);
+            (EditorWindow.Instance.page.Content as TrackEditorPage)?.UpdateEventTypeList();
         }
 
-        private void functions_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void Functions_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             @event.easeFunctionID = functions.SelectedValue.ToString();
             @event.easeFunction = EaseFunctions.functions[@event.easeFunctionID];
         }
 
-        private void startTime_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        private void StartTime_KeyDown(object sender, KeyEventArgs e)
         {
             if(e.Key != Key.Enter) return;
             if (startTime.IsReadOnly) return;

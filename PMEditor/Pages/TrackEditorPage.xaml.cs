@@ -904,7 +904,7 @@ namespace PMEditor
                 {
                     el.events.ForEach(e =>
                     {
-                        e.Color = EditorColors.eventColorButNotOnThisLine;
+                        e.rectangle.Visibility = Visibility.Hidden;
                     });
                 }
                 lineIndex = lineListView.SelectedIndex;
@@ -912,7 +912,7 @@ namespace PMEditor
                 {
                     el.events.ForEach(e =>
                     {
-                        e.Color = EditorColors.eventColor;
+                        e.rectangle.Visibility = Visibility.Visible;
                     });
                 }
                 UpdateEventTypeList();

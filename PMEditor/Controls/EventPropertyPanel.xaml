@@ -28,16 +28,16 @@
                 </Style>
             </StackPanel.Resources>
             <TextBlock Text="事件类型" Style="{StaticResource PropertyLable}"/>
-            <ComboBox x:Name="eventType" SelectionChanged="eventType_SelectionChanged">
+            <ComboBox x:Name="eventType" SelectionChanged="EventType_SelectionChanged">
                 <TextBlock>速度</TextBlock>
                 <TextBlock>Y</TextBlock>
             </ComboBox>
             <TextBlock Text="起始时间" Style="{StaticResource PropertyLable}"/>
-            <TextBox x:Name="startTime" Style="{StaticResource PropertyInput}" KeyDown="startTime_KeyDown"/>
+            <TextBox x:Name="startTime" Style="{StaticResource PropertyInput}" KeyDown="StartTime_KeyDown"/>
             <TextBlock Text="结束时间" Style="{StaticResource PropertyLable}"/>
             <TextBox x:Name="endTime" Style="{StaticResource PropertyInput}" KeyDown="endTime_KeyDown"/>
             <TextBlock Text="缓动函数" Style="{StaticResource PropertyLable}"/>
-            <ComboBox x:Name="functions" SelectionChanged="functions_SelectionChanged"/>
+            <ComboBox x:Name="functions" SelectionChanged="Functions_SelectionChanged"/>
             <TextBlock Text="起始值" Style="{StaticResource PropertyLable}"/>
             <TextBox x:Name="startValue" Style="{StaticResource PropertyInput}" KeyDown="startValue_KeyDown"/>
             <TextBlock Text="结束值" Style="{StaticResource PropertyLable}"/>

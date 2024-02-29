@@ -1,4 +1,5 @@
-﻿using System.Management.Automation.Language;
+﻿using PMEditor.Util;
+using System.Management.Automation.Language;
 
 namespace PMEditor
 {
@@ -13,6 +14,19 @@ namespace PMEditor
             this.parentLine = parent;
             this.type = EventType.Unknown;
             this.events = new();
+        }
+
+        public void SetType(EventType type)
+        {
+            this.type = type;
+            this.typeId = (int)type;
+            foreach (var item in events)
+            {
+                item.type = type;
+                item.typeId = (int)type;
+                item.rectangle.Fill = new System.Windows.Media.SolidColorBrush(EditorColors.GetEventColor(type));
+                item.rectangle.HighLightBorderBrush = new System.Windows.Media.SolidColorBrush(EditorColors.GetEventHighlightColor(type));
+            }
         }
 
         public bool IsMainEvent()
