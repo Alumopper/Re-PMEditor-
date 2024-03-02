@@ -57,7 +57,7 @@ namespace PMEditor
             {
                 isPlaying = false;
             };
-            pages = new List<Page>() { new TrackEditorPage(), new CodeViewer(), new TrackPreview2D(track), new SettingPage()};
+            pages = new List<Page>() { new TrackEditorPage(), new CodeViewer(), new TODOPage(), new SettingPage()};
             SetCurrPage(0);
             UpdateStatusBar();
         }

@@ -164,7 +164,7 @@ namespace PMEditor
                 window.operationInfo.Text = "就绪";
             }
             DrawLines();
-            DrawPreview();
+            //DrawPreview();
             UpdateFunctionCurve();
         }
 
@@ -228,14 +228,13 @@ namespace PMEditor
             //移除线
             for (int i = 0; i < notePanel.Children.Count; i++)
             {
-                if (notePanel.Children[i] is System.Windows.Shapes.Line)
+                if (notePanel.Children[i] is System.Windows.Shapes.Line line)
                 {
+                    line.Stroke = null;
                     notePanel.Children.RemoveAt(i);
                     i--;
                 }
             }
-            VisualBrush notePanelBrush = new();
-            notePanelBrush.Visual = notePanel;
             //绘制节拍线
             //开始绘制
             //整拍
@@ -248,7 +247,7 @@ namespace PMEditor
             for (double i = notePanel.ActualHeight; i + fix > 0; i -= pixelPreDividedBeat)
             {
                 double actualY = i + fix;
-                System.Windows.Shapes.Line line = new System.Windows.Shapes.Line()
+                System.Windows.Shapes.Line line = new()
                 {
                     X1 = 0,
                     X2 = notePanel.ActualWidth,
@@ -276,6 +275,17 @@ namespace PMEditor
         {
             double width = trackPreview.ActualWidth;
             double height = trackPreview.ActualHeight;
+            foreach (var item in trackPreview.Children)
+            {
+                if (item is System.Windows.Shapes.Line line)
+                {
+                    line.Stroke = null;
+                }
+                else if(item is Rectangle rect)
+                {
+                    rect.Fill = null;
+                }
+            }
             trackPreview.Children.Clear();
             //绘制谱面
             foreach (var line in window.track.lines)
@@ -288,7 +298,7 @@ namespace PMEditor
                         double y = (note.actualTime - previewStartTime) / (window.track.Length * previewRange) * height;
                         double w = width / 9;
                         double h = note.actualHoldTime / (window.track.Length * previewRange) * height;
-                        System.Windows.Shapes.Rectangle rect = new()
+                        Rectangle rect = new()
                         {
                             Width = w,
                             Height = h,
@@ -304,7 +314,7 @@ namespace PMEditor
                         double y = (note.actualTime - previewStartTime) / (window.track.Length * previewRange) * height;
                         double w = width / 9;
                         double h = 2;
-                        System.Windows.Shapes.Rectangle rect = new()
+                        Rectangle rect = new()
                         {
                             Width = w,
                             Height = h,
@@ -335,7 +345,11 @@ namespace PMEditor
             //清空画布
             trackPreviewWithEvent.Children.OfType<Rectangle>()
                 .ToList()
-                .ForEach(trackPreview.Children.Remove);
+                .ForEach(t =>
+                {
+                    t.Fill = null;
+                    trackPreviewWithEvent.Children.Remove(t);
+                });
             double height = trackPreviewWithEvent.ActualHeight;
             double width = trackPreviewWithEvent.ActualWidth;
             trackPreviewWithEvent.Children.Clear();
@@ -515,10 +529,10 @@ namespace PMEditor
                             if (e.startTime < maxTime)
                             {
                                 e.rectangle.Visibility = Visibility.Visible;
-                                double qwq = Math.Max(minTime, e.startTime);
-                                double pwp = Math.Min(e.endTime, maxTime);
-                                e.rectangle.Height = GetYFromTime(pwp) - GetYFromTime(qwq);
-                                Canvas.SetBottom(e.rectangle, GetYFromTime(qwq));
+                                double bottom = Math.Max(minTime, e.startTime);
+                                double top = Math.Min(e.endTime, maxTime);
+                                e.rectangle.Height = GetYFromTime(top) - GetYFromTime(bottom);
+                                Canvas.SetBottom(e.rectangle, GetYFromTime(bottom));
                                 Canvas.SetLeft(e.rectangle, (j - page * 9) * notePanel.ActualWidth / 9);
                             }
                             else
@@ -1021,7 +1035,7 @@ namespace PMEditor
                 else if(selectedEvents[0].rectangle.IsResizing == -1)
                 {
                     var ev = selectedEvents[0];
-                    //调整结束时间
+                    //调整开始时间
                     ev.startTime = GetTimeFromY(endPos.Y);
                 }
                 else
@@ -1029,7 +1043,9 @@ namespace PMEditor
                     foreach (var @event in selectedEvents)
                     {
                         double y = Canvas.GetBottom(@event.rectangle);
+                        double i = @event.startTime;
                         @event.startTime = GetTimeFromY(y);
+                        @event.endTime += @event.startTime - i;
                     }
                     UpdateSelectedEvent(selectedEvents);
                 }
@@ -1150,7 +1166,7 @@ namespace PMEditor
                         else if(selectedEvents[0].rectangle.IsResizing == -1)
                         {
                             var ev = selectedEvents[0];
-                            //改结束时间
+                            //改开始时间
                             double t = GetTimeFromY(endPos.Y);
                             double y = Math.Abs(GetYFromTime(ev.endTime) - GetYFromTime(t));
                             ev.rectangle.Height = y;
@@ -1159,12 +1175,16 @@ namespace PMEditor
                         else
                         {
                             endPos.X = dragStartPoint.X;    //只能竖着拖
-                            //拖动note
+                            //获取鼠标移动的位置
+                            var delta = endPos - dragStartPoint;
+                            dragStartPoint = endPos;
                             foreach (var @event in selectedEvents)
                             {
-                                //获取鼠标移动的位置
-                                var delta = endPos - dragStartPoint;
-                                dragStartPoint = endPos;
+                                if (Canvas.GetBottom(@event.rectangle) + delta.Y < 0) return;
+                            }
+                            //拖动事件
+                            foreach (var @event in selectedEvents)
+                            {
                                 //移动事件
                                 Canvas.SetLeft(@event.rectangle, Canvas.GetLeft(@event.rectangle) + delta.X);
                                 Canvas.SetBottom(@event.rectangle, Canvas.GetBottom(@event.rectangle) + delta.Y);
