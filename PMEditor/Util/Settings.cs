@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace PMEditor.Util
 {
@@ -6,7 +7,7 @@ namespace PMEditor.Util
     {
         public static Settings currSetting;
 
-        public List<string> canSelectedSpeedList;
+        public List<string> canSelectedSpeedList { get; set; } = new List<string>() { "1.0", "0.25", "0.5", "0.75", "1.0", "1.25", "1.5", "1.75", "2.0" };
 
         public double Tick { get; set; } = 20;
 
@@ -14,9 +15,18 @@ namespace PMEditor.Util
 
         public bool WarnEventTypeChange { get; set; } = true;
 
-        public Settings(List<string> canSelectedSpeedList = null)
+        public Settings(List<string>? canSelectedSpeedList = null)
         {
-            this.canSelectedSpeedList = canSelectedSpeedList ??= new List<string>() { "1.0", "0.25", "0.5", "0.75", "1.0", "1.25", "1.5", "1.75", "2.0" };
+            this.canSelectedSpeedList = canSelectedSpeedList ?? new List<string>() { "1.0", "0.25", "0.5", "0.75", "1.0", "1.25", "1.5", "1.75", "2.0" };
+        }
+
+        [JsonConstructor]
+        public Settings(List<string> canSelectedSpeedList, double Tick, double MapLength, bool WarnEventTypeChange)
+        {
+            this.canSelectedSpeedList = canSelectedSpeedList;
+            this.Tick = Tick;
+            this.MapLength = MapLength;
+            this.WarnEventTypeChange = WarnEventTypeChange;
         }
     }
 }

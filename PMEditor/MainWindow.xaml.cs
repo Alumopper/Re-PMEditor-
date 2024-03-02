@@ -33,7 +33,7 @@ namespace PMEditor
             Flush(null, null);
             //设置
             //TODO
-            Settings.currSetting = new Settings();
+            Settings.currSetting = SettingManager.Read(SettingManager.SettingPath);
         }
 
         private void CreateButton_Click(object sender, RoutedEventArgs e)

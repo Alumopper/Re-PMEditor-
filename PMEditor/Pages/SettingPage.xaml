@@ -1,0 +1,74 @@
+﻿<Page x:Class="PMEditor.Pages.SettingPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:PMEditor.Pages"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="800"
+      Title="SettingPage">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="80"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="80"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" MaxWidth="700">
+            <TextBlock x:Name="title" FontSize="26" FontWeight="Bold" Margin="-40,20,0,20" Text="设置" Foreground="White"/>
+        </StackPanel>
+        <ScrollViewer Grid.Row="1">
+            <StackPanel x:Name="properties" MaxWidth="700" Margin="40,20,40,20">
+                <StackPanel.Resources>
+                    <Style TargetType="TextBlock" x:Key="PropertyLable">
+                        <Setter Property="Margin" Value="20,5,0,0"/>
+                        <Setter Property="FontSize" Value="14"/>
+                        <Setter Property="Foreground" Value="White"/>
+                    </Style>
+                    <Style TargetType="TextBox" x:Key="PropertyInput">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="Margin" Value="40,10,0,0"/>
+                        <Setter Property="Height" Value="24"/>
+                        <Setter Property="TextAlignment" Value="Center"/>
+                        <Setter Property="MaxWidth" Value="200"/>
+                    </Style>
+                    <Style TargetType="TextBlock" x:Key="PropertyTitle">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="Margin" Value="0,10,0,10"/>
+                        <Setter Property="FontSize" Value="22"/>
+                    </Style>
+                </StackPanel.Resources>
+                <TextBlock Text="谱面设定" Style="{StaticResource PropertyTitle}"/>
+                <TextBlock Text="谱面名称" Style="{StaticResource PropertyLable}"/>
+                <TextBox x:Name="MapName" Style="{StaticResource PropertyInput}" Text="MapName"/>
+                <TextBlock Text="谱面作者" Style="{StaticResource PropertyLable}"/>
+                <TextBox x:Name="MapAuthor" Style="{StaticResource PropertyInput}" Text="MapAuthor"/>
+                <TextBlock Text="曲师" Style="{StaticResource PropertyLable}"/>
+                <TextBox x:Name="MusicAuthor" Style="{StaticResource PropertyInput}" Text="MusicAuthor"/>
+                <TextBlock Text="谱面难度" Style="{StaticResource PropertyLable}"/>
+                <TextBox x:Name="MapLevel" Style="{StaticResource PropertyInput}" Text="MapLevel"/>
+                <TextBlock Text="BPM" Style="{StaticResource PropertyLable}"/>
+                <TextBox x:Name="BPM" Style="{StaticResource PropertyInput}" Text="BPM"/>
+                <TextBlock Text="地图长度" Style="{StaticResource PropertyLable}"/>
+                <TextBox x:Name="MapLength" Style="{StaticResource PropertyInput}" Text="MapLength"/>
+                <!-- 分割线 -->
+                <Separator Margin="0,10,0,10" />
+                <TextBlock Text="导出设定" Style="{StaticResource PropertyTitle}"/>
+                <TextBlock Text="导出路径" Style="{StaticResource PropertyLable}"/>
+                <TextBox x:Name="ExportPath" Style="{StaticResource PropertyInput}" Text="ExportPath"/>
+                <TextBlock Text="Tick值" Style="{StaticResource PropertyLable}"/>
+                <TextBox x:Name="TickValue" Style="{StaticResource PropertyInput}" Text="TickValue"/>
+                <!-- 分割线 -->
+                <Separator Margin="0,10,0,10" />
+                <TextBlock Text="制谱器设定" Style="{StaticResource PropertyTitle}"/>
+                <TextBlock Text="是否警告修改多事件类型" Style="{StaticResource PropertyLable}"/>
+                <CheckBox x:Name="WarnMultiEventType" IsChecked="True" Foreground="White" Margin="0,10,0,0"/>
+            </StackPanel>
+        </ScrollViewer>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="确认" Click="Button_Click" Margin="80,0,80,20" Width="100"/>
+        </StackPanel>
+    </Grid>
+</Page>

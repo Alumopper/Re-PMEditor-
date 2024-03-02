@@ -95,13 +95,20 @@
             <Frame Name="page" Grid.Column="1" NavigationUIVisibility="Hidden" Grid.ColumnSpan="2"/>
         </Grid>
         <!--底部状态栏-->
-        <StatusBar Background="#FF342249" Grid.Row="2">
-            <Grid>
+        <StatusBar Background="#FF342249" Grid.Row="2" x:Name="statusBar">
+            <Grid Width="{Binding ElementName=statusBar, Path=ActualWidth}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <!--操作指示栏-->
-                <TextBlock Margin="10,0,0,0" Text="初始化中" Name="operationInfo" Foreground="White"/>
+                <TextBlock Grid.Column="0" Margin="10,0,0,0" Text="初始化中" Name="operationInfo" Foreground="White"/>
+                <!--谱面信息提示栏-->
+                <TextBlock Grid.Column="2" Margin="0,0,10,0" Text="谱面物量: 0" Name="allNotesCount" Foreground="White" HorizontalAlignment="Right"/>
+                <!--信息提示框按钮-->
+                <Button Grid.Column="3" Margin="0,0,10,0" Name="infoButton" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="White" Click="infoButton_Click"  Content="🔔"/>
             </Grid>
         </StatusBar>
     </Grid>

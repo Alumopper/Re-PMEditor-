@@ -104,7 +104,7 @@ namespace PMEditor
         /// <returns></returns>
         public double GetSpeed(double time)
         {
-            double speed = 1;
+            double speed = 10;
             foreach (var list in eventLists)
             {
                 if(list.type != EventType.Speed) continue;

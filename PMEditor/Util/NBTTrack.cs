@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Transactions;
 
 namespace PMEditor.Util
@@ -94,12 +95,15 @@ namespace PMEditor.Util
         public static NBTTrack FromTrack(Track track)
         {
             NBTTrack nbtTrack = new();
+            //基本信息
             nbtTrack.trackName = track.TrackName;
             nbtTrack.musicAuthor = track.MusicAuthor;
             nbtTrack.trackAuthor = track.TrackAuthor;
             nbtTrack.bpm = track.Bpm;
             nbtTrack.length = track.Length;
             nbtTrack.difficulty = track.Difficulty;
+            
+            //判定线信息
             List<NBTLine> lines = new ();
             foreach (Line line in track.lines)
             {
@@ -238,6 +242,46 @@ namespace PMEditor.Util
         {
             return position > 0 && position < Settings.currSetting.MapLength;
         }
+
+        public void ToFrameFunctions(DirectoryInfo directory)
+        {
+            //生成并初始化函数帧序列
+            List<string>[] frames = new List<string>[(int)(length * Settings.currSetting.Tick)];
+            for (int i = 0; i < frames.Length; i++)
+            {
+                frames[i] = new();
+            }
+
+            //导出帧序列
+            foreach(var line in lines)
+            {
+                foreach(var note in line.notes)
+                {
+                    //计算note所有tick的位置
+                    int endTick = (int)(note.judgeTime * Settings.currSetting.Tick);
+                    int startTick = (int)(note.summonTime * Settings.currSetting.Tick);
+                    double distance = 0;
+                    for(; endTick >= startTick; endTick--)
+                    {
+                        distance += line.line.GetSpeed(endTick / Settings.currSetting.Tick) / Settings.currSetting.Tick;
+                        frames[endTick].Add($"data modify entity {note.uuid} tranformation.translation[0] set value {distance}");
+                    }
+                }
+            }
+
+            DirectoryInfo output = new(directory.FullName + "/" + trackName);
+            //输出全部的序列
+            DirectoryInfo frameDir = new(output.FullName + "/frames");
+            frameDir.Create();
+            for (int i = 0; i < frames.Length; i++)
+            {
+                File.WriteAllLines(frameDir.FullName + $"/{i}.mcfunction", frames[i]);
+            }
+            //初始化函数
+            File.WriteAllLines(output.FullName + "/init.mcfunction", new string[] {
+                $"scoreboard players set #length pm_length {(int)(length * Settings.currSetting.Tick)}" 
+            });
+        }
     }
 
     public class NBTLine
@@ -267,6 +311,10 @@ namespace PMEditor.Util
         /// </summary>
         public double summonPos;
         public int rail;
+
+        public List<double> distanceLists = new();
+
+        public string uuid = Guid.NewGuid().ToString();
 
         internal NBTNote(Range range, byte type, int rail, byte isFake = 0)
         {

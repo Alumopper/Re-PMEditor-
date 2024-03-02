@@ -23,6 +23,8 @@ namespace PMEditor
         public string difficulty;   //谱面难度
         public ObservableCollection<Line> lines;    //判定线
 
+        public int notesNumber = 0; //note数量
+
         #region getter and setter
         public string TrackName
         {

@@ -3,8 +3,10 @@ using PMEditor.Pages;
 using PMEditor.Util;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Forms;
 using System.Windows.Media;
 using System.Windows.Threading;
 
@@ -55,8 +57,9 @@ namespace PMEditor
             {
                 isPlaying = false;
             };
-            pages = new List<Page>() { new TrackEditorPage(), new CodeViewer(), new TrackPreview2D(track)};
+            pages = new List<Page>() { new TrackEditorPage(), new CodeViewer(), new TrackPreview2D(track), new SettingPage()};
             SetCurrPage(0);
+            UpdateStatusBar();
         }
 
         private void editorButton_Click(object sender, RoutedEventArgs e)
@@ -76,7 +79,7 @@ namespace PMEditor
 
         private void settingButton_Click(object sender, RoutedEventArgs e)
         {
-
+            SetCurrPage(3);
         }
 
         public void SetCurrPage(int index)
@@ -107,7 +110,7 @@ namespace PMEditor
             isPlaying = false;
             if (!OperationManager.HasSaved)
             {
-                var result = MessageBox.Show("是否保存对谱面的修改", "Re:PMEditor", MessageBoxButton.YesNoCancel);
+                var result = System.Windows.MessageBox.Show("是否保存对谱面的修改", "Re:PMEditor", MessageBoxButton.YesNoCancel);
                 if (result == MessageBoxResult.Yes)
                 {
                     CommandBinding_Executed_4(sender, null);
@@ -122,11 +125,36 @@ namespace PMEditor
         //导出为snbt
         private void MenuItem_Click(object sender, RoutedEventArgs e)
         {
+            SaveFileDialog saveFileDialog = new()
+            {
+                Filter = "SNBT Files(*.txt)|*.txt"
+            };
+            if (saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                File.WriteAllText(saveFileDialog.FileName, NBTTrack.FromTrack(track).ToNBTTag().Stringify());
+            }
+            operationInfo.Text = "成功导出谱面SNBT到 " + saveFileDialog.FileName;
         }
 
         //导出为mcfunction
         private void MenuItem_Click_1(object sender, RoutedEventArgs e)
         {
+            FolderBrowserDialog saveFileDialog = new();
+            if (saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                NBTTrack.FromTrack(track).ToFrameFunctions(new(saveFileDialog.SelectedPath));
+            }
+            operationInfo.Text = "成功导出帧序列到 " + saveFileDialog.SelectedPath;
+        }
+
+        private void infoButton_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        public void UpdateStatusBar()
+        {
+            allNotesCount.Text = "谱面物量: " + track.notesNumber;
         }
     }
 
