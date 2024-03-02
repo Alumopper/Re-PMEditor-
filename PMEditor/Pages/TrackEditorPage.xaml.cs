@@ -234,7 +234,7 @@ namespace PMEditor
                     i--;
                 }
             }
-            VisualBrush notePanelBrush = new VisualBrush();
+            VisualBrush notePanelBrush = new();
             notePanelBrush.Visual = notePanel;
             //绘制节拍线
             //开始绘制
@@ -1294,13 +1294,21 @@ namespace PMEditor
             {
                 //切换至谱面编辑
                 previewing = false;
-                if (editingNote)
+                notePanel.Visibility = Visibility.Visible;
+                trackPreviewWithEvent.Visibility = Visibility.Hidden;
+                if (!editingNote)
                 {
-                    notePanel.Visibility = Visibility.Visible;
-                    trackPreviewWithEvent.Visibility = Visibility.Hidden;
-                }
-                else
-                {
+                    foreach (var note in window.track.lines[lineIndex].notes)
+                    {
+                        if (note.type == NoteType.Tap || note.type == NoteType.Hold)
+                        {
+                            note.Color = EditorColors.tapColorButNotOnThisLine;
+                        }
+                        else
+                        {
+                            note.Color = EditorColors.dragColorButNotOnThisLine;
+                        }
+                    }
                     eventPanel.Visibility = Visibility.Visible;
                     trackPreviewWithEvent.Visibility = Visibility.Hidden;
                 }
@@ -1311,22 +1319,16 @@ namespace PMEditor
                 //刷新NBT
                 nbtTrack = NBTTrack.FromTrack(window.track);
                 previewing = true;
-                if (editingNote)
-                {
-                    notePanel.Visibility = Visibility.Hidden;
-                    trackPreviewWithEvent.Visibility = Visibility.Visible;
-                }
-                else
-                {
-                    eventPanel.Visibility = Visibility.Hidden;
-                    trackPreviewWithEvent.Visibility = Visibility.Visible;
-                }
+                notePanel.Visibility = Visibility.Hidden;
+                eventPanel.Visibility = Visibility.Hidden;
+                trackPreviewWithEvent.Visibility = Visibility.Visible;
                 DrawTrackWithEvent();
             }
         }
 
         private void NoteOrEvent_ContentChanged(object sender, EventArgs e)
         {
+            if (previewing) return; 
             if (editingNote)
             {
                 editingNote = false;
