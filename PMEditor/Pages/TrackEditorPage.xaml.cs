@@ -36,9 +36,15 @@ namespace PMEditor
 
         public EditorWindow window { get => EditorWindow.Instance; }
 
-        double secondsPreBeat;
+        double secondsPreBeat
+        {
+            get => 60.0 / window.track.bpm;
+        }
 
-        double secondsPreDevideBeat;
+        double secondsPreDevideBeat
+        {
+            get => secondsPreBeat / divideNum;
+        }
 
         bool editingNote = true;
 
@@ -98,8 +104,6 @@ namespace PMEditor
             InitializeComponent();
             Instance = this;
             timeDis.Content = "0.00" + " / " + window.track.Length.ToString("0.00");
-            secondsPreBeat = 60.0 / window.track.bpm;
-            secondsPreDevideBeat = secondsPreBeat / divideNum;
             CompositionTarget.Rendering += Tick;
             //添加note渲染和事件渲染
             foreach (var line in window.track.lines)
@@ -169,30 +173,42 @@ namespace PMEditor
         //滚轮滚动
         private void panel_MouseWheel(object sender, MouseWheelEventArgs e)
         {
-            //时间设置
-            window.player.Pause();
-            window.isPlaying = false;
-            double currTime = window.playerTime;
             double num = e.Delta / 60.0;
-            //横线自动对齐
-            if (currTime / secondsPreDevideBeat % 1 > 0.001 && currTime / secondsPreDevideBeat % 1 < 0.999)
+            double currTime = window.playerTime;
+            //更改谱面缩放比例
+            if (Keyboard.IsKeyDown(Key.LeftCtrl))
             {
-                currTime = (int)(currTime / secondsPreDevideBeat) * secondsPreDevideBeat;
-                if (num < 0)
+            }
+            //更改谱面拍数
+            else if(Keyboard.IsKeyDown(Key.LeftShift))
+            {
+                divideNum = Math.Max(1, divideNum + (int)(num/2));
+            }
+            else
+            {
+                //时间设置
+                window.player.Pause();
+                window.isPlaying = false;
+                //横线自动对齐
+                if (currTime / secondsPreDevideBeat % 1 > 0.001 && currTime / secondsPreDevideBeat % 1 < 0.999)
                 {
-                    num = 0;
+                    currTime = (int)(currTime / secondsPreDevideBeat) * secondsPreDevideBeat;
+                    if (num < 0)
+                    {
+                        num = 0;
+                    }
                 }
+                currTime += num * secondsPreDevideBeat;
+                if (currTime < 0)
+                {
+                    currTime = 0;
+                }
+                else if (currTime > window.track.Length)
+                {
+                    currTime = window.track.Length;
+                }
+                window.player.Position = TimeSpan.FromSeconds(currTime);
             }
-            currTime += num * secondsPreDevideBeat;
-            if (currTime < 0)
-            {
-                currTime = 0;
-            }
-            else if (currTime > window.track.Length)
-            {
-                currTime = window.track.Length;
-            }
-            window.player.Position = TimeSpan.FromSeconds(currTime);
             //Lable设置
             timeDis.Content = currTime.ToString("0.00") + " / " + window.track.Length.ToString("0.00");
             noteChange = true;
@@ -366,7 +382,29 @@ namespace PMEditor
                 {
                     if(note is NBTHold hold)
                     {
-                        
+                        if (hold.summonTime <= time && time <= hold.judgeTime + hold.holdTime)
+                        {
+                            Rectangle noteRec = new()
+                            {
+                                Width = noteWidth,
+                                Height = hold.holdLength / 10 * trackPreviewWithEvent.ActualHeight,
+                                Fill = new SolidColorBrush(EditorColors.holdColor)
+                            };
+                            //计算note的位置
+                            double i = time;
+                            double locate = 0;
+                            for (; i < hold.judgeTime - 1 / Settings.currSetting.Tick; i += 1 / Settings.currSetting.Tick)
+                            {
+                                locate += line.line.GetSpeed(i) / Settings.currSetting.Tick;
+                            }
+                            //计算差值保证帧数
+                            double delta = hold.judgeTime - i;
+                            locate += line.line.GetSpeed(i) * delta;
+                            locate = locate / 10 * trackPreviewWithEvent.ActualHeight;
+                            trackPreviewWithEvent.Children.Add(noteRec);
+                            Canvas.SetBottom(noteRec, locate);
+                            Canvas.SetLeft(noteRec, note.rail * noteWidth);
+                        }
                     }
                     else
                     {
@@ -391,6 +429,61 @@ namespace PMEditor
                             locate = locate / 10 * trackPreviewWithEvent.ActualHeight;
                             trackPreviewWithEvent.Children.Add(noteRec);
                             Canvas.SetBottom(noteRec, locate);
+                            Canvas.SetLeft(noteRec, note.rail * noteWidth);
+                        }
+                    }
+                }
+            }
+            //播放note音效
+            //目前显示的时间范围
+            double minTime = window.playerTime;
+            double maxTime = minTime + notePanel.ActualHeight / pixelPreBeat * secondsPreBeat;
+            for (int i = 0; i < window.track.lines.Count; i++)
+            {
+                foreach (var note in window.track.lines[i].notes)
+                {
+                    if (note.type == NoteType.Hold)
+                    {
+                        if (minTime <= note.actualTime + note.actualHoldTime)
+                        {
+                            //在判定线上方
+                            if (minTime <= note.actualTime)
+                            {
+                                if (note.hasJudged)
+                                {
+                                    note.hasJudged = false;
+                                    note.sound.Position = new TimeSpan(0);
+                                }
+                            }
+                            else
+                            {
+                                //如果未被判定过且谱面正在被播放
+                                if ((!note.hasJudged) && window.isPlaying)
+                                {
+                                    note.sound.Play();
+                                    note.hasJudged = true;
+                                }
+                            }
+                        }
+                        continue;
+                    }
+                    //在判定线上方
+                    if (minTime <= note.actualTime)
+                    {
+                        if (note.hasJudged)
+                        {
+                            note.hasJudged = false;
+                            note.sound.Position = new TimeSpan(0);
+                        }
+                    }
+                    //在判定线下方
+                    else
+                    {
+                        //如果未被判定过且谱面正在被播放
+                        if ((!note.hasJudged) && window.isPlaying)
+                        {
+                            note.sound.Play();
+                            note.hasJudged = true;
                         }
                     }
                 }

@@ -128,7 +128,18 @@ namespace PMEditor.Util
                             {
                                 holdLength += note.parentLine.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
                             }
-                            notes.Add(new NBTHold(new Range((int)(note.actualTime * Settings.currSetting.Tick), (int)(note.actualTime * Settings.currSetting.Tick), 0) { length = holdLength},0, holdTick, rail:note.rail));
+                            notes.Add(
+                                item: new NBTHold(
+                                    range: new Range(
+                                        start: (int)(note.actualTime * Settings.currSetting.Tick), 
+                                        end: (int)(note.actualTime * Settings.currSetting.Tick),
+                                        startPos: 0
+                                        ) { length = holdLength},
+                                    isFake: 0, 
+                                    holdTick, 
+                                    rail: note.rail
+                                    )
+                                );
                         }
                         else
                         {
@@ -206,19 +217,19 @@ namespace PMEditor.Util
                 double startPosition = 0, endPosition = 0;
                 int judgeTick = (int)(note.actualTime * Settings.currSetting.Tick);
                 int holdTick = (int)(note.actualHoldTime * Settings.currSetting.Tick);
-                //算出起始点的位置
+                //算出当判定结束的时候，判定起始点的位置，同时获取hold长度
                 for (int i = judgeTick; i <= judgeTick + holdTick; i++)
                 {
                     startPosition -= note.parentLine.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
                 }
                 double length = -startPosition;
-                //迭代开始
+                //迭代开始，划分range
                 for (int i = judgeTick + holdTick; i > 0; i--)
                 {
                     endPosition += note.parentLine.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
                     startPosition += note.parentLine.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
                     //如果起始点或者结束点在屏幕里面
-                    if (end == -1 && (IsInScreen(endPosition) || IsInScreen(startPosition)))
+                    if (end == -1 && ((IsInScreen(endPosition) || IsInScreen(startPosition))))
                     {
                         end = i;
                     }
@@ -330,12 +341,13 @@ namespace PMEditor.Util
     public class NBTHold : NBTNote
     {
         public double holdTime;
-        public double holdLength;
+        public double holdLength;   //hold的长度，不是时间，就是显示出来的长度
 
         internal NBTHold(Range range, byte isFake, int holdTime, int rail) : base(range, (int)NoteType.Hold, rail, isFake)
         {
             this.holdTime = holdTime/Settings.currSetting.Tick;
             this.holdLength = range.length;
+            this.judgeTime -= this.holdTime;
         }
     }
 }
