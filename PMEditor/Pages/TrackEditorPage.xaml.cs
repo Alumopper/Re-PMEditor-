@@ -97,7 +97,6 @@ namespace PMEditor
         {
             InitializeComponent();
             Instance = this;
-            playerControler.Maximum = window.track.Length * 100;
             timeDis.Content = "0.00" + " / " + window.track.Length.ToString("0.00");
             secondsPreBeat = 60.0 / window.track.bpm;
             secondsPreDevideBeat = secondsPreBeat / divideNum;
@@ -162,7 +161,7 @@ namespace PMEditor
                 init = false;
                 window.operationInfo.Text = "就绪";
             }
-            DrawLines();
+            DrawLineAndBeat();
             DrawPreview();
             UpdateFunctionCurve();
         }
@@ -194,8 +193,6 @@ namespace PMEditor
                 currTime = window.track.Length;
             }
             window.player.Position = TimeSpan.FromSeconds(currTime);
-            //进度条设置
-            playerControler.Value = currTime * 100;
             //Lable设置
             timeDis.Content = currTime.ToString("0.00") + " / " + window.track.Length.ToString("0.00");
             noteChange = true;
@@ -204,25 +201,8 @@ namespace PMEditor
             Update();
         }
 
-        //进度条拖动
-        bool isPlayerChange = false;    //是否是因为播放器播放导致的进度条移动
-        private void playerControler_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            if (!isPlayerChange)
-            {
-                window.player.Pause();
-                window.isPlaying = false;
-                window.playerTime = TimeSpan.FromSeconds(playerControler.Value / 100).TotalSeconds;
-                window.player.Position = TimeSpan.FromSeconds(playerControler.Value / 100);
-                timeDis.Content = window.playerTime.ToString("0.00") + " / " + window.track.Length.ToString("0.00");
-                Update();
-            }
-            isPlayerChange = false;
-            noteChange = true;
-        }
-
         //绘制辅助线
-        public void DrawLines()
+        public void DrawLineAndBeat()
         {
             //移除线
             for (int i = 0; i < notePanel.Children.Count; i++)
@@ -234,6 +214,8 @@ namespace PMEditor
                     i--;
                 }
             }
+            //移除拍数
+            beatDisplay.Children.Clear();
             //绘制节拍线
             //开始绘制
             //整拍
@@ -258,6 +240,17 @@ namespace PMEditor
                     //是整拍
                     line.Stroke = new SolidColorBrush(Color.FromRgb(237, 70, 255));
                     line.StrokeThickness = 3;
+                    //获取当前拍数
+                    int beats = (int)Math.Round(GetTimeFromY(notePanel.ActualHeight - actualY) / secondsPreBeat);
+                    //拍数
+                    TextBlock textBlock = new()
+                    {
+                        Text = beats.ToString(),
+                        Foreground = new SolidColorBrush(Colors.White),
+                        FontSize = 12
+                    };
+                    beatDisplay.Children.Add(textBlock);
+                    Canvas.SetBottom(textBlock, notePanel.ActualHeight - actualY);
                 }
                 else
                 {
@@ -343,7 +336,8 @@ namespace PMEditor
                 Y1 = timeLineY,
                 Y2 = timeLineY,
                 Stroke = new SolidColorBrush(Colors.Red),
-                StrokeThickness = 2
+                StrokeThickness = 2,
+                IsHitTestVisible = false
             };
             trackPreview.Children.Add(timeLine);
         }
@@ -408,10 +402,7 @@ namespace PMEditor
         {
             if (window.isPlaying)
             {
-                isPlayerChange = true;
                 window.playerTime = window.player.Position.TotalSeconds;
-                //更新进度条
-                playerControler.Value = window.playerTime * 100;
                 //更新时间
                 timeDis.Content = window.playerTime.ToString("0.00") + " / " + window.track.Length.ToString("0.00");
             }
@@ -1290,11 +1281,11 @@ namespace PMEditor
                 }
                 window.playerTime = t;
                 window.player.Position = TimeSpan.FromSeconds(window.playerTime);
-                playerControler.Value = window.playerTime * 100;
                 timeDis.Content = window.playerTime.ToString("0.00") + " / " + window.track.Length.ToString("0.00");
             }
         }
 
+        bool isMouseDown = false;
         private void trackPreview_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             //获取鼠标位置
@@ -1302,14 +1293,44 @@ namespace PMEditor
             double time = (trackPreview.ActualHeight - pos.Y) / trackPreview.ActualHeight * window.track.Length * previewRange + previewStartTime;
             window.player.Position = TimeSpan.FromSeconds(time);
             window.playerTime = time;
-            //更新进度条
-            playerControler.Value = window.playerTime * 100;
             //暂停播放器
             window.player.Pause();
             window.isPlaying = false;
             //更新时间
             timeDis.Content = window.playerTime.ToString("0.00") + " / " + window.track.Length.ToString("0.00");
+            noteChange = true;
             Update();
+            //
+            isMouseDown = true;
+        }
+
+        private void trackPreview_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (!isMouseDown) return;
+            //获取鼠标位置
+            var pos = Mouse.GetPosition(trackPreview);
+            double time = (trackPreview.ActualHeight - pos.Y) / trackPreview.ActualHeight * window.track.Length * previewRange + previewStartTime;
+            window.player.Position = TimeSpan.FromSeconds(time);
+            window.playerTime = time;
+            //更新时间
+            timeDis.Content = window.playerTime.ToString("0.00") + " / " + window.track.Length.ToString("0.00");
+            noteChange = true;
+            Update();
+        }
+
+        private void StopDragTrackPreview()
+        {
+            isMouseDown = false;
+        }
+
+        private void trackPreview_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            StopDragTrackPreview();
+        }
+
+        private void trackPreview_MouseLeave(object sender, MouseEventArgs e)
+        {
+            StopDragTrackPreview();
         }
 
         private void trackPreviewWithEvent_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -1391,5 +1412,6 @@ namespace PMEditor
             }
             UpdateEventTypeList();
         }
+
     }
 }

@@ -12,7 +12,6 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="8*"/>
-            <ColumnDefinition Width="Auto" MinWidth="18"/>
             <ColumnDefinition Width="17*"/>
             <ColumnDefinition Width="9*"/>
         </Grid.ColumnDefinitions>
@@ -73,38 +72,31 @@
                 </ScrollViewer>
             </Grid>
         </Grid>
-        <!-- 曲子的进度条 -->
-        <Slider Grid.Column="1" x:Name="playerControler" Margin="0,50,0,0" VerticalAlignment="Top" Maximum="100" Orientation="Vertical" Height="{Binding ActualHeight, ElementName=eventPanel, Mode=OneWay}" ValueChanged="playerControler_ValueChanged"/>
         <!-- 音符编辑区 -->
-        <Grid Grid.Column="2">
+        <Grid Grid.Column="1">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="18" MinWidth="18"/>
                 <ColumnDefinition Width="273*"/>
                 <ColumnDefinition Width="92*"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="6.21"/>
-                <RowDefinition Height="43.79"/>
+                <RowDefinition Height="50"/>
                 <RowDefinition/>
                 <RowDefinition Height="33"/>
             </Grid.RowDefinitions>
+            <!--判定线拍数-->
+            <Canvas Grid.Column="0" Grid.Row="1" x:Name="beatDisplay" Margin="9,6,-7,11" HorizontalAlignment="Stretch"/>
             <!--信息-->
-            <Grid x:Name="grid" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Grid.RowSpan="2" Margin="10,0,10,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="{Binding ActualWidth, ElementName=notePanel, Mode=OneWay}"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="{Binding ActualWidth, ElementName=eventPanel, Mode=OneWay}" />
-                </Grid.ColumnDefinitions>
-                <Canvas Grid.Column="0">
-                    <Label Name="beatDis" Content="beat 0:0/0" Foreground="White" FontSize="14" FontFamily="Consolas" Canvas.Left="0" Canvas.Top="12"/>
-                    <Label x:Name="timeDis" Content="0.0/0.0s" Width="200" Foreground="White" Height="25" FontSize="14" FontFamily="Consolas" Canvas.Left="0" Canvas.Bottom="-5"/>
-                    <WrapPanel Canvas.Right="0" Canvas.Bottom="0">
-                        <Label Content="倍速: " Foreground="White"/>
-                        <ComboBox SelectedIndex="0" Name="speedChooseBox" Width="60" SelectionChanged="ComboBox_SelectionChanged" Foreground="Black" MouseEnter="speedChooseBox_MouseEnter" MouseLeave="speedChooseBox_MouseLeave"/>
-                    </WrapPanel>
-                </Canvas>
-            </Grid>
+            <Canvas Grid.Column="1" Grid.Row="0" Margin="9,0,5,0">
+                <Label Name="beatDis" Content="beat 0:0/0" Foreground="White" FontSize="14" FontFamily="Consolas" Canvas.Left="0" Canvas.Top="12"/>
+                <Label x:Name="timeDis" Content="0.0/0.0s" Width="200" Foreground="White" Height="25" FontSize="14" FontFamily="Consolas" Canvas.Left="0" Canvas.Bottom="-5"/>
+                <WrapPanel Canvas.Right="0" Canvas.Bottom="0" Margin="0,0,5,0">
+                    <Label Content="倍速: " Foreground="White"/>
+                    <ComboBox SelectedIndex="0" Name="speedChooseBox" Width="60" SelectionChanged="ComboBox_SelectionChanged" Foreground="Black" MouseEnter="speedChooseBox_MouseEnter" MouseLeave="speedChooseBox_MouseLeave"/>
+                </WrapPanel>
+            </Canvas>
             <!--谱面编辑-->
-            <Border BorderBrush="#FF61207B" Grid.Row="2" Grid.Column="0" BorderThickness="1,1,1,1" Margin="9,5,5,10">
+            <Border BorderBrush="#FF61207B" Grid.Row="1" Grid.Column="1" BorderThickness="1,1,1,1" Margin="9,5,5,10">
                 <Grid MouseWheel="panel_MouseWheel" Background="Black">
                     <!--判定线和辅助格-->
                     <Canvas Name="lineDisplay">
@@ -179,14 +171,14 @@
                 </Grid>
             </Border>
             <!--谱面预览（无事件，纯配置）-->
-            <Border BorderBrush="#FF61207B" Grid.Row="2" Grid.Column="2" BorderThickness="1,1,1,1" Margin="5,5,10,10" Grid.ColumnSpan="2">
+            <Border BorderBrush="#FF61207B" Grid.Row="1" Grid.Column="2" BorderThickness="1,1,1,1" Margin="5,5,10,10" Grid.ColumnSpan="2">
                 <Canvas Name="trackPreview" Background="Black" ClipToBounds="True"
-                        MouseWheel="trackPreview_MouseWheel" PreviewMouseLeftButtonDown="trackPreview_PreviewMouseLeftButtonDown"/>
+                        MouseWheel="trackPreview_MouseWheel" PreviewMouseLeftButtonDown="trackPreview_PreviewMouseLeftButtonDown" MouseMove="trackPreview_MouseMove" PreviewMouseLeftButtonUp="trackPreview_MouseUp"  MouseLeave="trackPreview_MouseLeave"/>
             </Border>
             <!--切换编辑模式-->
             <t:RotatingButton x:Name="NoteOrEvent" Height="16" Width="50"
-                           Grid.Row="3" Grid.Column="0"
-                           Margin="0,0,0,10"
+                           Grid.Row="2" Grid.Column="1"
+                           Margin="0,0,10,0"
                            ContentChanged="NoteOrEvent_ContentChanged"
                            HorizontalAlignment="Right" VerticalAlignment="Top">
                 <TextBlock Foreground="White" FontSize="12" TextAlignment="Center" Text="Note" t:RotatingButton.ContextBackgroundProperty="#FF8B2FFF"/>
@@ -194,7 +186,7 @@
             </t:RotatingButton>
             <!--切换预览模式-->
             <t:RotatingButton x:Name="EditOrPreview" Height="16" Width="50" 
-                           Grid.Row="3" Grid.Column="0"
+                           Grid.Row="2" Grid.Column="1"
                            Margin="10,0,0,0"
                            ContentChanged="EditOrPreviewChanged" 
                            HorizontalAlignment="Left" VerticalAlignment="Top">
@@ -203,7 +195,7 @@
             </t:RotatingButton>
         </Grid>
         <!-- 音符/判定线信息编辑区 -->
-        <Grid Grid.Column="3">
+        <Grid Grid.Column="2">
             <Frame x:Name="infoFrame" BorderThickness="1,1,1,1" Background="Transparent" BorderBrush="#FF341D50" Margin="20"/>
         </Grid>
     </Grid>
