@@ -101,7 +101,6 @@ namespace PMEditor
             timeDis.Content = "0.00" + " / " + window.track.Length.ToString("0.00");
             secondsPreBeat = 60.0 / window.track.bpm;
             secondsPreDevideBeat = secondsPreBeat / divideNum;
-            //window.timer.Tick += Timer_Tick;
             CompositionTarget.Rendering += Tick;
             //添加note渲染和事件渲染
             foreach (var line in window.track.lines)
@@ -164,7 +163,7 @@ namespace PMEditor
                 window.operationInfo.Text = "就绪";
             }
             DrawLines();
-            //DrawPreview();
+            DrawPreview();
             UpdateFunctionCurve();
         }
 
@@ -287,6 +286,15 @@ namespace PMEditor
                 }
             }
             trackPreview.Children.Clear();
+            //调整预览范围
+            if(window.playerTime < previewStartTime)
+            {
+                previewStartTime = window.playerTime;
+            }
+            else if(window.playerTime > previewStartTime + previewRange * window.track.length)
+            {
+                previewStartTime = window.playerTime - previewRange * window.track.length;
+            }
             //绘制谱面
             foreach (var line in window.track.lines)
             {
