@@ -1035,18 +1035,18 @@ namespace PMEditor
         private void MenuItem_Click(object sender, RoutedEventArgs e)
         {
 
-            //isDeleting = true;
-            //int i = lineIndex - 1;
-            //if (i < 0)
-            //{
-            //    i = 0;
-            //}
-            //if(window.track.lines.Count == 1)
-            //{
-            //    window.track.lines.Add(new(0));
-            //}
-            //lineListView.SelectedIndex = i;
-            //OperationManager.AddOperation(new RemoveLineOperation(CurrLine));
+            isDeleting = true;
+            int i = lineIndex - 1;
+            if (i < 0)
+            {
+                i = 0;
+            }
+            if(window.track.lines.Count == 1)
+            {
+                window.track.lines.Add(new(0));
+            }
+            lineListView.SelectedIndex = i;
+            OperationManager.AddOperation(new RemoveLineOperation(CurrLine));
             window.track.lines.RemoveAt(lineIndex);
         }
 
