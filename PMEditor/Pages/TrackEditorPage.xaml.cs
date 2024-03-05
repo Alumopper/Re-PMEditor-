@@ -967,9 +967,15 @@ namespace PMEditor
             speedChooseBox.Focusable = false;
         }
 
+        bool isDeleting = false;
         //切换判定线
         private void lineListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (isDeleting)
+            {
+                isDeleting = false;
+                return;
+            }
             if (editingNote)
             {
                 foreach (var note in window.track.lines[lineIndex].notes)
@@ -1028,6 +1034,17 @@ namespace PMEditor
         //删除
         private void MenuItem_Click(object sender, RoutedEventArgs e)
         {
+            isDeleting = true;
+            int i = lineIndex - 1;
+            if (i < 0)
+            {
+                i = 0;
+            }
+            if(window.track.lines.Count == 1)
+            {
+                window.track.lines.Add(new(0));
+            }
+            lineListView.SelectedIndex = i;
             window.track.lines.RemoveAt(lineIndex);
         }
 
