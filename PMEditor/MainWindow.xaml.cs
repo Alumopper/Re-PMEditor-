@@ -16,6 +16,7 @@ namespace PMEditor
         {
             InitializeComponent();
 #if DEBUG
+            DebugWindow.Instance?.Close();
             DebugWindow debugWindow = new();
             debugWindow.Show();
 #endif
@@ -54,6 +55,7 @@ namespace PMEditor
                 Track? track = Track.GetTrack(new FileInfo("./tracks/" + curr.TrackName + "/track.json"));
                 if (track != null)
                 {
+                    EditorWindow.Instance?.Close();
                     EditorWindow editorWindow = new EditorWindow(curr, track);
                     editorWindow.Show();
                     this.Close();

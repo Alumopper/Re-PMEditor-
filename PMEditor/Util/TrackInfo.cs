@@ -1,4 +1,6 @@
-﻿namespace PMEditor.Util
+﻿using System.IO;
+
+namespace PMEditor.Util
 {
     public class TrackInfo
     {
@@ -33,6 +35,19 @@
         public override string ToString()
         {
             return trackName + "\n" + musicAuthor + "\n" + trackAuthor;
+        }
+
+        public static TrackInfo? FromFile(string path)
+        {
+            using StreamReader reader = new StreamReader(path);
+            string? trackName = reader.ReadLine();
+            string? musicAuthor = reader.ReadLine();
+            string? trackAuthor = reader.ReadLine();
+            if (trackName != null && musicAuthor != null && trackAuthor != null)
+            {
+                return new TrackInfo(trackName, musicAuthor, trackAuthor);
+            }
+            else return null;
         }
     }
 }

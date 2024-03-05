@@ -51,8 +51,10 @@ namespace PMEditor
             timer.Start();
             player = new MediaPlayer();
             player.Open(new Uri("./tracks/" + track.TrackName + "/" + info.trackName + ".wav", UriKind.Relative));
+            player.Volume = 0;
             player.Play();
             player.Pause();
+            player.Volume = 1;
             player.MediaEnded += (object? sender, EventArgs e) =>
             {
                 isPlaying = false;
@@ -155,6 +157,69 @@ namespace PMEditor
         public void UpdateStatusBar()
         {
             allNotesCount.Text = "谱面物量: " + track.notesNumber;
+        }
+
+        //从谱面文件info.txt打开
+        private void MenuItem_Click_2(object sender, RoutedEventArgs e)
+        {
+            FileDialog fileDialog = new OpenFileDialog
+            {
+                Filter = "谱面信息文件(info.txt)|info.txt"
+            };
+            if(fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                TrackInfo? info = TrackInfo.FromFile(fileDialog.FileName);
+                if(info == null)
+                {
+                    //错误
+                    System.Windows.MessageBox.Show("错误的谱面信息文件格式", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                var file = new FileInfo(fileDialog.FileName);
+                //获取统计文件夹下是否有trck.json和曲目.wav
+                if (!File.Exists(file.DirectoryName + "/track.json"))
+                {
+                    //错误
+                    System.Windows.MessageBox.Show("同级文件夹下未找到track.json", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                if(!File.Exists(file.DirectoryName + "/" + info.TrackName + ".wav"))
+                {
+                    //错误
+                    System.Windows.MessageBox.Show("同级文件夹下未找到" + info.TrackName + ".wav", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                Track? track = Track.GetTrack(new FileInfo(file.DirectoryName + "/track.json"));
+                if(track == null)
+                {
+                    //错误
+                    System.Windows.MessageBox.Show("无法解析track.json", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                EditorWindow editorWindow = new(info, track);
+                editorWindow.Show();
+                this.Close();
+            }
+        }
+
+        //打开初始窗口
+        private void MenuItem_Click_3(object sender, RoutedEventArgs e)
+        {
+            MainWindow mainWindow = new();
+            mainWindow.Show();
+        }
+
+        //新建
+        private void MenuItem_Click_4(object sender, RoutedEventArgs e)
+        {
+            CreateTrack createTrack = new();
+            if (createTrack.ShowDialog() == true)
+            {
+                EditorWindow editorWindow = new(createTrack.TrackInfo, Track.GetTrack(new FileInfo("./tracks/" + createTrack.TrackInfo.TrackName + "/track.json")));
+                EditorWindow.Instance = editorWindow;
+                editorWindow.Show();
+                this.Close();
+            }
         }
     }
 

@@ -48,6 +48,11 @@
                     <MenuItem Header="SNBT(_S)" Foreground="#FF000000" Click="MenuItem_Click"/>
                     <MenuItem Header="MCF(_S)" Foreground="#FF000000" Click="MenuItem_Click_1"/>
                 </MenuItem>
+                <Separator/>
+                <MenuItem Header="打开...(_O)" Foreground="#FF000000" Click="MenuItem_Click_2">
+                </MenuItem>
+                <MenuItem Header="启动窗口(_W)" Foreground="#FF000000" Click="MenuItem_Click_3"/>
+                <MenuItem Header="新建(_N)" Foreground="#FF000000" Click="MenuItem_Click_4"/>
             </MenuItem>
             <MenuItem Header="编辑(_E)" Margin="0,0,3,0">
                 <MenuItem Header="撤销(_Z)" Foreground="#FF000000" Command="local:Commands.Undo"/>

@@ -75,6 +75,11 @@ namespace PMEditor
         //创建谱面
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
+            if(fileName.Text == "" || musicAuthor.Text == "" || trackAuthor.Text == "" || bpm.Text == "" || difficulty.Text == "")
+            {
+                MessageBox.Show("请填写完整信息", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
             //创建文件夹和文件
             string trackName = fileName.Text[..fileName.Text.LastIndexOf(".")];
             string ma = musicAuthor.Text;
