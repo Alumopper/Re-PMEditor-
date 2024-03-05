@@ -9,9 +9,20 @@ namespace PMEditor
         {
             //获取时间
             //获取鼠标位置，生成note位置预览
-            var mousePos = p;
+            Point mousePos = p;
+            double width = notePanel.ActualWidth / 9;
             //x坐标对齐
-            mousePos.X = (int)(mousePos.X / (notePanel.ActualWidth / 9)) * (notePanel.ActualWidth / 9);
+            int rail = (int)(mousePos.X / width);
+            //如果是Tap，额外需要对齐主线
+            if (window.puttingTap)
+            {
+                if(rail == 0) { rail = 1; }
+                if(rail == 2) { rail = 3; }
+                if(rail == 4) { rail = 5; }
+                if(rail == 6) { rail = 7; }
+                if(rail == 8) { rail = 7; }
+            }
+            mousePos.X = rail * width;
             //y坐标对齐
             //基准线相对坐标计算
             double fix = 0;
