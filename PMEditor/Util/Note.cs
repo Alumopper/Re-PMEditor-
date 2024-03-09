@@ -44,8 +44,18 @@ namespace PMEditor
 
         public override string ToString()
         {
-            return $"{(type == PMEditor.NoteType.Tap ? "Tap" : "Drag")}[line={parentLine.notes.IndexOf(this)},rail={rail},time={actualTime}]";
-        }
+            switch(type)
+            {
+                case PMEditor.NoteType.Tap:
+                    return $"Tap[line={parentLine.notes.IndexOf(this)},rail={rail},time={actualTime}]";
+                case PMEditor.NoteType.Drag:
+                    return $"Drag[line={parentLine.notes.IndexOf(this)},rail={rail},time={actualTime}]";
+                case PMEditor.NoteType.Hold:
+                    return $"Hold[line={parentLine.notes.IndexOf(this)},rail={rail},time={actualTime}]";
+                default:
+                    return "Unknown";
+            }
+       }
 
         public bool IsOverlap(Note note)
         {

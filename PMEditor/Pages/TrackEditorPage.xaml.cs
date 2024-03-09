@@ -387,19 +387,20 @@ namespace PMEditor
                             Rectangle noteRec = new()
                             {
                                 Width = noteWidth,
-                                Height = hold.holdLength / 10 * trackPreviewWithEvent.ActualHeight,
+                                Height = Math.Max(hold.holdLength / 10 * trackPreviewWithEvent.ActualHeight,0),
                                 Fill = new SolidColorBrush(EditorColors.holdColor)
                             };
                             //计算note的位置
                             double i = time;
                             double locate = 0;
-                            for (; i < hold.judgeTime - 1 / Settings.currSetting.Tick; i += 1 / Settings.currSetting.Tick)
+                            for (; i < hold.judgeTime + hold.holdTime - 1 / Settings.currSetting.Tick; i += 1 / Settings.currSetting.Tick)
                             {
                                 locate += line.line.GetSpeed(i) / Settings.currSetting.Tick;
                             }
                             //计算差值保证帧数
                             double delta = hold.judgeTime - i;
                             locate += line.line.GetSpeed(i) * delta;
+                            locate -= hold.holdLength;
                             locate = locate / 10 * trackPreviewWithEvent.ActualHeight;
                             trackPreviewWithEvent.Children.Add(noteRec);
                             Canvas.SetBottom(noteRec, locate);
@@ -837,12 +838,15 @@ namespace PMEditor
                     {
                         double x = Canvas.GetLeft(note.rectangle);
                         double y = Canvas.GetBottom(note.rectangle);
+                        Point point = new(x, notePanel.ActualHeight - y);
+                        point = GetAlignedPoint(point);
                         note.rail = (int)Math.Round(x * 9 / notePanel.ActualWidth);
                         if (note.rail < 0)
                         {
                             note.rail = 0;
                         }
-                        note.actualTime = GetTimeFromY(y);
+                        note.actualTime = GetTimeFromY(point.Y);
+                        Canvas.SetBottom(note.rectangle, point.Y);
                     }
                 }
                 UpdateSelectedNote(selecedNotes);
@@ -1473,6 +1477,7 @@ namespace PMEditor
                     eventPanel.Visibility = Visibility.Visible;
                     trackPreviewWithEvent.Visibility = Visibility.Hidden;
                 }
+                UpdateNote();
             }
             else
             {
@@ -1496,9 +1501,12 @@ namespace PMEditor
                 eventPanel.Visibility = Visibility.Visible;
                 foreach (var note in window.track.lines[lineIndex].notes)
                 {
-                    if (note.type == NoteType.Tap || note.type == NoteType.Hold)
+                    if (note.type == NoteType.Tap)
                     {
                         note.Color = EditorColors.tapColorButNotOnThisLine;
+                    }else if (note.type == NoteType.Hold)
+                    {
+                        note.Color = EditorColors.holdColorButNotOnThisLine;
                     }
                     else
                     {
@@ -1512,9 +1520,13 @@ namespace PMEditor
                 eventPanel.Visibility = Visibility.Hidden;
                 foreach (var note in window.track.lines[lineIndex].notes)
                 {
-                    if (note.type == NoteType.Tap || note.type == NoteType.Hold)
+                    if (note.type == NoteType.Tap)
                     {
                         note.Color = EditorColors.tapColor;
+                    }
+                    else if (note.type == NoteType.Hold)
+                    {
+                        note.Color = EditorColors.holdColor;
                     }
                     else
                     {

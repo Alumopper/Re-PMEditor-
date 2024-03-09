@@ -4,6 +4,7 @@ using PMEditor.Util;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
@@ -144,9 +145,17 @@ namespace PMEditor
             FolderBrowserDialog saveFileDialog = new();
             if (saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                NBTTrack.FromTrack(track).ToFrameFunctions(new(saveFileDialog.SelectedPath));
+                operationInfo.Text = "正在导出帧序列到 " + saveFileDialog.SelectedPath;
+
+                Task.Run(() => NBTTrack.FromTrack(track).ToFrameFunctions(new(saveFileDialog.SelectedPath))).ContinueWith((t) =>
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        operationInfo.Text = "成功导出帧序列到 " + saveFileDialog.SelectedPath;
+                    });
+                });
+                
             }
-            operationInfo.Text = "成功导出帧序列到 " + saveFileDialog.SelectedPath;
         }
 
         private void infoButton_Click(object sender, RoutedEventArgs e)

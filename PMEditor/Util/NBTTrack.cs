@@ -30,6 +30,7 @@ namespace PMEditor.Util
         public double bpm;          //bpm
         public double length;       //曲目长度
         public string difficulty = "";   //谱面难度
+        public double count = 0;    //总物量
         public NBTLine[] lines = Array.Empty<NBTLine>();
 
         public CompoundTag ToNBTTag()
@@ -42,7 +43,8 @@ namespace PMEditor.Util
                 new DoubleTag("bpm", bpm),
                 new DoubleTag("length", length),
                 new StringTag("difficulty", difficulty),
-                new IntTag("tickLength",(int)(length * Settings.currSetting.Tick))
+                new IntTag("tickLength",(int)(length * Settings.currSetting.Tick)),
+                new DoubleTag("count", count)
             };
             ListTag lineNBT = new("lines", TagType.Compound);
             foreach (var line in lines)
@@ -102,13 +104,16 @@ namespace PMEditor.Util
             nbtTrack.bpm = track.Bpm;
             nbtTrack.length = track.Length;
             nbtTrack.difficulty = track.Difficulty;
+            nbtTrack.count = track.notesNumber;
             
             //判定线信息
             List<NBTLine> lines = new ();
             foreach (Line line in track.lines)
             {
-                NBTLine nbtLine = new();
-                nbtLine.line = line;
+                NBTLine nbtLine = new()
+                {
+                    line = line
+                };
                 //notes
                 List<NBTNote> notes = new();
                 foreach (Note note in line.notes)
@@ -124,7 +129,7 @@ namespace PMEditor.Util
                             double holdLength = 0;
                             int judgeTick = (int)(note.actualTime * Settings.currSetting.Tick);
                             int holdTick = (int)(note.actualHoldTime * Settings.currSetting.Tick);
-                            for (int i = judgeTick; i <= judgeTick + holdTick; i++)
+                            for (int i = judgeTick; i < judgeTick + holdTick; i++)
                             {
                                 holdLength += note.parentLine.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
                             }
@@ -218,7 +223,7 @@ namespace PMEditor.Util
                 int judgeTick = (int)(note.actualTime * Settings.currSetting.Tick);
                 int holdTick = (int)(note.actualHoldTime * Settings.currSetting.Tick);
                 //算出当判定结束的时候，判定起始点的位置，同时获取hold长度
-                for (int i = judgeTick; i <= judgeTick + holdTick; i++)
+                for (int i = judgeTick; i < judgeTick + holdTick; i++)
                 {
                     startPosition -= note.parentLine.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
                 }
@@ -264,18 +269,27 @@ namespace PMEditor.Util
             }
 
             //导出帧序列
-            foreach(var line in lines)
+            foreach(NBTLine line in lines)
             {
-                foreach(var note in line.notes)
+                foreach(NBTNote note in line.notes)
                 {
+                    //计算note的生成时刻
+                    int startTick = (int)(note.summonTime * Settings.currSetting.Tick);
+                    frames[startTick].Add("summon item_display ~ ~ ~ {UUID:" + Utils.ToNBTUUID(note.uuid) + ",transformation:{scale:[0.0f,0.0f,0.0f]},item:{id:\"minecraft:leather_chestplate\",Count:1b,tag:{CustomModelData:225001}},item_display:\"head\",Tags:[\"tap\",\"PR_just\",\"Note\",\"R\"],interpolation_duration:1}");
+                    frames[startTick].Add($"ride {note.uuid} mount {line.uuid}");
                     //计算note所有tick的位置
                     int endTick = (int)(note.judgeTime * Settings.currSetting.Tick);
-                    int startTick = (int)(note.summonTime * Settings.currSetting.Tick);
                     double distance = 0;
                     for(; endTick >= startTick; endTick--)
                     {
                         distance += line.line.GetSpeed(endTick / Settings.currSetting.Tick) / Settings.currSetting.Tick;
-                        frames[endTick].Add($"data modify entity {note.uuid} tranformation.translation[0] set value {distance}");
+                        frames[endTick].Add($"data modify entity {note.uuid} tranformation.translation[0] set value {(distance > 0 ? distance : 0)}");
+                        frames[endTick].Add($"scoreboard players set {note.uuid} PR_cpos {(int)(distance * 1000)}");
+                        if (note is NBTHold hold)
+                        {
+                            //尾部位置
+                            frames[endTick].Add($"scoreboard players set {note.uuid} PR_cpos_h {((int)(distance + hold.holdLength))}");
+                        }
                     }
                 }
             }
@@ -290,7 +304,8 @@ namespace PMEditor.Util
             }
             //初始化函数
             File.WriteAllLines(output.FullName + "/init.mcfunction", new string[] {
-                $"scoreboard players set #length pm_length {(int)(length * Settings.currSetting.Tick)}" 
+                $"scoreboard players set $time PR_chartinfo {(int)(length * Settings.currSetting.Tick)}" ,
+                $"scoreboard players set $count PR_chartinfo {count}"
             });
         }
     }
@@ -300,6 +315,7 @@ namespace PMEditor.Util
         public Line line;
         public List<NBTNote> notes = new();
         public List<double> speedList = new();
+        public Guid uuid = Guid.NewGuid(); 
     }
 
     public class NBTNote
@@ -325,7 +341,7 @@ namespace PMEditor.Util
 
         public List<double> distanceLists = new();
 
-        public string uuid = Guid.NewGuid().ToString();
+        public Guid uuid = Guid.NewGuid();
 
         internal NBTNote(Range range, byte type, int rail, byte isFake = 0)
         {

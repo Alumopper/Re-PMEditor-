@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 
 namespace PMEditor
 {
@@ -16,11 +17,11 @@ namespace PMEditor
             //如果是Tap，额外需要对齐主线
             if (window.puttingTap)
             {
-                if(rail == 0) { rail = 1; }
-                if(rail == 2) { rail = 3; }
-                if(rail == 4) { rail = 5; }
-                if(rail == 6) { rail = 7; }
-                if(rail == 8) { rail = 7; }
+                if (rail == 0) { rail = 1; }
+                if (rail == 2) { rail = 3; }
+                if (rail == 4) { rail = 5; }
+                if (rail == 6) { rail = 7; }
+                if (rail == 8) { rail = 7; }
             }
             mousePos.X = rail * width;
             //y坐标对齐
@@ -49,4 +50,20 @@ namespace PMEditor
             return (time - window.player.Position.TotalSeconds) / secondsPreDevideBeat * pixelPreDividedBeat;
         }
     }
+
+    public class Utils
+    {
+        public static string ToNBTUUID(Guid uuid)
+        {
+            byte[] bytes = uuid.ToByteArray();
+            int[] array = new int[4];
+            array[0] = BitConverter.ToInt32(bytes, 0);
+            array[1] = BitConverter.ToInt32(bytes, 4);
+            array[2] = BitConverter.ToInt32(bytes, 8);
+            array[3] = BitConverter.ToInt32(bytes, 12);
+
+            return $"[I;{array[0]},{array[1]},{array[2]},{array[3]}]";
+        }
+    }
+
 }
