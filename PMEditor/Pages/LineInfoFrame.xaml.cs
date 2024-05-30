@@ -19,7 +19,7 @@ namespace PMEditor.Pages
             lineID.Text = line.id.ToString();
             generalCount.Text = line.notes.Count.ToString();
             tapCount.Text = line.notes.FindAll(e => e.type == NoteType.Tap).Count.ToString();
-            dragCount.Text = line.notes.FindAll(e => e.type == NoteType.Drag).Count.ToString();
+            catchCount.Text = line.notes.FindAll(e => e.type == NoteType.Catch).Count.ToString();
         }
     }
 }

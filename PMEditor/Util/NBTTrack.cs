@@ -3,7 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Transactions;
+using System.Windows.Shapes;
 
 namespace PMEditor.Util
 {
@@ -96,16 +98,18 @@ namespace PMEditor.Util
 
         public static NBTTrack FromTrack(Track track)
         {
-            NBTTrack nbtTrack = new();
-            //基本信息
-            nbtTrack.trackName = track.TrackName;
-            nbtTrack.musicAuthor = track.MusicAuthor;
-            nbtTrack.trackAuthor = track.TrackAuthor;
-            nbtTrack.bpm = track.Bpm;
-            nbtTrack.length = track.Length;
-            nbtTrack.difficulty = track.Difficulty;
-            nbtTrack.count = track.notesNumber;
-            
+            NBTTrack nbtTrack = new()
+            {
+                //基本信息
+                trackName = track.TrackName,
+                musicAuthor = track.MusicAuthor,
+                trackAuthor = track.TrackAuthor,
+                bpm = track.Bpm,
+                length = track.Length,
+                difficulty = track.Difficulty,
+                count = track.Count
+            };
+
             //判定线信息
             List<NBTLine> lines = new ();
             foreach (Line line in track.lines)
@@ -118,7 +122,7 @@ namespace PMEditor.Util
                 List<NBTNote> notes = new();
                 foreach (Note note in line.notes)
                 {
-                    var ranges = AppearTickRange(note);
+                    List<Range> ranges = AppearTickRange(note);
                     if(note.type == NoteType.Hold)
                     {
                         //hold
@@ -172,6 +176,24 @@ namespace PMEditor.Util
                         }
                     }
                 }
+                //fake catch
+                foreach (FakeCatch f in line.fakeCatch)
+                {
+                    List<Range> ranges = AppearTickRange(f);
+                    if (ranges.Count == 0)
+                    {
+                        notes.Add(new NBTFakeCatch(
+                            new Range((int)(f.actualTime * Settings.currSetting.Tick), (int)(f.actualTime * Settings.currSetting.Tick), 0), f.rail, f.Height));
+                    }
+                    else
+                    {
+                        notes.Add(new NBTFakeCatch(ranges[0], f.rail, f.Height));
+                        for (int i = 1; i < ranges.Count; i++)
+                        {
+                            notes.Add(new NBTFakeCatch(ranges[i], f.rail, f.Height));
+                        }
+                    }
+                }
                 //对notes进行排序,按照summonTick从小到大排序
                 notes.Sort((a, b) => Math.Sign(b.summonTime - a.summonTime));
                 nbtLine.notes = notes;
@@ -191,30 +213,31 @@ namespace PMEditor.Util
         private static List<Range> AppearTickRange(Note note)
         {
             List<Range> rangeList = new();
-            int start = -1;
-            int end = -1;
+            int start = -100000;
+            int end = -100000;
+            int readyTime = (int)(3 * Settings.currSetting.Tick);
             if (note.type != NoteType.Hold)
             {
                 double position = 0;
                 int judgeTick = (int)(note.actualTime * Settings.currSetting.Tick);
-                for (int i = judgeTick; i > 0; i--)
+                for (int i = judgeTick; i > -readyTime; i--)
                 {
                     position += note.parentLine.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
-                    if (end == -1 && IsInScreen(position))
+                    if (end == -100000 && IsInScreen(position))
                     {
                         end = i;
                     }
-                    if (end != -1 && start == -1 && !IsInScreen(position))
+                    if (end != -100000 && start == -100000 && !IsInScreen(position))
                     {
                         start = i;
                         rangeList.Add(new Range(start, end, position));
-                        start = end = -1;
+                        start = end = -100000;
                     }
                 }
-                if (end != -1 && start == -1)
+                if (end != -100000 && start == -100000)
                 {
                     //开头就在屏幕里面了
-                    rangeList.Add(new Range(0, end, position));
+                    rangeList.Add(new Range(-readyTime, end, position));
                 }
             }
             else
@@ -229,26 +252,27 @@ namespace PMEditor.Util
                 }
                 double length = -startPosition;
                 //迭代开始，划分range
-                for (int i = judgeTick + holdTick; i > 0; i--)
+                for (int i = judgeTick + holdTick; i > -readyTime; i--)
                 {
                     endPosition += note.parentLine.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
                     startPosition += note.parentLine.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
-                    //如果起始点或者结束点在屏幕里面
-                    if (end == -1 && ((IsInScreen(endPosition) || IsInScreen(startPosition))))
+                    //如果起始点或者结束点在屏幕里面，也就是长条离开谱面的时候
+                    if (end == -100000 && IsHoldInScreen(startPosition, endPosition))
                     {
                         end = i;
                     }
-                    if (end != -1 && start == -1 && !IsInScreen(endPosition) && !IsInScreen(startPosition))
+                    //长条进入谱面的时候
+                    if (end != -100000 && start == -100000 && !IsHoldInScreen(startPosition, endPosition))
                     {
                         start = i;
                         rangeList.Add(new Range(start, end, startPosition) { length = length});
-                        start = end = -1;
+                        start = end = -100000;
                     }
                 }
-                if (end != -1 && start == -1)
+                if (end != -100000 && start == -100000)
                 {
                     //开头就在屏幕里面了
-                    rangeList.Add(new Range(0, end, startPosition) { length = length});
+                    rangeList.Add(new Range(-readyTime, end, startPosition) { length = length});
                 }
             }
             return rangeList;
@@ -259,10 +283,18 @@ namespace PMEditor.Util
             return position > 0 && position < Settings.currSetting.MapLength;
         }
 
+        private static bool IsHoldInScreen(double startPosition, double endPosition)
+        {
+            return endPosition > 0 && endPosition < Settings.currSetting.MapLength
+                || startPosition > 0 && startPosition < Settings.currSetting.MapLength
+                || startPosition < 0 && endPosition > Settings.currSetting.MapLength;
+        }
+
         public void ToFrameFunctions(DirectoryInfo directory)
         {
+            int readyTick = (int)(3 * Settings.currSetting.Tick);
             //生成并初始化函数帧序列
-            List<string>[] frames = new List<string>[(int)(length * Settings.currSetting.Tick)];
+            List<string>[] frames = new List<string>[(int)(length * Settings.currSetting.Tick) + readyTick + 1];
             for (int i = 0; i < frames.Length; i++)
             {
                 frames[i] = new();
@@ -275,37 +307,149 @@ namespace PMEditor.Util
                 {
                     //计算note的生成时刻
                     int startTick = (int)(note.summonTime * Settings.currSetting.Tick);
-                    frames[startTick].Add("summon item_display ~ ~ ~ {UUID:" + Utils.ToNBTUUID(note.uuid) + ",transformation:{scale:[0.0f,0.0f,0.0f]},item:{id:\"minecraft:leather_chestplate\",Count:1b,tag:{CustomModelData:225001}},item_display:\"head\",Tags:[\"tap\",\"PR_just\",\"Note\",\"R\"],interpolation_duration:1}");
-                    frames[startTick].Add($"ride {note.uuid} mount {line.uuid}");
+                    if (note is NBTFakeCatch f)
+                    {
+                        frames[startTick + readyTick].Add(
+                            "summon item_display ~ ~ ~ " +
+                            "{" +
+                                "UUID:" + Utils.ToNBTUUID(note.uuid) + "," +
+                                "transformation:{" +
+                                    "right_rotation:[1f,0f,0f,0f]," +
+                                    "scale:[0f,0f,0f]," +
+                                    "left_rotation:[1f,0f,0f,0f]," +
+                                    $"translation:[{4 - note.rail}f, {f.height * 2.0}f, 0f]" +
+                                "}," +
+                                "item:{" +
+                                    "id:\"minecraft:leather_boots\"," +
+                                    "Count:1b," +
+                                    "components:{custom_model_data:226000}" +
+                                "}," +
+                                $"Tags:[catch,Note,Fake]," +
+                                "interpolation_duration:0" +
+                            "}");
+                    }
+                    else if(note is NBTHold)
+                    {
+                        frames[startTick + readyTick].Add(
+                            "summon item_display ~ ~ ~ " +
+                            "{" +
+                                "UUID:" + Utils.ToNBTUUID(note.uuid) + "," +
+                                "transformation:{" +
+                                    "right_rotation:[1f,0f,0f,0f]," +
+                                    "scale:[0f,0f,0f]," +
+                                    "left_rotation:[1f,0f,0f,0f]," +
+                                    "translation:[" + (4 - note.rail) + "f, 0f, 0f]" +
+                                "}," +
+                                "item:{" +
+                                    "id:\"minecraft:leather_leggings\"," +
+                                    "Count:1b," +
+                                    "components:{custom_model_data:227001}" +
+                                "}," +
+                                $"Tags:[hold,Note,{note.Key}]," +
+                                "interpolation_duration:0" +
+                            "}");
+                    }
+                    else if (note.type == (int)NoteType.Catch)
+                    {
+                        frames[startTick + readyTick].Add(
+                            "summon item_display ~ ~ ~ " +
+                            "{" +
+                                "UUID:" + Utils.ToNBTUUID(note.uuid) + "," +
+                                "transformation:{" +
+                                    "right_rotation:[1f,0f,0f,0f]," +
+                                    "scale:[0f,0f,0f]," +
+                                    "left_rotation:[1f,0f,0f,0f]," +
+                                    "translation:[" + (4 - note.rail) + "f, 2f, 0f]" +
+                                "}," +
+                                "item:{" +
+                                    "id:\"minecraft:leather_boots\"," +
+                                    "Count:1b," +
+                                    "components:{custom_model_data:226001}" +
+                                "}," +
+                                "Tags:[catch,Note]," +
+                                "interpolation_duration:0" +
+                            "}");
+                        frames[startTick + readyTick].Add($"scoreboard players set {note.uuid} PR_slot {note.rail}");
+                    }
+                    else
+                    {
+                        frames[startTick + readyTick].Add(
+                            "summon item_display ~ ~ ~ " +
+                            "{" +
+                                "UUID:" + Utils.ToNBTUUID(note.uuid) + "," +
+                                "transformation:{" +
+                                    "right_rotation:[1f,0f,0f,0f]," +
+                                    "scale:[0f,0f,0f]," +
+                                    "left_rotation:[1f,0f,0f,0f]," +
+                                    "translation:[" + (4 - note.rail) + "f, 0f, 0f]" +
+                                "}," +
+                                "item:{" +
+                                    "id:\"minecraft:leather_chestplate\"," +
+                                    "Count:1b," +
+                                    "components:{custom_model_data:225001}" +
+                                "}," +
+                                $"Tags:[tap,Note,{note.Key}]," +
+                                "interpolation_duration:0" +
+                            "}");
+                    }
+                    frames[startTick + readyTick].Add($"ride {note.uuid} mount {NBTLine.uuid}");
+                    frames[startTick + readyTick].Add($"scoreboard players set {note.uuid} PR_judgetime {(int)(note.judgeTime * Settings.currSetting.Tick) + readyTick}");
+                    if (note is NBTHold hold1)
+                    {
+                        frames[startTick + readyTick].Add($"scoreboard players set {hold1.uuid} PR_holdend {(int)((hold1.judgeTime + hold1.holdTime) * Settings.currSetting.Tick) + readyTick}");
+                    }
                     //计算note所有tick的位置
                     int endTick = (int)(note.judgeTime * Settings.currSetting.Tick);
                     double distance = 0;
-                    for(; endTick >= startTick; endTick--)
+                    if(note is NBTHold hold)
                     {
-                        distance += line.line.GetSpeed(endTick / Settings.currSetting.Tick) / Settings.currSetting.Tick;
-                        frames[endTick].Add($"data modify entity {note.uuid} tranformation.translation[0] set value {(distance > 0 ? distance : 0)}");
-                        frames[endTick].Add($"scoreboard players set {note.uuid} PR_cpos {(int)(distance * 1000)}");
-                        if (note is NBTHold hold)
+                        double length = hold.holdLength;
+                        for (int i = endTick; i > startTick; i--)
                         {
-                            //尾部位置
-                            frames[endTick].Add($"scoreboard players set {note.uuid} PR_cpos_h {((int)(distance + hold.holdLength))}");
+                            frames[i + readyTick - 1].Add($"scoreboard players set {note.uuid} PR_cpos {(int)(distance * 100)}");
+                            frames[i + readyTick - 1].Add($"scoreboard players set {note.uuid} PR_cpos_h {(int)((length  + distance)* 100)}");
+
+                            distance += line.line.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
+                        }
+                        for(int i = endTick+1; i < endTick + (int)(hold.holdTime * Settings.currSetting.Tick); i++)
+                        {
+                            length -= line.line.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
+                            frames[i + readyTick - 1].Add($"scoreboard players set {note.uuid} PR_cpos_h {(int)(length * 100)}");
+                        }
+                    }
+                    else
+                    {
+                        for (int i = endTick; i > startTick; i--)
+                        {
+                            frames[i + readyTick - 1].Add($"scoreboard players set {note.uuid} PR_cpos {(int)(distance * 100)}");
+                            distance += line.line.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
+                        }
+                        distance = 0;
+                        for (int i = endTick + 1; i < endTick + 4 * (Settings.currSetting.Tick / 20) + 1; i++)
+                        {
+                            distance -= line.line.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
+                            frames[i + readyTick - 1].Add($"scoreboard players set {note.uuid} PR_cpos {(int)(distance * 100)}");
                         }
                     }
                 }
             }
 
+            //生成数据包
             DirectoryInfo output = new(directory.FullName + "/" + trackName);
-            //输出全部的序列
-            DirectoryInfo frameDir = new(output.FullName + "/frames");
-            frameDir.Create();
+
+            var dp = DatapackGenerator.CreateDatapack(output, trackName);
+
             for (int i = 0; i < frames.Length; i++)
             {
-                File.WriteAllLines(frameDir.FullName + $"/{i}.mcfunction", frames[i]);
+                dp.WriteFunction((int)Settings.currSetting.Tick, i, frames[i]);
             }
             //初始化函数
-            File.WriteAllLines(output.FullName + "/init.mcfunction", new string[] {
+            dp.WriteInitFunction((int)Settings.currSetting.Tick, new string[] {
                 $"scoreboard players set $time PR_chartinfo {(int)(length * Settings.currSetting.Tick)}" ,
-                $"scoreboard players set $count PR_chartinfo {count}"
+                $"scoreboard players set $count PR_chartinfo {count}",
+                $"summon armor_stand ~ ~ ~ {{UUID:{Utils.ToNBTUUID(NBTLine.uuid)},Tags:[pr_line],NoGravity:1b,Invisible:1b,Marker:1b}}",
+                $"#判定线的UUID储存",
+                $"data modify storage pr:pr_line main.UUID set value {Utils.ToNBTUUID(NBTLine.uuid)}",
             });
         }
     }
@@ -315,7 +459,7 @@ namespace PMEditor.Util
         public Line line;
         public List<NBTNote> notes = new();
         public List<double> speedList = new();
-        public Guid uuid = Guid.NewGuid(); 
+        public static Guid uuid = Utils.GeneUnNaturalUUID(); 
     }
 
     public class NBTNote
@@ -324,6 +468,27 @@ namespace PMEditor.Util
         /// note的类型。和NoteType枚举类对应的数字相同
         /// </summary>
         public byte type;
+
+        public string TypeTag
+        {
+            get => type == (int)NoteType.Tap ? "tap" : "catch";
+        }
+
+        public string Key
+        {
+            get {
+                return rail switch
+                {
+                    7 => "R",
+                    5 => "F",
+                    3 => "X",
+                    1 => "Z",
+                    _ => "unknown",
+                };
+                ;
+            }
+        }
+
         /// <summary>
         /// note被生成的时间（秒）
         /// </summary>
@@ -341,7 +506,7 @@ namespace PMEditor.Util
 
         public List<double> distanceLists = new();
 
-        public Guid uuid = Guid.NewGuid();
+        public Guid uuid = Utils.GeneUnNaturalUUID();
 
         internal NBTNote(Range range, byte type, int rail, byte isFake = 0)
         {
@@ -359,11 +524,32 @@ namespace PMEditor.Util
         public double holdTime;
         public double holdLength;   //hold的长度，不是时间，就是显示出来的长度
 
+        public new string TypeTag
+        {
+            get => "hold";
+        }
+
         internal NBTHold(Range range, byte isFake, int holdTime, int rail) : base(range, (int)NoteType.Hold, rail, isFake)
         {
             this.holdTime = holdTime/Settings.currSetting.Tick;
             this.holdLength = range.length;
             this.judgeTime -= this.holdTime;
+        }
+    }
+
+    public class NBTFakeCatch : NBTNote
+    {
+        public double height;   //假catch高度
+
+        public new string TypeTag
+        {
+            get => "catch";
+        }
+
+        internal NBTFakeCatch(Range range, int rail, double height) 
+            : base(range, (int)NoteType.Catch, rail, 1)
+        {
+            this.height = height;
         }
     }
 }

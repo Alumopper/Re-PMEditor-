@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="PMEditor.Controls.NotePropertyPanel"
+﻿<UserControl x:Class="PMEditor.Controls.FunctionPropertyPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -11,7 +11,7 @@
             <RowDefinition Height="50"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <TextBlock x:Name="title" Grid.Row="0" FontSize="16" FontWeight="Bold" Margin="10,10,0,20" Text="Note" Foreground="White"/>
+        <TextBlock x:Name="title" Grid.Row="0" FontSize="16" FontWeight="Bold" Margin="10,10,0,20" Text="帧函数" Foreground="White"/>
         <StackPanel x:Name="properties" Grid.Row="1" Margin="20,0,20,20">
             <StackPanel.Resources>
                 <Style TargetType="TextBlock" x:Key="PropertyLable">
@@ -20,10 +20,11 @@
                     <Setter Property="Foreground" Value="White"/>
                 </Style>
                 <Style TargetType="TextBox" x:Key="ReadOnlyPropertyInput">
-                    <Setter Property="TextAlignment" Value="Center"/>
+                    <Setter Property="TextAlignment" Value="Left"/>
                     <Setter Property="Foreground" Value="White"/>
                     <Setter Property="Background" Value="Transparent"/>
                     <Setter Property="Margin" Value="0,10,0,0"/>
+                    <Setter Property="Padding" Value="5"/>
                     <Setter Property="Height" Value="24"/>
                 </Style>
                 <Style TargetType="local:PropertySetBox" x:Key="PropertyInput">
@@ -31,14 +32,15 @@
                     <Setter Property="Height" Value="24"/>
                 </Style>
             </StackPanel.Resources>
-            <TextBlock Text="Note类型" Style="{StaticResource PropertyLable}"/>
-            <TextBox x:Name="noteType" Text="" Style="{StaticResource ReadOnlyPropertyInput}"/>
-            <TextBlock Text="起始时间" Style="{StaticResource PropertyLable}"/>
-            <local:PropertySetBox x:Name="startTime" Style="{StaticResource PropertyInput}" PropertyChangeEvent="startTime_PropertyChangeEvent"/>
-            <TextBlock x:Name="endTimeLable" Text="结束时间" Style="{StaticResource PropertyLable}"/>
-            <local:PropertySetBox x:Name="endTime" Style="{StaticResource PropertyInput}" PropertyChangeEvent="endTime_PropertyChangeEvent"/>
-            <TextBlock x:Name="fakeCatchHeightLable" Text="FakeCatch高度" Style="{StaticResource PropertyLable}"/>
-            <local:PropertySetBox x:Name="fakeCatchHeight" Style="{StaticResource PropertyInput}" PropertyChangeEvent="fakeCatchHeight_PropertyChangeEvent"/>
+            <TextBlock Text="函数名" Style="{StaticResource PropertyLable}"/>
+            <local:PropertySetBox x:Name="functionName" Style="{StaticResource PropertyInput}" PropertyChangeEvent="functionName_PropertyChangeEvent"/>
+            <TextBlock Text="链接文件" Style="{StaticResource PropertyLable}"/>
+            <StackPanel Orientation="Horizontal">
+                <TextBox x:Name="linkFile" Style="{StaticResource ReadOnlyPropertyInput}" Text="未链接"/>
+                <Button Content="..." Width="30" Height="24" Margin="5,0,0,0" Click="Button_Click"/>
+            </StackPanel>
+            <TextBlock Text="脚本" Style="{StaticResource PropertyLable}"/>
+            <TextBox x:Name="script" Style="{StaticResource ReadOnlyPropertyInput}" TextWrapping="Wrap" Text="函数未定义" MouseDoubleClick="script_MouseDoubleClick"/>
         </StackPanel>
     </Grid>
 </UserControl>

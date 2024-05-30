@@ -17,10 +17,26 @@ namespace PMEditor
 
         public bool hasJudged = false;
 
-        public MediaPlayer sound = new MediaPlayer();
-
         public Line parentLine;
 
+        public int GetCount()
+        {
+            if(isFake)
+            {
+                return 0;
+            }
+            if(type != PMEditor.NoteType.Hold)
+            {
+                return 1;
+            }
+            double t = actualHoldTime + 0.25;
+            int count = (int)(t / 0.5);
+            if (t % 0.5 >= 0.25)
+            {
+                count++;
+            }
+            return count;
+        }
 
         public void SetNoteType(NoteType noteType)
         {
@@ -39,23 +55,19 @@ namespace PMEditor
 
         public override int GetHashCode()
         {
-            return actualTime.GetHashCode() + rail.GetHashCode() + noteType.GetHashCode();
+            return actualTime.GetHashCode() + rail.GetHashCode() + noteType.GetHashCode() + IsFake.GetHashCode();
         }
 
         public override string ToString()
         {
-            switch(type)
+            return type switch
             {
-                case PMEditor.NoteType.Tap:
-                    return $"Tap[line={parentLine.notes.IndexOf(this)},rail={rail},time={actualTime}]";
-                case PMEditor.NoteType.Drag:
-                    return $"Drag[line={parentLine.notes.IndexOf(this)},rail={rail},time={actualTime}]";
-                case PMEditor.NoteType.Hold:
-                    return $"Hold[line={parentLine.notes.IndexOf(this)},rail={rail},time={actualTime}]";
-                default:
-                    return "Unknown";
-            }
-       }
+                PMEditor.NoteType.Tap => $"Tap[line={parentLine.notes.IndexOf(this)},rail={rail},time={actualTime}]",
+                PMEditor.NoteType.Catch => $"Catch[line={parentLine.notes.IndexOf(this)},rail={rail},time={actualTime}]",
+                PMEditor.NoteType.Hold => $"Hold[line={parentLine.notes.IndexOf(this)},rail={rail},time={actualTime}]",
+                _ => "Unknown",
+            };
+        }
 
         public bool IsOverlap(Note note)
         {
@@ -83,16 +95,10 @@ namespace PMEditor
                 }
             }
         }
-
-        private void Sound_MediaEnded(object? sender, EventArgs e)
-        {
-            (sender as MediaPlayer).Stop();
-            (sender as MediaPlayer).Position = new TimeSpan(0);
-        }
     }
 
     public enum NoteType
     {
-        Tap, Drag, Hold
+        Tap, Catch, Hold
     }
 }

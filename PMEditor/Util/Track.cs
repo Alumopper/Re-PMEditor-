@@ -6,6 +6,7 @@ using System.IO;
 using System.Management;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Transactions;
 using System.Windows.Media;
 
 namespace PMEditor
@@ -23,7 +24,21 @@ namespace PMEditor
         public string difficulty;   //谱面难度
         public ObservableCollection<Line> lines;    //判定线
 
-        public int notesNumber = 0; //note数量
+        public int Count
+        {
+            get
+            {
+                int count = 0;
+                foreach (var line in lines)
+                {
+                    foreach (var note in line.notes)
+                    {
+                        count += note.GetCount();
+                    }
+                }
+                return count;
+            }
+        }
 
         #region getter and setter
         public string TrackName
@@ -84,7 +99,28 @@ namespace PMEditor
         public static Track? GetTrack(FileInfo trackFile)
         {
             string all = trackFile.OpenText().ReadToEnd();
-            Track? track = JsonSerializer.Deserialize<Track>(all);
+            Track track = JsonSerializer.Deserialize<Track>(all)!;
+            foreach (var line in track.lines)
+            {
+                foreach (var note in line.notes)
+                {
+                    note.parentLine = line;
+                }
+                foreach (var item in line.fakeCatch)
+                {
+                    item.parentLine = line;
+                }
+                for (int i = 0; i < line.eventLists.Count; i++)
+                {
+                    line.eventLists[i].parentLine = line;
+                    line.eventLists[i].events.ForEach(e =>
+                    {
+                        e.parentList = line.eventLists[i];
+                        line.SetType(e.type, i);
+                    });
+                    line.eventLists[i].GroupEvent();
+                }
+            }
             return track;
         }
 
@@ -99,7 +135,9 @@ namespace PMEditor
         public string id;           //判定线的名字
         public double y;            //判定线的y坐标
         public List<Note> notes;    //note
+        public List<FakeCatch> fakeCatch;
         public List<EventList> eventLists;  //事件
+        public List<Function> functions;
 
         #region getter and setter
         public double Y
@@ -120,12 +158,23 @@ namespace PMEditor
             set { eventLists = value; }
         }
 
+        public List<FakeCatch> FakeCatch
+        {
+            get { return fakeCatch; }
+            set { fakeCatch = value; }
+        }
+
         public string Id
         {
             get { return id; }
             set { id = value; }
         }
 
+        public List<Function> Functions
+        {
+            get { return functions; }
+            set { functions = value; }
+        }
         
         #endregion
 
@@ -135,6 +184,8 @@ namespace PMEditor
             this.id = id;
             this.notes = new();
             this.eventLists = new();
+            this.fakeCatch = new();
+            this.functions = new();
         }
 
         public Line() : this(0) { }
@@ -204,7 +255,6 @@ namespace PMEditor
             this.isFake = isFake;
             this.actualTime = actualTime;
             this.actualHoldTime = actualHoldTime;
-            this.sound.MediaEnded += Sound_MediaEnded;
 
             this.type = (NoteType)Enum.Parse(typeof(NoteType), noteType.ToString());
 
@@ -212,21 +262,18 @@ namespace PMEditor
 
             if (noteType == (int)PMEditor.NoteType.Tap)
             {
-                sound.Open(new Uri("./assets/sounds/tap.wav", UriKind.Relative));
                 rectangle.Fill = isCurrentLineNote ? new SolidColorBrush(EditorColors.tapColor) : new SolidColorBrush(EditorColors.tapColorButNotOnThisLine);
                 rectangle.HighLightBorderBrush = new SolidColorBrush(EditorColors.tapHighlightColor);
             }
             else if (noteType == (int)PMEditor.NoteType.Hold)
             {
-                sound.Open(new Uri("./assets/sounds/tap.wav", UriKind.Relative));
                 rectangle.Fill = isCurrentLineNote ? new SolidColorBrush(EditorColors.holdColor) : new SolidColorBrush(EditorColors.holdHighlightColor);
                 rectangle.HighLightBorderBrush = new SolidColorBrush(EditorColors.holdHighlightColor);
             }
-            else if (noteType == (int)PMEditor.NoteType.Drag)
+            else if (noteType == (int)PMEditor.NoteType.Catch)
             {
-                sound.Open(new Uri("./assets/sounds/drag.wav", UriKind.Relative));
-                rectangle.Fill = isCurrentLineNote ? new SolidColorBrush(EditorColors.dragColor) : new SolidColorBrush(EditorColors.dragColorButNotOnThisLine);
-                rectangle.HighLightBorderBrush = new SolidColorBrush (EditorColors.dragHighlightColor);
+                rectangle.Fill = isCurrentLineNote ? new SolidColorBrush(EditorColors.catchColor) : new SolidColorBrush(EditorColors.catchColorButNotOnThisLine);
+                rectangle.HighLightBorderBrush = new SolidColorBrush (EditorColors.catchHighlightColor);
             }
         }
     }
@@ -334,6 +381,33 @@ namespace PMEditor
                 HighLightBorderBrush = new SolidColorBrush(EditorColors.GetEventHighlightColor(type))
             };
             this.properties = properties;
+        }
+    }
+
+    public partial class Function
+    {
+        public double time;    //开始时间
+        public double rail;     //轨道
+        public string functionName; //函数名
+
+        #region getter and setter
+        public double Time { get => time; set => time = value; }
+        public double Rail { get => rail; set => rail = value; }
+        public string FunctionName { get => functionName; set => functionName = value; }
+        #endregion
+
+        [JsonConstructor]
+        public Function(double time, double rail, string functionName)
+        {
+            this.time = time;
+            this.rail = rail;
+            this.functionName = functionName;
+
+            rectangle = new(this)
+            {
+                Fill = new SolidColorBrush(EditorColors.functionColor),
+                HighLightBorderBrush = new SolidColorBrush(EditorColors.functionHighlightColor)
+            };
         }
     }
 }

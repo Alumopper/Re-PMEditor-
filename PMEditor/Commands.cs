@@ -13,7 +13,7 @@ namespace PMEditor
             });
 
         public static readonly RoutedUICommand ChangeNoteType = new(
-            "Drag/Note", "Change Note", typeof(Commands), new InputGestureCollection()
+            "Catch/Tap", "Change Note", typeof(Commands), new InputGestureCollection()
             {
                 new KeyGesture(Key.D,ModifierKeys.Control)
             });
@@ -69,7 +69,7 @@ namespace PMEditor
         private void CommandBinding_Executed_1(object sender, ExecutedRoutedEventArgs e)
         {
             puttingTap = !puttingTap;
-            (pages[0] as TrackEditorPage).FlushNotePreview();
+            (pages[0] as TrackEditorPage)!.FlushNotePreview();
         }
 
         //撤销

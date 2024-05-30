@@ -11,7 +11,7 @@ namespace PMEditor.Util
 
         public double Tick { get; set; } = 20;
 
-        public double MapLength { get; set; } = 15;
+        public double MapLength { get; set; } = 32;
 
         public bool WarnEventTypeChange { get; set; } = true;
 

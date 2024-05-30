@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using PMEditor.Util;
+using System.Management.Automation;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace PMEditor.Controls
@@ -15,7 +17,16 @@ namespace PMEditor.Controls
             InitializeComponent();
             this.note = note;
             noteType.Text = note.type.ToString();
-            startTime.Text = note.actualTime.ToString();
+            startTime.Value = note.actualTime;
+            if(note is FakeCatch fakeCatch)
+            {
+                fakeCatchHeight.Value = fakeCatch.Height;
+            }
+            else
+            {
+                fakeCatchHeightLable.Visibility = Visibility.Collapsed;
+                fakeCatchHeight.Visibility = Visibility.Collapsed;
+            }
             if (note.type != NoteType.Hold)
             {
                 endTime.Visibility = Visibility.Collapsed;
@@ -23,41 +34,34 @@ namespace PMEditor.Controls
             }
             else
             {
-                endTime.Text = (note.actualTime + note.actualHoldTime).ToString();
+                endTime.Value = note.actualTime + note.actualHoldTime;
             }
         }
 
-        private void eventType_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void startTime_PropertyChangeEvent(object sender, RoutedEventArgs e)
         {
-
+            var value = (double)((PropertyChangeEventArgs)e).PropertyValue;
+            note.actualTime = value;
+            (EditorWindow.Instance.page.Content as TrackEditorPage)?.UpdateNote();
         }
 
-        private void startTime_LostFocus(object sender, RoutedEventArgs e)
+        private void endTime_PropertyChangeEvent(object sender, RoutedEventArgs e)
         {
-            if (startTime.IsReadOnly) return;
-            var qwq = double.TryParse(startTime.Text, out double value);
-            if (qwq)
-            {
-                note.actualTime = value;
-            }
-            else
-            {
-                startTime.Text = note.actualTime.ToString();
-            }
+            var value = (double)((PropertyChangeEventArgs)e).PropertyValue;
+            note.actualHoldTime = value - note.actualTime;
+            (EditorWindow.Instance.page.Content as TrackEditorPage)?.UpdateNote();
         }
 
-        private void endTime_LostFocus(object sender, RoutedEventArgs e)
+        private void fakeCatchHeight_PropertyChangeEvent(object sender, RoutedEventArgs e)
         {
-            if (endTime.IsReadOnly) return;
-            var qwq = double.TryParse(endTime.Text, out double value);
-            if (qwq)
-            {
-                note.actualHoldTime = value - note.actualTime;
-            }
-            else
-            {
-                endTime.Text = (note.actualTime + note.actualHoldTime).ToString();
-            }
+            var value = (double)((PropertyChangeEventArgs)e).PropertyValue;
+            (note as FakeCatch)!.Height = value;
+            (EditorWindow.Instance.page.Content as TrackEditorPage)?.UpdateNote();
+        }
+
+        private void noteType_PropertyChangeEvent(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

@@ -19,12 +19,9 @@
                     <Setter Property="FontSize" Value="14"/>
                     <Setter Property="Foreground" Value="White"/>
                 </Style>
-                <Style TargetType="TextBox" x:Key="PropertyInput">
-                    <Setter Property="Background" Value="Transparent"/>
-                    <Setter Property="Foreground" Value="White"/>
+                <Style TargetType="local:PropertySetBox" x:Key="PropertyInput">
                     <Setter Property="Margin" Value="0,10,0,0"/>
                     <Setter Property="Height" Value="24"/>
-                    <Setter Property="TextAlignment" Value="Center"/>
                 </Style>
             </StackPanel.Resources>
             <TextBlock Text="事件类型" Style="{StaticResource PropertyLable}"/>
@@ -33,15 +30,15 @@
                 <TextBlock>Y</TextBlock>
             </ComboBox>
             <TextBlock Text="起始时间" Style="{StaticResource PropertyLable}"/>
-            <TextBox x:Name="startTime" Style="{StaticResource PropertyInput}" KeyDown="StartTime_KeyDown"/>
+            <local:PropertySetBox x:Name="startTime" Style="{StaticResource PropertyInput}" PropertyChangeEvent="startTime_PropertyChangeEvent"/>
             <TextBlock Text="结束时间" Style="{StaticResource PropertyLable}"/>
-            <TextBox x:Name="endTime" Style="{StaticResource PropertyInput}" KeyDown="endTime_KeyDown"/>
+            <local:PropertySetBox x:Name="endTime" Style="{StaticResource PropertyInput}" PropertyChangeEvent="endTime_PropertyChangeEvent"/>
             <TextBlock Text="缓动函数" Style="{StaticResource PropertyLable}"/>
             <ComboBox x:Name="functions" SelectionChanged="Functions_SelectionChanged"/>
             <TextBlock Text="起始值" Style="{StaticResource PropertyLable}"/>
-            <TextBox x:Name="startValue" Style="{StaticResource PropertyInput}" KeyDown="startValue_KeyDown"/>
+            <local:PropertySetBox x:Name="startValue" Style="{StaticResource PropertyInput}" PropertyChangeEvent="startValue_PropertyChangeEvent"/>
             <TextBlock Text="结束值" Style="{StaticResource PropertyLable}"/>
-            <TextBox x:Name="endValue" Style="{StaticResource PropertyInput}" KeyDown="endValue_KeyDown"/>
+            <local:PropertySetBox x:Name="endValue" Style="{StaticResource PropertyInput}" PropertyChangeEvent="endValue_PropertyChangeEvent"/>
         </StackPanel>
     </Grid>
 </UserControl>

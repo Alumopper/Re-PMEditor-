@@ -89,7 +89,10 @@
             <!--信息-->
             <Canvas Grid.Column="1" Grid.Row="0" Margin="9,0,5,0">
                 <Label Name="beatDis" Content="beat 0:0/0" Foreground="White" FontSize="14" FontFamily="Consolas" Canvas.Left="0" Canvas.Top="12"/>
-                <Label x:Name="timeDis" Content="0.0/0.0s" Width="200" Foreground="White" Height="25" FontSize="14" FontFamily="Consolas" Canvas.Left="0" Canvas.Bottom="-5"/>
+                <WrapPanel Canvas.Left="0" Canvas.Bottom="-5">
+                    <Label x:Name="timeDis" Content="0.0/0.0s" Width="150" Foreground="White" Height="25" FontSize="14" FontFamily="Consolas"/>
+                    <Label x:Name="heightDis" Content="Fake Catch高度: 0.0" Foreground="White" FontSize="14" FontFamily="Consolas"/>
+                </WrapPanel>
                 <WrapPanel Canvas.Right="0" Canvas.Bottom="0" Margin="0,0,5,0">
                     <Label Content="倍速: " Foreground="White"/>
                     <ComboBox SelectedIndex="0" Name="speedChooseBox" Width="60" SelectionChanged="ComboBox_SelectionChanged" Foreground="Black" MouseEnter="speedChooseBox_MouseEnter" MouseLeave="speedChooseBox_MouseLeave"/>
@@ -97,7 +100,7 @@
             </Canvas>
             <!--谱面编辑-->
             <Border BorderBrush="#FF61207B" Grid.Row="1" Grid.Column="1" BorderThickness="1,1,1,1" Margin="9,5,5,10">
-                <Grid MouseWheel="panel_MouseWheel" Background="Black">
+                <Grid MouseWheel="notePanel_MouseWheel" Background="Black">
                     <!--判定线和辅助格-->
                     <Canvas Name="lineDisplay">
                         <Grid Width="{Binding ElementName=notePanel, Path=ActualWidth}" Height="{Binding ElementName=notePanel, Path=ActualHeight}">
@@ -164,6 +167,16 @@
                             Width="{Binding ActualWidth, ElementName=rectangle, Mode=OneWay}"
                             Height="10"/>
                     </Canvas>
+                    <!--函数放置区域-->
+                    <Canvas Name="functionPanel" Background="Transparent" ClipToBounds="True" Visibility="Hidden" MouseMove="functionPanel_MouseMove"  MouseLeave="functionPanel_MouseLeave"  MouseLeftButtonUp="functionPanel_MouseLeftButtonUp" SizeChanged="functionPanel_SizeChanged">
+                        <Rectangle Name="functionPreview"
+                               Width="{Binding ActualWidth, ElementName=rectangle, Mode=OneWay}"
+                               Fill="#807771DB" Visibility="Collapsed"
+                               Height="10"/>
+                        <Rectangle x:Name="functionMovePreview"
+                            Width="{Binding ActualWidth, ElementName=rectangle, Mode=OneWay}"
+                            Height="10"/>
+                    </Canvas>
                     <!--谱面预览区（有事件）-->
                     <Canvas x:Name="trackPreviewWithEvent" Background="Transparent" ClipToBounds="True" Visibility="Hidden"
                             SizeChanged="trackPreviewWithEvent_SizeChanged">
@@ -176,13 +189,15 @@
                         MouseWheel="trackPreview_MouseWheel" PreviewMouseLeftButtonDown="trackPreview_PreviewMouseLeftButtonDown" MouseMove="trackPreview_MouseMove" PreviewMouseLeftButtonUp="trackPreview_MouseUp"  MouseLeave="trackPreview_MouseLeave"/>
             </Border>
             <!--切换编辑模式-->
-            <t:RotatingButton x:Name="NoteOrEvent" Height="16" Width="50"
+            <t:RotatingButton x:Name="Note_Event_Catch" Height="16" Width="50"
                            Grid.Row="2" Grid.Column="1"
                            Margin="0,0,10,0"
-                           ContentChanged="NoteOrEvent_ContentChanged"
+                           ContentChanged="Note_Event_Catch_Function_ContentChanged"
                            HorizontalAlignment="Right" VerticalAlignment="Top">
                 <TextBlock Foreground="White" FontSize="12" TextAlignment="Center" Text="Note" t:RotatingButton.ContextBackgroundProperty="#FF8B2FFF"/>
                 <TextBlock Foreground="White" FontSize="12" TextAlignment="Center" Text="事件" t:RotatingButton.ContextBackgroundProperty="#FF8AAFFF"/>
+                <TextBlock Foreground="White" FontSize="12" TextAlignment="Center" Text="假Catch" t:RotatingButton.ContextBackgroundProperty="#FFFF80A2"/>
+                <TextBlock Foreground="White" FontSize="12" TextAlignment="Center" Text="函数" t:RotatingButton.ContextBackgroundProperty="#FFCB8FF2"/>
             </t:RotatingButton>
             <!--切换预览模式-->
             <t:RotatingButton x:Name="EditOrPreview" Height="16" Width="50" 

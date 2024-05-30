@@ -26,6 +26,10 @@ namespace PMEditor
         public MediaPlayer player;
         public DispatcherTimer timer;
 
+        public SoundEventManager tapSoundManager;
+        public SoundEventManager catchSoundManager;
+
+
         public bool isPlaying = false;
         public bool puttingTap = true;
 
@@ -63,6 +67,10 @@ namespace PMEditor
             pages = new List<Page>() { new TrackEditorPage(), new CodeViewer(), new TODOPage(), new SettingPage()};
             SetCurrPage(0);
             UpdateStatusBar();
+            SoundPool tapSounds = new("./assets/sounds/tap.wav");
+            SoundPool catchSounds = new("./assets/sounds/drag.wav");
+            tapSoundManager = new SoundEventManager(tapSounds);
+            catchSoundManager = new SoundEventManager(catchSounds);
         }
 
         private void editorButton_Click(object sender, RoutedEventArgs e)
@@ -91,7 +99,7 @@ namespace PMEditor
             //设置页面
             page.Content = pages[index];
             //刷新json
-            (pages[1] as CodeViewer).jsonViewer.Text = track.ToJsonString();
+            (pages[1] as CodeViewer)!.jsonViewer.Text = track.ToJsonString();
             //设置按钮状态
             UIElementCollection uIElements = buttonPanel.Children;
             for (int i = 0; i < uIElements.Count; i++)
@@ -165,7 +173,7 @@ namespace PMEditor
 
         public void UpdateStatusBar()
         {
-            allNotesCount.Text = "谱面物量: " + track.notesNumber;
+            allNotesCount.Text = "谱面物量: " + track.Count;
         }
 
         //从谱面文件info.txt打开
@@ -224,7 +232,7 @@ namespace PMEditor
             CreateTrack createTrack = new();
             if (createTrack.ShowDialog() == true)
             {
-                EditorWindow editorWindow = new(createTrack.TrackInfo, Track.GetTrack(new FileInfo("./tracks/" + createTrack.TrackInfo.TrackName + "/track.json")));
+                EditorWindow editorWindow = new(createTrack.TrackInfo, Track.GetTrack(new FileInfo("./tracks/" + createTrack.TrackInfo.TrackName + "/track.json"))!);
                 EditorWindow.Instance = editorWindow;
                 editorWindow.Show();
                 this.Close();

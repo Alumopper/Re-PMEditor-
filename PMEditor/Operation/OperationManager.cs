@@ -58,19 +58,6 @@ namespace PMEditor.Operation
 
         public static void AddOperation(BaseOperation op)
         {
-            int count = 0;
-            //更新物量
-            foreach (var line in EditorWindow.Instance.track.lines)
-            {
-                line.notes.ForEach(note =>
-                {
-                    if (!note.isFake)
-                    {
-                        count++;
-                    }
-                });
-            }
-            EditorWindow.Instance.track.notesNumber = count;
             EditorWindow.Instance.UpdateStatusBar();
             //记录截取
             if (index != ops.Count)

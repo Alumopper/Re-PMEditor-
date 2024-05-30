@@ -27,6 +27,10 @@
                                 <ContextMenu>
                                     <MenuItem Header="打开" Click="Button_Click_1"/>
                                     <MenuItem Header="删除" Click="deleteTrack_Click"/>
+                                    <MenuItem Header="导出为...">
+                                        <MenuItem Header="SNBT" Foreground="#FF000000" Click="MenuItem_Click"/>
+                                        <MenuItem Header="MCF" Foreground="#FF000000" Click="MenuItem_Click_1"/>
+                                    </MenuItem>
                                 </ContextMenu>
                             </Grid.ContextMenu>
                         </Grid>

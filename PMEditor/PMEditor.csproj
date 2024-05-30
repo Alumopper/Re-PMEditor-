@@ -7,13 +7,20 @@
     <UseWPF>true</UseWPF>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Platforms>AnyCPU;x64</Platforms>
+    <SelfContained>false</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SatelliteResourceLanguages>zh-CN</SatelliteResourceLanguages>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="tracks\**" />
+    <Compile Remove="Util\新文件夹\**" />
     <EmbeddedResource Remove="tracks\**" />
+    <EmbeddedResource Remove="Util\新文件夹\**" />
     <None Remove="tracks\**" />
+    <None Remove="Util\新文件夹\**" />
     <Page Remove="tracks\**" />
+    <Page Remove="Util\新文件夹\**" />
   </ItemGroup>
 
   <ItemGroup>

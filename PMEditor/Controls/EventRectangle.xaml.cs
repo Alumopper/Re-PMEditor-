@@ -84,9 +84,16 @@ namespace PMEditor
             double width = eventRectangles[0].ActualWidth;
             foreach(var er in eventRectangles)
             {
+                if(er.functionPath.Data is not PathGeometry)
+                {
+                    PathGeometry pg = new();
+                    pg.Figures.Add(new());
+                    er.functionPath.Data = pg;
+                }
+                (er.functionPath.Data as PathGeometry)!.Figures[0].Segments.Clear();
                 Event e = er.@event;
-                PathGeometry pathGeometry = new ();
-                PathFigure pathFigure = new ();
+                PathGeometry pathGeometry = (er.functionPath.Data as PathGeometry)!;
+                PathFigure pathFigure = pathGeometry.Figures[0];
                 double height = er.EventHeight;
                 for(double i = 0; i <= height; i++)
                 {
@@ -98,8 +105,6 @@ namespace PMEditor
                     }
                     pathFigure.Segments.Add(new LineSegment(point, true));
                 }
-                pathGeometry.Figures.Add(pathFigure);
-                er.functionPath.Data = pathGeometry;
             }
         }
 

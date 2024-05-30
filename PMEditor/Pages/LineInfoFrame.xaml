@@ -50,8 +50,8 @@
                         <ColumnDefinition Width="382*"/>
                         <ColumnDefinition Width="618*"/>
                     </Grid.ColumnDefinitions>
-                    <Label Content="Drag物量" Foreground="White"/>
-                    <TextBox x:Name="dragCount" VerticalContentAlignment="Center" Background="Transparent" Foreground="White"  Grid.Column="1" IsReadOnly="True"/>
+                    <Label Content="Catch物量" Foreground="White"/>
+                    <TextBox x:Name="catchCount" VerticalContentAlignment="Center" Background="Transparent" Foreground="White"  Grid.Column="1" IsReadOnly="True"/>
                 </Grid>
             </StackPanel>
         </StackPanel>

@@ -1,4 +1,6 @@
-﻿namespace PMEditor.Operation
+﻿using PMEditor.Util;
+
+namespace PMEditor.Operation
 {
     public class RemoveNoteOperation : BaseOperation
     {
@@ -14,14 +16,28 @@
 
         public override void Undo()
         {
-            line.notes.Add(note);
+            if(note is FakeCatch f)
+            {
+                line.fakeCatch.Add(f);
+            }
+            else
+            {
+                line.notes.Add(note);
+            }
             TrackEditorPage.Instance.notePanel.Children.Add(note.rectangle);
             TrackEditorPage.Instance.UpdateNote();
         }
 
         public override void Redo()
         {
-            line.notes.Remove(note);
+            if(note is FakeCatch f)
+            {
+                line.FakeCatch.Remove(f);
+            }
+            else
+            {
+                line.notes.Remove(note);
+            }
             TrackEditorPage.Instance.notePanel.Children.Remove(note.rectangle);
             note.rectangle.Visibility = System.Windows.Visibility.Hidden;
             TrackEditorPage.Instance.UpdateNote();

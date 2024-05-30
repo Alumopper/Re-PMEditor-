@@ -1,4 +1,5 @@
-﻿using PMEditor.Util;
+﻿using Newtonsoft.Json.Linq;
+using PMEditor.Util;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -18,13 +19,13 @@ namespace PMEditor.Controls
         {
             InitializeComponent();
             this.@event = e;
-            startTime.Text = e.StartTime.ToString();
-            endTime.Text = e.EndTime.ToString();
+            startTime.Value = e.StartTime;
+            endTime.Value = e.EndTime;
             functions.ItemsSource = EaseFunctions.functions.Keys;
             functions.SelectedItem = e.easeFunctionID;
             eventType.SelectedIndex = e.TypeId;
-            startValue.Text = e.StartValue.ToString();
-            endValue.Text = e.EndValue.ToString();
+            startValue.Value = e.StartValue;
+            endValue.Value = e.EndValue;
         }
 
         //事件类型修改
@@ -56,68 +57,32 @@ namespace PMEditor.Controls
             @event.easeFunction = EaseFunctions.functions[@event.easeFunctionID];
         }
 
-        private void StartTime_KeyDown(object sender, KeyEventArgs e)
+        private void startTime_PropertyChangeEvent(object sender, RoutedEventArgs e)
         {
-            if(e.Key != Key.Enter) return;
-            if (startTime.IsReadOnly) return;
-            var qwq = double.TryParse(startTime.Text, out double value);
-            if (qwq)
-            {
-                @event.StartTime = value;
-            }
-            else
-            {
-                startTime.Text = @event.StartTime.ToString();
-            }
-            Keyboard.ClearFocus();
+            var value = (double)((PropertyChangeEventArgs)e).PropertyValue;
+            @event.StartTime = value;
+            (EditorWindow.Instance.page.Content as TrackEditorPage)?.UpdateEvent();
         }
 
-        private void endTime_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        private void endTime_PropertyChangeEvent(object sender, RoutedEventArgs e)
         {
-            if (e.Key != Key.Enter) return;
-            if (endTime.IsReadOnly) return;
-            var qwq = double.TryParse(endTime.Text, out double value);
-            if (qwq)
-            {
-                @event.EndTime = value;
-            }
-            else
-            {
-                endTime.Text = @event.EndTime.ToString();
-            }
-            Keyboard.ClearFocus();
+            var value = (double)((PropertyChangeEventArgs)e).PropertyValue;
+            @event.EndTime = value;
+            (EditorWindow.Instance.page.Content as TrackEditorPage)?.UpdateEvent();
         }
 
-        private void startValue_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        private void startValue_PropertyChangeEvent(object sender, RoutedEventArgs e)
         {
-            if (e.Key != Key.Enter) return;
-            if (startValue.IsReadOnly) return;
-            var qwq = double.TryParse(startValue.Text, out double value);
-            if (qwq)
-            {
-                @event.startValue = value;
-            }
-            else
-            {
-                startValue.Text = @event.startValue.ToString();
-            }
-            Keyboard.ClearFocus();
+            var value = (double)((PropertyChangeEventArgs)e).PropertyValue;
+            @event.startValue = value;
+            (EditorWindow.Instance.page.Content as TrackEditorPage)?.UpdateEvent();
         }
 
-        private void endValue_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        private void endValue_PropertyChangeEvent(object sender, RoutedEventArgs e)
         {
-            if (e.Key != Key.Enter) return;
-            if (endValue.IsReadOnly) return;
-            var qwq = double.TryParse(endValue.Text, out double value);
-            if (qwq)
-            {
-                @event.endValue = value;
-            }
-            else
-            {
-                endValue.Text = @event.endValue.ToString();
-            }
-            Keyboard.ClearFocus();
+            var value = (double)((PropertyChangeEventArgs)e).PropertyValue;
+            @event.endValue = value;
+            (EditorWindow.Instance.page.Content as TrackEditorPage)?.UpdateEvent();
         }
     }
 }

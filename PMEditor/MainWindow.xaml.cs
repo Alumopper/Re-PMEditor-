@@ -1,7 +1,9 @@
 ﻿using PMEditor.Util;
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Threading;
 
@@ -124,6 +126,34 @@ namespace PMEditor
                 i = 0;
                 Button_Click_1(null, null);
             }
+        }
+
+        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void MenuItem_Click_1(object sender, RoutedEventArgs e)
+        {
+            //导出为mcfunction
+            if (trackList.SelectedItem is TrackInfo curr)
+            {
+                Track? track = Track.GetTrack(new FileInfo("./tracks/" + curr.TrackName + "/track.json"));
+                if (track == null) return;
+                FolderBrowserDialog saveFileDialog = new();
+                if (saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    Task.Run(() => NBTTrack.FromTrack(track).ToFrameFunctions(new(saveFileDialog.SelectedPath))).ContinueWith((t) =>
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            var re = System.Windows.MessageBox.Show("成功导出帧序列到 " + saveFileDialog.SelectedPath, "成功", MessageBoxButton.OK, MessageBoxImage.Information);
+                        });
+                    });
+
+                }
+            }
+
         }
     }
 }

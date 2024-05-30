@@ -39,6 +39,14 @@ namespace PMEditor.Pages
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
+            EditorWindow.Instance.track.TrackName = MapName.Text;
+            EditorWindow.Instance.track.trackAuthor = MapAuthor.Text;
+            EditorWindow.Instance.track.musicAuthor = MusicAuthor.Text;
+            EditorWindow.Instance.track.bpm = double.Parse(BPM.Text);
+            EditorWindow.Instance.track.difficulty = MapLevel.Text;
+            Settings.currSetting.MapLength = double.Parse(MapLength.Text);
+            Settings.currSetting.Tick = double.Parse(TickValue.Text);
+            Settings.currSetting.WarnEventTypeChange = WarnMultiEventType.IsChecked == true;
             SettingManager.Write(Settings.currSetting);
         }
     }

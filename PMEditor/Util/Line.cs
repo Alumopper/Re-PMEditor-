@@ -9,6 +9,10 @@ namespace PMEditor
     {
         public bool IsNoteOverLap(Note note)
         {
+            if(note is FakeCatch f)
+            {
+                return fakeCatch.Contains(f);
+            }
             if (notes.Contains(note))
             {
                 return true;
@@ -50,12 +54,36 @@ namespace PMEditor
             return false;
         }
 
+        public bool ClickOnFakeCatch(double time, int rail)
+        {
+            foreach (var item in fakeCatch)
+            {
+                if (item.rail == rail && item.actualTime == time)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public bool ClickOnEvent(double time, int rail)
         {
             if (eventLists.Count <= rail) return false;
             foreach(var item in eventLists[rail].events)
             {
                 if(item.startTime < time && time < item.endTime)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool ClickOnFunction(double time, int rail)
+        {
+            foreach (var item in functions)
+            {
+                if (item.rail == rail && item.time == time)
                 {
                     return true;
                 }
@@ -104,20 +132,30 @@ namespace PMEditor
         /// <returns></returns>
         public double GetSpeed(double time)
         {
-            double speed = 10;
+            double speed = Event.GetDefaultValue(EventType.Speed);
             foreach (var list in eventLists)
             {
                 if(list.type != EventType.Speed) continue;
                 double value = 0;
+                bool isDefaultSpeed = true;
                 foreach(var e in list.Events)
                 {
-                    if (e.endTime <= time) value = e.endValue;
+                    if (e.endTime <= time)
+                    {
+                        isDefaultSpeed = false;
+                        value = e.endValue;
+                    }
                     if (e.startTime <= time && time <= e.endTime)
                     {
+                        isDefaultSpeed = false;
                         value = EaseFunctions.Interpolate(e.startValue, e.endValue, (time - e.startTime)/(e.endTime - e.startTime), e.easeFunction);
                         break;
                     }
-                    if(e.endTime > time) break;
+                    if (e.endTime > time) continue;
+                }
+                if (isDefaultSpeed)
+                {
+                    value = list.IsMainEvent() ? Event.GetDefaultValue(EventType.Speed) : 0;
                 }
                 if (list.IsMainEvent())
                 {
