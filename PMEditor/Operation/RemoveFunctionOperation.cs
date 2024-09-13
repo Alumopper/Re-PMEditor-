@@ -1,6 +1,4 @@
-﻿using PMEditor.Util;
-
-namespace PMEditor.Operation
+﻿namespace PMEditor.Operation
 {
     public class RemoveFunctionOperation : BaseOperation
     {

@@ -65,7 +65,18 @@ namespace PMEditor
         //左键选中此note
         private void Rectangle_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            TrackEditorPage.Instance.infoFrame.Content = new NotePropertyPanel(note);
+            if (note is FreeNote freeNote)
+            {
+                TrackEditorPage.Instance.infoFrame.Content = new FreeNotePropertyPanel(freeNote);
+            }
+            else if(note is FreeFakeCatch freeFakeCatch)
+            {
+                TrackEditorPage.Instance.infoFrame.Content = new FreeFakeCatch(freeFakeCatch);
+            }
+            else
+            {
+                TrackEditorPage.Instance.infoFrame.Content = new NotePropertyPanel(note);
+            }
             TrackEditorPage.Instance.UpdateSelectedNote(note); 
             if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
             {

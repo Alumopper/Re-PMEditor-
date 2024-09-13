@@ -3,16 +3,11 @@ using PMEditor.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Ribbon;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using System.Windows.Threading;
 
 namespace PMEditor
 {
@@ -81,9 +76,19 @@ namespace PMEditor
             get => lineIndex;
         }
 
+        bool selectingFreeLine = false;
         Line CurrLine
         {
-            get => window.track.Lines[lineIndex];
+            get {
+                if (selectingFreeLine)
+                {
+                    return window.track.FreeLine;
+                }
+                else
+                {
+                    return window.track.Lines[lineIndex];
+                }
+            }
         }
 
         bool noteChange = false;
@@ -252,6 +257,7 @@ namespace PMEditor
             noteChange = true;
             eventChange = true;
             fakeCatchChange = true;
+            functionChange = true;
             window.playerTime = currTime;
             Update();
         }
@@ -598,7 +604,7 @@ namespace PMEditor
             double maxTime = minTime + notePanel.ActualHeight / pixelPreBeat * secondsPreBeat;
             for (int i = 0; i < window.track.lines.Count; i++)
             {
-                foreach (var note in CurrLine.notes)
+                foreach (var note in window.track.lines[i].notes)
                 {
                     if (note.type == NoteType.Hold)
                     {
@@ -625,8 +631,8 @@ namespace PMEditor
                             if (note.actualTime < maxTime)
                             {
                                 note.rectangle.Visibility = Visibility.Visible;
-                                double qwq = Math.Max(minTime, note.actualTime);
-                                double pwp = Math.Min(note.actualTime + note.actualHoldTime, maxTime);
+                                double qwq = Math.Max(minTime, note.actualTime);    //末端
+                                double pwp = Math.Min(note.actualTime + note.actualHoldTime, maxTime);  //上端
                                 note.rectangle.Height = GetYFromTime(pwp) - GetYFromTime(qwq);
                                 Canvas.SetBottom(note.rectangle, GetYFromTime(qwq));
                                 Canvas.SetLeft(note.rectangle, note.rail * notePanel.ActualWidth / 9);
@@ -1023,6 +1029,10 @@ namespace PMEditor
                     actualTime: startTime, 
                     catchHeight
                     );
+                if (CurrLine == window.track.FreeLine)
+                {
+                    willPutNote = new FreeFakeCatch(willPutNote as FakeCatch);
+                }
                 willPutNote.rectangle.Height = 10;
                 willPutNote.rectangle.Width = notePreview.Width;
             }
@@ -1037,6 +1047,10 @@ namespace PMEditor
                     actualTime: startTime,
                     actualHoldTime: endTime - startTime,
                     isCurrentLineNote: true);
+                if (CurrLine == window.track.FreeLine)
+                {
+                    willPutNote = new FreeNote(willPutNote);
+                }
                 willPutNote.rectangle.Height = endPos.Y - startPos.Y;
                 willPutNote.rectangle.Width = notePreview.Width;
             }
@@ -1049,6 +1063,10 @@ namespace PMEditor
                     isFake: false,
                     actualTime: startTime,
                     isCurrentLineNote: true);
+                if (CurrLine == window.track.FreeLine)
+                {
+                    willPutNote = new FreeNote(willPutNote);
+                }
                 willPutNote.rectangle.Height = 10;
                 willPutNote.rectangle.Width = notePreview.Width;
             }
@@ -1138,7 +1156,7 @@ namespace PMEditor
             speedChooseBox.Focusable = false;
         }
 
-        bool isDeleting = false;
+        private bool isDeleting = false;
         //切换判定线
         private void lineListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -1165,6 +1183,7 @@ namespace PMEditor
                     }
                 }
                 lineIndex = lineListView.SelectedIndex;
+                selectingFreeLine = false;
                 foreach (var note in CurrLine.notes)
                 {
                     if (note.type == NoteType.Tap)
@@ -1191,6 +1210,7 @@ namespace PMEditor
                     });
                 }
                 lineIndex = lineListView.SelectedIndex;
+                selectingFreeLine = false;
                 foreach (var el in CurrLine.eventLists)
                 {
                     el.events.ForEach(e =>
@@ -1207,6 +1227,7 @@ namespace PMEditor
                     e.rectangle.Visibility = Visibility.Hidden;
                 });
                 lineIndex = lineListView.SelectedIndex;
+                selectingFreeLine = false;
                 CurrLine.fakeCatch.ForEach(e =>
                 {
                     e.rectangle.Visibility = Visibility.Visible;
@@ -1258,15 +1279,6 @@ namespace PMEditor
             window.track.lines.Add(qwq);
             lineIndex = window.track.lines.Count - 1;
             lineListView.SelectedIndex = lineIndex;
-            /*
-            ListViewItem item = lineListView.ItemContainerGenerator.ContainerFromItem(qwq) as ListViewItem; 
-            Grid box = item.ContentTemplate.FindName("linebox", item) as Grid;
-            box.Children[0].Visibility = Visibility.Collapsed;
-            (box.Children[1] as TextBox).Text = CurrLine.id;
-            (box.Children[1] as TextBox).SelectAll();
-            box.Children[1].Visibility = Visibility.Visible;
-            box.Children[1].Focus();
-            */
         }
 
         //判定线重命名
@@ -1316,7 +1328,7 @@ namespace PMEditor
         private void eventPanel_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             //获取鼠标位置
-            var endPos = GetAlignedPoint(e.GetPosition(notePanel));
+            var endPos = GetAlignedPoint(e.GetPosition(eventPanel));
             //拖动事件
             if (isDraging)
             {
@@ -1536,7 +1548,7 @@ namespace PMEditor
                         }
                     }
                 }
-                notePreview.Visibility = Visibility.Collapsed;
+                functionPreview.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -1549,6 +1561,20 @@ namespace PMEditor
         {
             //获取鼠标位置
             var pos = GetAlignedPoint(e.GetPosition(functionPanel));
+            //拖动function
+            if (isDraging)
+            {
+                foreach (var @event in selectedEvents)
+                {
+                    double y = Canvas.GetBottom(@event.rectangle);
+                    double i = @event.startTime;
+                    @event.startTime = GetTimeFromY(y);
+                    @event.endTime += @event.startTime - i;
+                }
+                UpdateSelectedEvent(selectedEvents);
+                isDraging = false;
+                return;
+            }
             if (window.isPlaying) return;
             if (selectedEvents.Count != 0)
             {
@@ -1565,7 +1591,7 @@ namespace PMEditor
             willPutFunction = new Function(
                 time: time,
                 rail: rail,
-                functionName: "unknown"
+                functionName: Guid.NewGuid().ToString()
                 );
             willPutFunction.rectangle.Height = 10;
             willPutFunction.rectangle.Width = eventPreview.Width;
@@ -1576,6 +1602,7 @@ namespace PMEditor
                 Canvas.SetBottom(willPutFunction.rectangle, pos.Y);
                 CurrLine.functions.Add(willPutFunction);
                 willPutFunction.parentLine = CurrLine;
+                willPutFunction.TryLink(EditorWindow.Instance.track ,true);
                 functionChange = true;
                 OperationManager.AddOperation(new PutFunctionOperation(willPutFunction, CurrLine));
             }
@@ -1888,5 +1915,78 @@ namespace PMEditor
             UpdateFunction();
         }
 
+        //进入自由判定线
+        private void Label_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (selectingFreeLine) return;
+            if (editingMode == 0)
+            {
+                foreach (var note in CurrLine.notes)
+                {
+                    if (note.type == NoteType.Tap)
+                    {
+                        note.Color = EditorColors.tapColorButNotOnThisLine;
+                    }
+                    else if (note.type == NoteType.Hold)
+                    {
+                        note.Color = EditorColors.holdColorButNotOnThisLine;
+                    }
+                    else
+                    {
+                        note.Color = EditorColors.catchColorButNotOnThisLine;
+                    }
+                }
+                lineListView.SelectedIndex = -1;
+                selectingFreeLine = true;
+                foreach (var note in CurrLine.notes)
+                {
+                    if (note.type == NoteType.Tap)
+                    {
+                        note.Color = EditorColors.tapColor;
+                    }
+                    else if (note.type == NoteType.Hold)
+                    {
+                        note.Color = EditorColors.holdColor;
+                    }
+                    else
+                    {
+                        note.Color = EditorColors.catchColor;
+                    }
+                }
+            }
+            else if (editingMode == 1)
+            {
+                foreach (var el in CurrLine.EventLists)
+                {
+                    el.events.ForEach(e =>
+                    {
+                        e.rectangle.Visibility = Visibility.Hidden;
+                    });
+                }
+                lineListView.SelectedIndex = -1;
+                selectingFreeLine = true;
+                foreach (var el in CurrLine.eventLists)
+                {
+                    el.events.ForEach(e =>
+                    {
+                        e.rectangle.Visibility = Visibility.Visible;
+                    });
+                }
+                UpdateEventTypeList();
+            }
+            else
+            {
+                CurrLine.fakeCatch.ForEach(e =>
+                {
+                    e.rectangle.Visibility = Visibility.Hidden;
+                });
+                lineListView.SelectedIndex = -1;
+                selectingFreeLine = true;
+                CurrLine.fakeCatch.ForEach(e =>
+                {
+                    e.rectangle.Visibility = Visibility.Visible;
+                });
+            }
+        }
     }
 }

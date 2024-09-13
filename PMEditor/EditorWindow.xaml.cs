@@ -29,6 +29,7 @@ namespace PMEditor
         public SoundEventManager tapSoundManager;
         public SoundEventManager catchSoundManager;
 
+        public string? vscodePath = null;
 
         public bool isPlaying = false;
         public bool puttingTap = true;
@@ -71,6 +72,23 @@ namespace PMEditor
             SoundPool catchSounds = new("./assets/sounds/drag.wav");
             tapSoundManager = new SoundEventManager(tapSounds);
             catchSoundManager = new SoundEventManager(catchSounds);
+            //检查vscode路径
+            vscodePath = Utils.GetVSCodePath();
+            if(vscodePath == null)
+            {
+                var result = System.Windows.MessageBox.Show("未找到VSCode，请手动选择路径", "Re:PMEditor", MessageBoxButton.OK, MessageBoxImage.Warning);
+                if(result == MessageBoxResult.OK)
+                {
+                    var dialog = new Microsoft.Win32.OpenFileDialog
+                    {
+                        Filter = "VSCode|*.*"
+                    };
+                    if (dialog.ShowDialog() == true)
+                    {
+                        vscodePath = dialog.FileName;
+                    }
+                }
+            }
         }
 
         private void editorButton_Click(object sender, RoutedEventArgs e)
@@ -155,14 +173,18 @@ namespace PMEditor
             {
                 operationInfo.Text = "正在导出帧序列到 " + saveFileDialog.SelectedPath;
 
-                Task.Run(() => NBTTrack.FromTrack(track).ToFrameFunctions(new(saveFileDialog.SelectedPath))).ContinueWith((t) =>
+                Task.Run(() =>
+                {
+                    track.Build();
+                    //复制datapack到指定文件夹
+                    Utils.CopyAllFiles(track.target.FullName, saveFileDialog.SelectedPath);
+                }).ContinueWith((t) =>
                 {
                     Dispatcher.Invoke(() =>
                     {
                         operationInfo.Text = "成功导出帧序列到 " + saveFileDialog.SelectedPath;
                     });
                 });
-                
             }
         }
 
@@ -237,6 +259,86 @@ namespace PMEditor
                 editorWindow.Show();
                 this.Close();
             }
+        }
+
+        //设置
+        private void MenuItem_Click_5(object sender, RoutedEventArgs e)
+        {
+            SetCurrPage(3);
+        }
+
+        //生成
+        private void MenuItem_Click_6(object sender, RoutedEventArgs e)
+        {
+            operationInfo.Text = "正在生成谱面 " + track.trackName;
+
+            Task.Run(track.Build).ContinueWith((t) =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    operationInfo.Text = "成功生成谱面 " + track.trackName;
+                });
+            });
+        }
+        
+        //清理
+        private void MenuItem_Click_7(object sender, RoutedEventArgs e)
+        {
+            operationInfo.Text = "正在清理谱面 " + track.trackName;
+
+            Task.Run(track.datapack.Clear).ContinueWith((t) =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    operationInfo.Text = "成功清理谱面 " + track.trackName;
+                });
+            });
+        }
+
+        //清理并生成
+        private void MenuItem_Click_8(object sender, RoutedEventArgs e)
+        {
+            operationInfo.Text = "正在清理并生成谱面 " + track.trackName;
+
+            Task.Run(() => { 
+                track.datapack.Clear(); 
+                track.Build(); 
+            }).ContinueWith((t) =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    operationInfo.Text = "成功清理并生成谱面 " + track.trackName;
+                });
+            });
+
+        }
+
+        //复制到...
+        private void MenuItem_Click_9(object sender, RoutedEventArgs e)
+        {
+            FolderBrowserDialog saveFileDialog = new();
+            if (saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                operationInfo.Text = "正在复制到 " + saveFileDialog.SelectedPath;
+
+                Task.Run(() =>
+                {
+                    //复制datapack到指定文件夹
+                    Utils.CopyAllFiles(track.target.Parent!.FullName, saveFileDialog.SelectedPath);
+                }).ContinueWith((t) =>
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        operationInfo.Text = "成功复制到 " + saveFileDialog.SelectedPath;
+                    });
+                });
+            }
+        }
+
+        //在资源管理器中打开
+        private void MenuItem_Click_10(object sender, RoutedEventArgs e)
+        {
+            Utils.OpenInExplorer(track.target.Parent!.FullName);
         }
     }
 

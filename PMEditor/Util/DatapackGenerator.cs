@@ -1,22 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace PMEditor.Util
 {
     public class DatapackGenerator
     {
 
-        DirectoryInfo target;
-        string trackID;
+        public DirectoryInfo target;
+        public string trackID;
 
-        private DatapackGenerator(DirectoryInfo target, string trackID)
+        public DirectoryInfo FPS20 => new(target.FullName + $"\\data\\{trackID}\\functions\\20\\frames");
+        public DirectoryInfo FPS60 => new(target.FullName + $"\\data\\{trackID}\\functions\\60\\frames");
+        public DirectoryInfo FrameFunction => new(target.FullName + $"\\data\\{trackID}\\functions\\frame_functions");
+
+        public DatapackGenerator(DirectoryInfo target, string trackID)
         {
             this.target = target;
-            this.trackID = trackID;
+            this.trackID = ToLegalIdentifier(trackID);
         }
 
         public void WriteFunction(int time, int frame, IEnumerable<string> lines)
@@ -45,16 +46,15 @@ namespace PMEditor.Util
             return new(target.FullName + $"\\data\\{trackID}\\functions\\frame_functions\\{name}.mcfunction");
         }
 
-        public static DatapackGenerator CreateDatapack(DirectoryInfo target, string trackID)
+        public void Create(bool check = true)
         {
-            if(target.Exists)
+            if (target.Exists)
             {
-                target.Delete(true);
+                if (check) target.Delete(true); else return;
             }
             target.Create();
-            trackID = ToLegalIdentifier(trackID);
             //pack.mcmeta
-            File.WriteAllText(target.FullName + "\\pack.mcmeta", 
+            File.WriteAllText(target.FullName + "\\pack.mcmeta",
                 "{\n" +
                 "  \"pack\": {\n" +
                 "    \"pack_format\": 42,\n" +
@@ -69,8 +69,25 @@ namespace PMEditor.Util
             target.CreateSubdirectory($"data\\{trackID}\\functions\\60");
             target.CreateSubdirectory($"data\\{trackID}\\functions\\20\\frames");
             target.CreateSubdirectory($"data\\{trackID}\\functions\\60\\frames");
+        }
 
-            return new DatapackGenerator(target, trackID);
+        public void Clear()
+        {
+            foreach (var file in FPS20.GetFiles())
+            {
+                file.Delete();
+            }
+            foreach (var file in FPS60.GetFiles())
+            {
+                file.Delete();
+            }
+        }
+
+        public static DatapackGenerator CreateDatapack(DirectoryInfo target, string trackID)
+        {
+            var dp = new DatapackGenerator(target, trackID);
+            dp.Create();
+            return dp;
         }
 
         public static string ToLegalIdentifier(string str)

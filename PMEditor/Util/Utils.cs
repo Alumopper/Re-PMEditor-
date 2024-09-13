@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Windows;
 
@@ -104,6 +105,81 @@ namespace PMEditor
             return new Guid(bytes);
         }
 
+        public static string? GetVSCodePath()
+        {
+            // 获取 PATH 环境变量
+            string? pathEnv = Environment.GetEnvironmentVariable("PATH");
+
+            if (pathEnv == null)
+            {
+                return null;
+            }
+
+            // 分割 PATH 环境变量中的各个路径
+            string[] paths = pathEnv.Split(Path.PathSeparator);
+
+            foreach (var path in paths)
+            {
+                // 构建可能的 VSCode 可执行文件路径
+                string potentialPath = Path.Combine(path, "code.cmd");
+
+                // 检查文件是否存在
+                if (File.Exists(potentialPath))
+                {
+                    //从父路径中找到Code.exe
+                    string parentPath = Directory.GetParent(potentialPath).Parent.FullName;
+                    string codePath = Path.Combine(parentPath, "Code.exe");
+                    if (File.Exists(codePath))
+                    {
+                        return codePath;
+                    }
+                    else
+                    {
+                        return potentialPath;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public static void CopyAllFiles(string sourceDir, string destDir)
+        {
+            // 确保目标目录存在
+            if (!Directory.Exists(destDir))
+            {
+                Directory.CreateDirectory(destDir);
+            }
+
+            // 获取源目录中的所有文件
+            string[] files = Directory.GetFiles(sourceDir);
+
+            // 遍历每个文件并复制到目标目录
+            foreach (string file in files)
+            {
+                string fileName = Path.GetFileName(file);
+                string destFile = Path.Combine(destDir, fileName);
+                File.Copy(file, destFile, true);  // true表示覆盖同名文件
+                Console.WriteLine($"Copied: {file} to {destFile}");
+            }
+
+            // 获取源目录中的所有子目录
+            string[] subDirectories = Directory.GetDirectories(sourceDir);
+
+            // 遍历每个子目录并递归复制其中的文件
+            foreach (string subDirectory in subDirectories)
+            {
+                string subDirectoryName = Path.GetFileName(subDirectory);
+                string destSubDir = Path.Combine(destDir, subDirectoryName);
+                CopyAllFiles(subDirectory, destSubDir);
+            }
+        }
+
+        public static void OpenInExplorer(string path)
+        {
+            // 使用系统默认的文件管理器打开指定路径
+            System.Diagnostics.Process.Start("explorer.exe", path);
+        }
 
     }
 

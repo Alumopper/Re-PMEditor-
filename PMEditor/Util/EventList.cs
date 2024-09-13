@@ -1,5 +1,4 @@
 ﻿using PMEditor.Util;
-using System.Management.Automation.Language;
 
 namespace PMEditor
 {

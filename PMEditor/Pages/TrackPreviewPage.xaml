@@ -3,13 +3,12 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:PMEditor.Pages"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
       Title="TrackPreviewPage">
 
     <Grid>
-        <Border BorderBrush="#FF61207B" Grid.Row="2" Grid.Column="1" BorderThickness="1,1,1,1" Margin="20">
+        <Border BorderBrush="#FF61207B" BorderThickness="1,1,1,1" Margin="20">
             <Viewport3D>
                 <Viewport3D.Camera>
                     <PerspectiveCamera Position="0,-10,10" LookDirection="0,1,-1" FieldOfView="120"></PerspectiveCamera>

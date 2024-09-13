@@ -1,9 +1,6 @@
-﻿using PMEditor.Controls;
-using PMEditor.Operation;
-using PMEditor.Util;
+﻿using PMEditor.Util;
 using System;
 using System.Collections.Generic;
-using System.Windows.Input;
 using System.Windows.Media;
 
 namespace PMEditor

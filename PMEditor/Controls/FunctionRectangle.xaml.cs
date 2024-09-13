@@ -1,18 +1,7 @@
 ﻿using PMEditor.Operation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace PMEditor.Controls
 {
@@ -61,8 +50,6 @@ namespace PMEditor.Controls
             }
         }
 
-        public bool IsResizing { get; set; } = false;
-
         //右键删除此note
         private void Rectangle_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
@@ -76,16 +63,6 @@ namespace PMEditor.Controls
         {
             TrackEditorPage.Instance.infoFrame.Content = new FunctionPropertyPanel(function);
             TrackEditorPage.Instance.UpdateSelectedFunction(function);
-            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
-            {
-                Point currentPosition = e.GetPosition(rect);
-                if (currentPosition.Y < 20)
-                {
-                    IsResizing = true;
-                    return;
-                }
-            }
-            IsResizing = false;
         }
     }
 }

@@ -9,38 +9,47 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="50"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+        <Grid.Resources>
+            <Style TargetType="TextBlock" x:Key="PropertyLable">
+                <Setter Property="Margin" Value="0,5,0,0"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="Foreground" Value="White"/>
+            </Style>
+            <Style TargetType="TextBox" x:Key="ReadOnlyPropertyInput">
+                <Setter Property="TextAlignment" Value="Left"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Margin" Value="0,10,0,0"/>
+                <Setter Property="Padding" Value="5"/>
+                <Setter Property="Height" Value="24"/>
+            </Style>
+            <Style TargetType="local:PropertySetBox" x:Key="PropertyInput">
+                <Setter Property="Margin" Value="0,10,0,0"/>
+                <Setter Property="Height" Value="24"/>
+            </Style>
+        </Grid.Resources>
         <TextBlock x:Name="title" Grid.Row="0" FontSize="16" FontWeight="Bold" Margin="10,10,0,20" Text="帧函数" Foreground="White"/>
         <StackPanel x:Name="properties" Grid.Row="1" Margin="20,0,20,20">
-            <StackPanel.Resources>
-                <Style TargetType="TextBlock" x:Key="PropertyLable">
-                    <Setter Property="Margin" Value="0,5,0,0"/>
-                    <Setter Property="FontSize" Value="14"/>
-                    <Setter Property="Foreground" Value="White"/>
-                </Style>
-                <Style TargetType="TextBox" x:Key="ReadOnlyPropertyInput">
-                    <Setter Property="TextAlignment" Value="Left"/>
-                    <Setter Property="Foreground" Value="White"/>
-                    <Setter Property="Background" Value="Transparent"/>
-                    <Setter Property="Margin" Value="0,10,0,0"/>
-                    <Setter Property="Padding" Value="5"/>
-                    <Setter Property="Height" Value="24"/>
-                </Style>
-                <Style TargetType="local:PropertySetBox" x:Key="PropertyInput">
-                    <Setter Property="Margin" Value="0,10,0,0"/>
-                    <Setter Property="Height" Value="24"/>
-                </Style>
-            </StackPanel.Resources>
+            <TextBlock Text="触发时间" Style="{StaticResource PropertyLable}"/>
+            <local:PropertySetBox x:Name="time" Style="{StaticResource PropertyInput}" PropertyChangeEvent="time_PropertyChangeEvent"/>
             <TextBlock Text="函数名" Style="{StaticResource PropertyLable}"/>
             <local:PropertySetBox x:Name="functionName" Style="{StaticResource PropertyInput}" PropertyChangeEvent="functionName_PropertyChangeEvent"/>
             <TextBlock Text="链接文件" Style="{StaticResource PropertyLable}"/>
-            <StackPanel Orientation="Horizontal">
-                <TextBox x:Name="linkFile" Style="{StaticResource ReadOnlyPropertyInput}" Text="未链接"/>
-                <Button Content="..." Width="30" Height="24" Margin="5,0,0,0" Click="Button_Click"/>
-            </StackPanel>
-            <TextBlock Text="脚本" Style="{StaticResource PropertyLable}"/>
-            <TextBox x:Name="script" Style="{StaticResource ReadOnlyPropertyInput}" TextWrapping="Wrap" Text="函数未定义" MouseDoubleClick="script_MouseDoubleClick"/>
+            <TextBox x:Name="linkFile" Style="{StaticResource ReadOnlyPropertyInput}" Text="未链接" MouseDoubleClick="script_MouseDoubleClick"/>
         </StackPanel>
+        <!--<Separator Grid.Row="2"/>
+        <StackPanel Grid.Row="3" Margin="20,0,20,20" VerticalAlignment="Stretch">
+            <TextBlock Text="脚本" Style="{StaticResource PropertyLable}"/>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBox Height="100" Grid.Row="0" x:Name="script" Style="{StaticResource ReadOnlyPropertyInput}" TextWrapping="Wrap" Text="函数未定义" MouseDoubleClick="script_MouseDoubleClick" VerticalAlignment="Stretch"/>
+            </Grid>
+        </StackPanel>-->
     </Grid>
 </UserControl>

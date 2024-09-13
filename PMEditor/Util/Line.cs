@@ -1,7 +1,4 @@
 ﻿using PMEditor.Util;
-using System.ComponentModel;
-using System.Drawing;
-using System.Xml.Serialization;
 
 namespace PMEditor
 {
@@ -167,6 +164,32 @@ namespace PMEditor
                 }
             }
             return speed;
+        }
+
+        public void Init(Track track)
+        {
+            foreach (var note in notes)
+            {
+                note.parentLine = this;
+            }
+            foreach (var item in fakeCatch)
+            {
+                item.parentLine = this;
+            }
+            for (int i = 0; i < eventLists.Count; i++)
+            {
+                eventLists[i].parentLine = this;
+                eventLists[i].events.ForEach(e =>
+                {
+                    e.parentList = eventLists[i];
+                    SetType(e.type, i);
+                });
+                eventLists[i].GroupEvent();
+            }
+            foreach (var function in functions)
+            {
+                function.TryLink(track);
+            }
         }
     }
 }

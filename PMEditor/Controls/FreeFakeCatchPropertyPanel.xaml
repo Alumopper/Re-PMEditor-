@@ -1,0 +1,44 @@
+﻿<UserControl x:Class="PMEditor.Controls.FreeFakeCatchPropertyPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:PMEditor.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <TextBlock x:Name="title" Grid.Row="0" FontSize="16" FontWeight="Bold" Margin="10,10,0,20" Text="Note" Foreground="White"/>
+        <StackPanel x:Name="properties" Grid.Row="1" Margin="20,0,20,20">
+            <StackPanel.Resources>
+                <Style TargetType="TextBlock" x:Key="PropertyLable">
+                    <Setter Property="Margin" Value="0,5,0,0"/>
+                    <Setter Property="FontSize" Value="14"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Style>
+                <Style TargetType="TextBox" x:Key="ReadOnlyPropertyInput">
+                    <Setter Property="TextAlignment" Value="Center"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="Margin" Value="0,10,0,0"/>
+                    <Setter Property="Height" Value="24"/>
+                </Style>
+                <Style TargetType="local:PropertySetBox" x:Key="PropertyInput">
+                    <Setter Property="Margin" Value="0,10,0,0"/>
+                    <Setter Property="Height" Value="24"/>
+                </Style>
+            </StackPanel.Resources>
+            <TextBlock Text="Note类型" Style="{StaticResource PropertyLable}"/>
+            <TextBox x:Name="noteType" Text="" Style="{StaticResource ReadOnlyPropertyInput}" IsReadOnly="True"/>
+            <TextBlock Text="起始时间" Style="{StaticResource PropertyLable}"/>
+            <local:PropertySetBox x:Name="startTime" Style="{StaticResource PropertyInput}" PropertyChangeEvent="startTime_PropertyChangeEvent"/>
+            <TextBlock x:Name="fakeCatchHeightLable" Text="FakeCatch高度" Style="{StaticResource PropertyLable}"/>
+            <local:PropertySetBox x:Name="fakeCatchHeight" Style="{StaticResource PropertyInput}" PropertyChangeEvent="fakeCatchHeight_PropertyChangeEvent"/>
+            <TextBlock x:Name="expressionLable" Text="Note高度表达式" Style="{StaticResource PropertyLable}"/>
+            <local:PropertySetBox x:Name="expression" Style="{StaticResource PropertyInput}" PropertyChangeEvent="expression_PropertyChangeEvent"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

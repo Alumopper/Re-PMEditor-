@@ -1,11 +1,8 @@
 ﻿using SharpNBT;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Transactions;
-using System.Windows.Shapes;
 
 namespace PMEditor.Util
 {
@@ -25,7 +22,9 @@ namespace PMEditor.Util
     }
 
     public class NBTTrack
-    {    
+    {
+        Track originalTrack;
+
         public string trackName = "";    //谱面名字
         public string musicAuthor = "";  //曲师
         public string trackAuthor = "";  //谱师
@@ -107,12 +106,13 @@ namespace PMEditor.Util
                 bpm = track.Bpm,
                 length = track.Length,
                 difficulty = track.Difficulty,
-                count = track.Count
+                count = track.Count,
+                originalTrack = track
             };
 
             //判定线信息
-            List<NBTLine> lines = new ();
-            foreach (Line line in track.lines)
+            List<NBTLine> lines = new();
+            foreach (Line line in track.lines.Concat(new[]{track.FreeLine}))
             {
                 NBTLine nbtLine = new()
                 {
@@ -138,15 +138,15 @@ namespace PMEditor.Util
                                 holdLength += note.parentLine.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
                             }
                             notes.Add(
-                                item: new NBTHold(
-                                    range: new Range(
+                                new NBTHold(
+                                    new Range(
                                         start: (int)(note.actualTime * Settings.currSetting.Tick), 
                                         end: (int)(note.actualTime * Settings.currSetting.Tick),
                                         startPos: 0
                                         ) { length = holdLength},
-                                    isFake: 0, 
+                                    0, 
                                     holdTick, 
-                                    rail: note.rail
+                                    note.rail
                                     )
                                 );
                         }
@@ -218,61 +218,124 @@ namespace PMEditor.Util
             int readyTime = (int)(3 * Settings.currSetting.Tick);
             if (note.type != NoteType.Hold)
             {
-                double position = 0;
-                int judgeTick = (int)(note.actualTime * Settings.currSetting.Tick);
-                for (int i = judgeTick; i > -readyTime; i--)
+                //不是hold
+                if (note is IFreeNote freeNote)
                 {
-                    position += note.parentLine.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
-                    if (end == -100000 && IsInScreen(position))
+                    //自由note
+                    var expr = freeNote.Expr;
+                    double position = 0;
+                    int judgeTick = (int)(note.actualTime * Settings.currSetting.Tick);
+                    for (int i = judgeTick; i > -readyTime; i--)
                     {
-                        end = i;
-                    }
-                    if (end != -100000 && start == -100000 && !IsInScreen(position))
-                    {
-                        start = i;
-                        rangeList.Add(new Range(start, end, position));
-                        start = end = -100000;
+                        expr.Parameters["t"] = i - judgeTick;
+                        expr.Parameters["l"] = Settings.currSetting.MapLength;
+                        position = (double)(expr.Evaluate()??0);
+                        if (end == -100000 && IsInScreen(position))
+                        {
+                            end = i;
+                        }
+                        if (end != -100000 && start == -100000 && !IsInScreen(position))
+                        {
+                            start = i;
+                            rangeList.Add(new Range(start, end, position));
+                            start = end = -100000;
+                        }
                     }
                 }
-                if (end != -100000 && start == -100000)
+                else
                 {
-                    //开头就在屏幕里面了
-                    rangeList.Add(new Range(-readyTime, end, position));
+                    //普通note
+                    double position = 0;
+                    int judgeTick = (int)(note.actualTime * Settings.currSetting.Tick);
+                    for (int i = judgeTick; i > -readyTime; i--)
+                    {
+                        position += note.parentLine.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
+                        if (end == -100000 && IsInScreen(position))
+                        {
+                            end = i;
+                        }
+                        if (end != -100000 && start == -100000 && !IsInScreen(position))
+                        {
+                            start = i;
+                            rangeList.Add(new Range(start, end, position));
+                            start = end = -100000;
+                        }
+                    }
+                    if (end != -100000 && start == -100000)
+                    {
+                        //开头就在屏幕里面了
+                        rangeList.Add(new Range(-readyTime, end, position));
+                    }
                 }
             }
             else
             {
-                double startPosition = 0, endPosition = 0;
-                int judgeTick = (int)(note.actualTime * Settings.currSetting.Tick);
-                int holdTick = (int)(note.actualHoldTime * Settings.currSetting.Tick);
-                //算出当判定结束的时候，判定起始点的位置，同时获取hold长度
-                for (int i = judgeTick; i < judgeTick + holdTick; i++)
+                if (note is IFreeNote freeNote)
                 {
-                    startPosition -= note.parentLine.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
-                }
-                double length = -startPosition;
-                //迭代开始，划分range
-                for (int i = judgeTick + holdTick; i > -readyTime; i--)
-                {
-                    endPosition += note.parentLine.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
-                    startPosition += note.parentLine.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
-                    //如果起始点或者结束点在屏幕里面，也就是长条离开谱面的时候
-                    if (end == -100000 && IsHoldInScreen(startPosition, endPosition))
+                    var expr = freeNote.Expr;
+                    double startPosition = 0, endPosition = 0;
+                    int judgeTick = (int)(note.actualTime * Settings.currSetting.Tick);
+                    int holdTick = (int)(note.actualHoldTime * Settings.currSetting.Tick);
+                    //算出当判定结束的时候，判定起始点的位置，同时获取hold长度
+                    expr.Parameters["t"] = -holdTick;
+                    expr.Parameters["l"] = Settings.currSetting.MapLength;
+                    startPosition = (double)(expr.Evaluate()??0);
+                    double length = -startPosition;
+                    //迭代开始，划分range
+                    for (int i = judgeTick + holdTick; i > -readyTime; i--)
                     {
-                        end = i;
-                    }
-                    //长条进入谱面的时候
-                    if (end != -100000 && start == -100000 && !IsHoldInScreen(startPosition, endPosition))
-                    {
-                        start = i;
-                        rangeList.Add(new Range(start, end, startPosition) { length = length});
-                        start = end = -100000;
+                        expr.Parameters["t"] = i - judgeTick;
+                        expr.Parameters["l"] = Settings.currSetting.MapLength;
+                        endPosition = (double)(expr.Evaluate()??0);
+                        startPosition = (double)(expr.Evaluate()??0) + length;
+                        //如果起始点或者结束点在屏幕里面，也就是长条离开谱面的时候
+                        if (end == -100000 && IsHoldInScreen(startPosition, endPosition))
+                        {
+                            end = i;
+                        }
+                        //长条进入谱面的时候
+                        if (end != -100000 && start == -100000 && !IsHoldInScreen(startPosition, endPosition))
+                        {
+                            start = i;
+                            rangeList.Add(new Range(start, end, startPosition) { length = length});
+                            start = end = -100000;
+                        }
                     }
                 }
-                if (end != -100000 && start == -100000)
+                else
                 {
-                    //开头就在屏幕里面了
-                    rangeList.Add(new Range(-readyTime, end, startPosition) { length = length});
+                    double startPosition = 0, endPosition = 0;
+                    int judgeTick = (int)(note.actualTime * Settings.currSetting.Tick);
+                    int holdTick = (int)(note.actualHoldTime * Settings.currSetting.Tick);
+                    //算出当判定结束的时候，判定起始点的位置，同时获取hold长度
+                    for (int i = judgeTick; i < judgeTick + holdTick; i++)
+                    {
+                        startPosition -= note.parentLine.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
+                    }
+                    double length = -startPosition;
+                    //迭代开始，划分range
+                    for (int i = judgeTick + holdTick; i > -readyTime; i--)
+                    {
+                        endPosition += note.parentLine.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
+                        startPosition += note.parentLine.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
+                        //如果起始点或者结束点在屏幕里面，也就是长条离开谱面的时候
+                        if (end == -100000 && IsHoldInScreen(startPosition, endPosition))
+                        {
+                            end = i;
+                        }
+                        //长条进入谱面的时候
+                        if (end != -100000 && start == -100000 && !IsHoldInScreen(startPosition, endPosition))
+                        {
+                            start = i;
+                            rangeList.Add(new Range(start, end, startPosition) { length = length});
+                            start = end = -100000;
+                        }
+                    }
+                    if (end != -100000 && start == -100000)
+                    {
+                        //开头就在屏幕里面了
+                        rangeList.Add(new Range(-readyTime, end, startPosition) { length = length});
+                    }
                 }
             }
             return rangeList;
@@ -303,6 +366,7 @@ namespace PMEditor.Util
             //导出帧序列
             foreach(NBTLine line in lines)
             {
+
                 foreach(NBTNote note in line.notes)
                 {
                     //计算note的生成时刻
@@ -434,17 +498,14 @@ namespace PMEditor.Util
                 }
             }
 
-            //生成数据包
-            DirectoryInfo output = new(directory.FullName + "/" + trackName);
-
-            var dp = DatapackGenerator.CreateDatapack(output, trackName);
+            originalTrack.datapack.Clear();
 
             for (int i = 0; i < frames.Length; i++)
             {
-                dp.WriteFunction((int)Settings.currSetting.Tick, i, frames[i]);
+                originalTrack.datapack.WriteFunction((int)Settings.currSetting.Tick, i, frames[i]);
             }
             //初始化函数
-            dp.WriteInitFunction((int)Settings.currSetting.Tick, new string[] {
+            originalTrack.datapack.WriteInitFunction((int)Settings.currSetting.Tick, new string[] {
                 $"scoreboard players set $time PR_chartinfo {(int)(length * Settings.currSetting.Tick)}" ,
                 $"scoreboard players set $count PR_chartinfo {count}",
                 $"summon armor_stand ~ ~ ~ {{UUID:{Utils.ToNBTUUID(NBTLine.uuid)},Tags:[pr_line],NoGravity:1b,Invisible:1b,Marker:1b}}",
@@ -508,6 +569,13 @@ namespace PMEditor.Util
 
         public Guid uuid = Utils.GeneUnNaturalUUID();
 
+        /// <summary>
+        /// 创建一个NBTNote
+        /// </summary>
+        /// <param name="range">这个Hold从生成到被判定的时间</param>
+        /// <param name="isFake">是否是假hold</param>
+        /// <param name="type">note的类型</param>
+        /// <param name="rail">所处的轨道</param>
         internal NBTNote(Range range, byte type, int rail, byte isFake = 0)
         {
             summonTime = range.start / Settings.currSetting.Tick;
@@ -529,6 +597,13 @@ namespace PMEditor.Util
             get => "hold";
         }
 
+        /// <summary>
+        /// 创建一个NBTHold
+        /// </summary>
+        /// <param name="range">这个Hold从生成到被判定的时间</param>
+        /// <param name="isFake">是否是假hold</param>
+        /// <param name="holdTime">按住的时间</param>
+        /// <param name="rail">所处的轨道</param>
         internal NBTHold(Range range, byte isFake, int holdTime, int rail) : base(range, (int)NoteType.Hold, rail, isFake)
         {
             this.holdTime = holdTime/Settings.currSetting.Tick;
@@ -550,6 +625,19 @@ namespace PMEditor.Util
             : base(range, (int)NoteType.Catch, rail, 1)
         {
             this.height = height;
+        }
+    }
+
+    public class NBTFunction
+    {
+        public double time;
+
+        public string name;
+
+        internal NBTFunction(double time, string name)
+        {
+            this.time = time;
+            this.name = name;
         }
     }
 }

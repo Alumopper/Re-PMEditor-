@@ -48,11 +48,12 @@
                     <MenuItem Header="SNBT(_S)" Foreground="#FF000000" Click="MenuItem_Click"/>
                     <MenuItem Header="MCF(_S)" Foreground="#FF000000" Click="MenuItem_Click_1"/>
                 </MenuItem>
+                <MenuItem Header="在资源管理器中打开" Foreground="#FF000000" Click="MenuItem_Click_10"/>
                 <Separator/>
                 <MenuItem Header="打开...(_O)" Foreground="#FF000000" Click="MenuItem_Click_2">
                 </MenuItem>
-                <MenuItem Header="启动窗口(_W)" Foreground="#FF000000" Click="MenuItem_Click_3"/>
                 <MenuItem Header="新建(_N)" Foreground="#FF000000" Click="MenuItem_Click_4"/>
+                <MenuItem Header="启动窗口(_W)" Foreground="#FF000000" Click="MenuItem_Click_3"/>
             </MenuItem>
             <MenuItem Header="编辑(_E)" Margin="0,0,3,0">
                 <MenuItem Header="撤销(_Z)" Foreground="#FF000000" Command="local:Commands.Undo"/>
@@ -61,6 +62,14 @@
             </MenuItem>
             <MenuItem Header="媒体(_M)" Margin="0,0,3,0">
                 <MenuItem Header="开始/暂停(_P)" Foreground="#FF000000" Command="local:Commands.PlayOrPause" />
+            </MenuItem>
+            <MenuItem Header="项目(_P)" Margin="0,0,3,0">
+                <MenuItem Header="设置(_S)" Foreground="#FF000000" Click="MenuItem_Click_5"/>
+                <Separator/>
+                <MenuItem Header="生成(_G)" Foreground="#FF000000" Click="MenuItem_Click_6"/>
+                <MenuItem Header="清理(_C)" Foreground="#FF000000" Click="MenuItem_Click_7"/>
+                <MenuItem Header="清理并生成(_A)" Foreground="#FF000000" Click="MenuItem_Click_8"/>
+                <MenuItem Header="复制到...(_M)" Foreground="#FF000000" Click="MenuItem_Click_9"/>
             </MenuItem>
         </Menu>
         <Grid Grid.Row="1">

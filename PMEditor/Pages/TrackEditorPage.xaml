@@ -20,6 +20,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
             <Grid Grid.Row="0" Background="#FF0B0314">
                 <Label Content="判定线管理" FontSize="14" Foreground="White" Margin="10,10,0,3" HorizontalAlignment="Left" VerticalAlignment="Center" Height="26" Width="80"/>
@@ -71,6 +72,14 @@
                     </ListView>
                 </ScrollViewer>
             </Grid>
+            <Grid Grid.Row="2" Background="#FF0B0314">
+                <Border BorderThickness="0,1,1,0" BorderBrush="#FF341D50" Height="{Binding ActualHeight, ElementName=grid, Mode=OneWay}"/>
+                <Label MouseLeftButtonDown="Label_MouseLeftButtonDown"  BorderThickness="0" 
+                        Background="Transparent" Foreground="White" 
+                        HorizontalAlignment="Center" Cursor="Hand">
+                    自由音符
+                </Label>
+           </Grid>
         </Grid>
         <!-- 音符编辑区 -->
         <Grid Grid.Column="1">

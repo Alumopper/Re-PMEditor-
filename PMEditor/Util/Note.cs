@@ -1,8 +1,6 @@
-﻿using PMEditor.Controls;
-using PMEditor.Operation;
-using System;
-using System.Windows.Input;
-using System.Windows.Media;
+﻿using PMEditor.Util;
+using System.Text.Json.Serialization;
+using NCalc;
 
 namespace PMEditor
 {
@@ -100,5 +98,74 @@ namespace PMEditor
     public enum NoteType
     {
         Tap, Catch, Hold
+    }
+
+    interface IFreeNote
+    {
+        /// <param name="t">还有多少tick这个note被判定</param>
+        /// <param name="l">地图的长度是多少</param>
+        public Expression Expr { get; set; }
+    }
+
+    public class FreeNote: Note, IFreeNote
+    {
+
+        public Expression expr;
+
+        public Expression Expr
+        {
+            get => expr; set => expr = value;
+        }
+
+        [JsonConstructor]
+        public FreeNote(int rail, int noteType, int fallType, bool isFake, double actualTime, double actualHoldTime = 0, string expr = "time")
+            : base(rail, noteType, fallType, isFake, actualTime, false, actualHoldTime) 
+        {
+            this.expr = new Expression(expr);
+        }
+
+
+        public FreeNote(int rail, int noteType, int fallType, bool isFake, double actualTime, bool isCurrentLineNote, double actualHoldTime = 0, string expr = "time")
+            : base(rail, noteType, fallType, isFake, actualTime, isCurrentLineNote, actualHoldTime)
+        {
+            this.expr = new Expression(expr);
+        }
+
+        public FreeNote(Note note, string expr = "time"): base(note.rail, note.noteType, note.fallType, note.isFake, note.actualTime, note.actualHoldTime)
+        {
+            this.expr = new Expression(expr);
+        }
+
+    }
+
+    public class FreeFakeCatch : FakeCatch, IFreeNote
+    {
+        public Expression expr;
+
+        public Expression Expr
+        {
+            get => expr; set => expr = value;
+        }
+
+        [JsonConstructor]
+        public FreeFakeCatch(double height, int rail, int noteType, int fallType, bool isFake, double actualTime, double actualHoldTime, string expr = "time") : base(height, rail, noteType, fallType, isFake, actualHoldTime, actualHoldTime)
+        {
+            this.expr = new Expression(expr);
+        }
+
+        public FreeFakeCatch(int rail, int fallType, double actualTime, double height, string expr = "time") : base(rail, fallType, actualTime, height)
+        {
+            this.expr = new Expression(expr);
+        }
+
+        public FreeFakeCatch(int rail, int fallType, double actualTime, double height, bool isCurrentLineNote, string expr = "time") : base(rail, fallType, actualTime, height, isCurrentLineNote)
+        {
+            this.expr = new Expression(expr);
+        }
+
+        public FreeFakeCatch(FakeCatch fakeCatch,string expr = "time"): this(fakeCatch.Height, fakeCatch.rail, fakeCatch.noteType, fakeCatch.fallType, fakeCatch.isFake, fakeCatch.actualTime, fakeCatch.actualHoldTime)
+        {
+            this.expr = new Expression(expr);
+        }
     }
 }

@@ -1,20 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Media;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Media;
 using PMEditor.Operation;
 using System.Windows.Input;
-using System.Windows.Media.Animation;
 using System.Text.Json.Serialization;
 
 namespace PMEditor.Util
 {
     public class FakeCatch : Note
     {
-        private double height = 0;  //高度。一个介于0和1之间的数值，0表示最下方，1表示最上方
+        protected double height = 0;  //高度。一个介于0和1之间的数值，0表示最下方，1表示最上方
 
         public double Height
         {
@@ -63,7 +57,7 @@ namespace PMEditor.Util
         }
 
         //右键删除此note
-        private void Rectangle_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        protected void Rectangle_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
             FakeCatch note = ((sender as NoteRectangle)!.note as FakeCatch)!;
             note.parentLine.fakeCatch.Remove(note);
