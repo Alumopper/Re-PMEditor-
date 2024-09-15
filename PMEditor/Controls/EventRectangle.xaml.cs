@@ -24,8 +24,8 @@ namespace PMEditor
         {
             InitializeComponent();
             this.@event = @event;
-            startValue.Text = @event.startValue.ToString();
-            endValue.Text = @event.endValue.ToString();
+            startValue.Text = @event.StartValue.ToString();
+            endValue.Text = @event.EndTime.ToString();
         }
 
         public Brush Fill
@@ -62,8 +62,8 @@ namespace PMEditor
         public double EventHeight
         {
             get {
-                double a = TrackEditorPage.Instance.GetYFromTime(@event.startTime);
-                double b = TrackEditorPage.Instance.GetYFromTime(@event.endTime);
+                double a = TrackEditorPage.Instance.GetYFromTime(@event.StartTime);
+                double b = TrackEditorPage.Instance.GetYFromTime(@event.EndTime);
                 return Math.Abs(a - b);
             }
         }
@@ -74,10 +74,10 @@ namespace PMEditor
             double max = double.MinValue, min = double.MaxValue;
             foreach(EventRectangle eventRectangle in eventRectangles)
             {
-                max = Math.Max(max, eventRectangle.@event.startValue);
-                max = Math.Max(max, eventRectangle.@event.endValue);
-                min = Math.Min(min, eventRectangle.@event.startValue);
-                min = Math.Min(min, eventRectangle.@event.endValue);
+                max = Math.Max(max, eventRectangle.@event.StartValue);
+                max = Math.Max(max, eventRectangle.@event.EndValue);
+                min = Math.Min(min, eventRectangle.@event.StartValue);
+                min = Math.Min(min, eventRectangle.@event.EndValue);
             }
             //宽度
             double width = eventRectangles[0].ActualWidth;
@@ -96,7 +96,7 @@ namespace PMEditor
                 double height = er.EventHeight;
                 for(double i = 0; i <= height; i++)
                 {
-                    double value = EaseFunctions.Interpolate(e.startValue, e.endValue, i / height, e.easeFunction);
+                    double value = EaseFunctions.Interpolate(e.StartValue, e.EndValue, i / height, e.easeFunction);
                     Point point = new((value - min) / (max - min) * width, height - i);
                     if(pathFigure.Segments.Count == 0)
                     {
@@ -109,15 +109,15 @@ namespace PMEditor
 
         public void UpdateText()
         {
-            startValue.Text = @event.startValue.ToString();
-            endValue.Text = @event.endValue.ToString();
+            startValue.Text = @event.StartValue.ToString();
+            endValue.Text = @event.EndValue.ToString();
         }
 
         //右键删除此event
         private void Rectangle_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
             @event.parentList.GroupEvent();
-            @event.parentList.events.Remove(@event);
+            @event.parentList.Events.Remove(@event);
             TrackEditorPage.Instance.eventPanel.Children.Remove(this);
             OperationManager.AddOperation(new RemoveEventOperation(@event, @event.parentList));
         }

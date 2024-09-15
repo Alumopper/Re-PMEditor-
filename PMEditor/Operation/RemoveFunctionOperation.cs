@@ -14,14 +14,14 @@
 
         public override void Undo()
         {
-            line.functions.Add(function);
+            line.Functions.Add(function);
             TrackEditorPage.Instance.functionPanel.Children.Add(function.rectangle);
             TrackEditorPage.Instance.UpdateNote();
         }
 
         public override void Redo()
         {
-            line.functions.Remove(function);
+            line.Functions.Remove(function);
             TrackEditorPage.Instance.functionPanel.Children.Remove(function.rectangle);
             function.rectangle.Visibility = System.Windows.Visibility.Hidden;
             TrackEditorPage.Instance.UpdateNote();

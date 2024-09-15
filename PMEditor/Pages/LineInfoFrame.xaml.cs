@@ -16,10 +16,10 @@ namespace PMEditor.Pages
 
             //信息加载
             lineIndex.Text = index.ToString();
-            lineID.Text = line.id.ToString();
-            generalCount.Text = line.notes.Count.ToString();
-            tapCount.Text = line.notes.FindAll(e => e.type == NoteType.Tap).Count.ToString();
-            catchCount.Text = line.notes.FindAll(e => e.type == NoteType.Catch).Count.ToString();
+            lineID.Text = line.Id;
+            generalCount.Text = line.Notes.Count.ToString();
+            tapCount.Text = line.Notes.FindAll(e => e.type == NoteType.Tap).Count.ToString();
+            catchCount.Text = line.Notes.FindAll(e => e.type == NoteType.Catch).Count.ToString();
         }
     }
 }

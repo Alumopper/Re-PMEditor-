@@ -17,9 +17,9 @@ namespace PMEditor.Controls
         {
             InitializeComponent();
             functionName.Type = PropertySetBox.PropertyType.String;
-            functionName.Value = function.functionName;
+            functionName.Value = function.FunctionName;
             time.Type = PropertySetBox.PropertyType.Double;
-            time.Value = function.time;
+            time.Value = function.Time;
             linkFile.Text = function.linkedFile?.FullName;
             this.function = function;
         }
@@ -50,7 +50,7 @@ namespace PMEditor.Controls
         private void time_PropertyChangeEvent(object sender, RoutedEventArgs e)
         {
             var value = (double)((PropertyChangeEventArgs)e).PropertyValue;
-            function.time = value;
+            function.Time = value;
             (EditorWindow.Instance.page.Content as TrackEditorPage)?.UpdateFunction();
         }
     }

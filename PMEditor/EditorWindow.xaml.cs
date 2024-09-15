@@ -43,9 +43,9 @@ namespace PMEditor
             InitializeComponent();
 
             Instance = this;
-            if (track.lines.Count == 0)
+            if (track.Lines.Count == 0)
             {
-                track.lines.Add(new Line());
+                track.Lines.Add(new Line());
             }
             this.info = info;
             this.track = track;
@@ -270,13 +270,13 @@ namespace PMEditor
         //生成
         private void MenuItem_Click_6(object sender, RoutedEventArgs e)
         {
-            operationInfo.Text = "正在生成谱面 " + track.trackName;
+            operationInfo.Text = "正在生成谱面 " + track.TrackName;
 
             Task.Run(track.Build).ContinueWith((t) =>
             {
                 Dispatcher.Invoke(() =>
                 {
-                    operationInfo.Text = "成功生成谱面 " + track.trackName;
+                    operationInfo.Text = "成功生成谱面 " + track.TrackName;
                 });
             });
         }
@@ -284,13 +284,13 @@ namespace PMEditor
         //清理
         private void MenuItem_Click_7(object sender, RoutedEventArgs e)
         {
-            operationInfo.Text = "正在清理谱面 " + track.trackName;
+            operationInfo.Text = "正在清理谱面 " + track.TrackName;
 
             Task.Run(track.datapack.Clear).ContinueWith((t) =>
             {
                 Dispatcher.Invoke(() =>
                 {
-                    operationInfo.Text = "成功清理谱面 " + track.trackName;
+                    operationInfo.Text = "成功清理谱面 " + track.TrackName;
                 });
             });
         }
@@ -298,7 +298,7 @@ namespace PMEditor
         //清理并生成
         private void MenuItem_Click_8(object sender, RoutedEventArgs e)
         {
-            operationInfo.Text = "正在清理并生成谱面 " + track.trackName;
+            operationInfo.Text = "正在清理并生成谱面 " + track.TrackName;
 
             Task.Run(() => { 
                 track.datapack.Clear(); 
@@ -307,7 +307,7 @@ namespace PMEditor
             {
                 Dispatcher.Invoke(() =>
                 {
-                    operationInfo.Text = "成功清理并生成谱面 " + track.trackName;
+                    operationInfo.Text = "成功清理并生成谱面 " + track.TrackName;
                 });
             });
 

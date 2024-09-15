@@ -20,7 +20,7 @@ namespace PMEditor.Controls
             startTime.Value = e.StartTime;
             endTime.Value = e.EndTime;
             functions.ItemsSource = EaseFunctions.functions.Keys;
-            functions.SelectedItem = e.easeFunctionID;
+            functions.SelectedItem = e.EaseFunctionID;
             eventType.SelectedIndex = e.TypeId;
             startValue.Value = e.StartValue;
             endValue.Value = e.EndValue;
@@ -35,7 +35,7 @@ namespace PMEditor.Controls
                 return;
             }
             //修改整个轨道上此类事件的类型
-            if(@event.parentList.events.Count > 1)
+            if(@event.parentList.Events.Count > 1)
             {
                 var result = MessageBox.Show(
                     "此轨道上有多个事件，无法修改类型\n可前往设置修改不再弹出提示",
@@ -51,8 +51,8 @@ namespace PMEditor.Controls
 
         private void Functions_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            @event.easeFunctionID = functions.SelectedValue.ToString();
-            @event.easeFunction = EaseFunctions.functions[@event.easeFunctionID];
+            @event.EaseFunctionID = functions.SelectedValue.ToString();
+            @event.easeFunction = EaseFunctions.functions[@event.EaseFunctionID];
         }
 
         private void startTime_PropertyChangeEvent(object sender, RoutedEventArgs e)
@@ -72,14 +72,14 @@ namespace PMEditor.Controls
         private void startValue_PropertyChangeEvent(object sender, RoutedEventArgs e)
         {
             var value = (double)((PropertyChangeEventArgs)e).PropertyValue;
-            @event.startValue = value;
+            @event.StartValue = value;
             (EditorWindow.Instance.page.Content as TrackEditorPage)?.UpdateEvent();
         }
 
         private void endValue_PropertyChangeEvent(object sender, RoutedEventArgs e)
         {
             var value = (double)((PropertyChangeEventArgs)e).PropertyValue;
-            @event.endValue = value;
+            @event.EndValue = value;
             (EditorWindow.Instance.page.Content as TrackEditorPage)?.UpdateEvent();
         }
     }

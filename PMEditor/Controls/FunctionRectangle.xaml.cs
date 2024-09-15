@@ -53,7 +53,7 @@ namespace PMEditor.Controls
         //右键删除此note
         private void Rectangle_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
-            function.parentLine.functions.Remove(function);
+            function.parentLine.Functions.Remove(function);
             TrackEditorPage.Instance.functionPanel.Children.Remove(this);
             OperationManager.AddOperation(new RemoveFunctionOperation(function, function.parentLine));
         }

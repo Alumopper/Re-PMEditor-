@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
+using NCalc;
 
 namespace PMEditor
 {
@@ -13,14 +14,14 @@ namespace PMEditor
     /// </summary>
     public partial class Track
     {
-        public string trackName;    //谱面名字
-        public string musicAuthor;  //曲师
-        public string trackAuthor;  //谱师
-        public double bpm;          //bpm
-        public double length;       //曲目长度
-        public string difficulty;   //谱面难度
-        public ObservableCollection<Line> lines;    //判定线
-        public Line freeLine;   //自由判定线
+        protected string trackName;    //谱面名字
+        protected string musicAuthor;  //曲师
+        protected string trackAuthor;  //谱师
+        protected double bpm;          //bpm
+        protected double length;       //曲目长度
+        protected string difficulty;   //谱面难度
+        protected ObservableCollection<Line> lines;    //判定线
+        protected Line freeLine;   //自由判定线
 
         #region getter and setter
         public string TrackName
@@ -92,12 +93,12 @@ namespace PMEditor
 
     public partial class Line
     {
-        public string id;           //判定线的名字
-        public double y;            //判定线的y坐标
-        public List<Note> notes;    //note
-        public List<FakeCatch> fakeCatch;
-        public List<EventList> eventLists;  //事件
-        public List<Function> functions;
+        protected string id;           //判定线的名字
+        protected double y;            //判定线的y坐标
+        protected List<Note> notes;    //note
+        protected List<FakeCatch> fakeCatch;
+        protected List<EventList> eventLists;  //事件
+        protected List<Function> functions;
 
         #region getter and setter
         public double Y
@@ -153,13 +154,13 @@ namespace PMEditor
 
     public partial class Note
     {
-        public int rail;                //轨道
-        public int noteType;            //note类型
-        public int fallType;            //掉落类型
-        public bool isFake;             //是否是假键
+        protected int rail;                //轨道
+        protected int noteType;            //note类型
+        protected int fallType;            //掉落类型
+        protected bool isFake;             //是否是假键
 
-        public double actualTime;       //准确的判定时间
-        public double actualHoldTime;   //准确的按住时间
+        protected double actualTime;       //准确的判定时间
+        protected double actualHoldTime;   //准确的按住时间
 
         #region getter and setter
         public int Rail
@@ -191,6 +192,11 @@ namespace PMEditor
         {
             get => actualHoldTime; set => actualHoldTime = value;
         }
+        
+        public string? ExpressionString
+        {
+            get => Expression?.ExpressionString; set => Expression = value == null || value == "null" ? null : new Expression(value);
+        }
 
         #endregion
 
@@ -203,11 +209,11 @@ namespace PMEditor
         }
 
         [JsonConstructor]
-        public Note(int rail, int noteType, int fallType, bool isFake, double actualTime, double actualHoldTime = 0)
-            : this(rail, noteType, fallType, isFake, actualTime, false, actualHoldTime) { }
+        public Note(int rail, int noteType, int fallType, bool isFake, double actualTime, double actualHoldTime = 0, string? expressionString = null)
+            : this(rail, noteType, fallType, isFake, actualTime, false, actualHoldTime, expressionString) { }
 
 
-        public Note(int rail, int noteType, int fallType, bool isFake, double actualTime, bool isCurrentLineNote, double actualHoldTime = 0)
+        public Note(int rail, int noteType, int fallType, bool isFake, double actualTime, bool isCurrentLineNote, double actualHoldTime = 0, string? expressionString = null)
         {
             this.rail = rail;
             this.noteType = noteType;
@@ -235,13 +241,15 @@ namespace PMEditor
                 rectangle.Fill = isCurrentLineNote ? new SolidColorBrush(EditorColors.catchColor) : new SolidColorBrush(EditorColors.catchColorButNotOnThisLine);
                 rectangle.HighLightBorderBrush = new SolidColorBrush (EditorColors.catchHighlightColor);
             }
+            
+            Expression = expressionString == null ? null : new Expression(expressionString);
         }
     }
 
     public partial class EventList
     {
-        public int typeId;
-        public List<Event> events;
+        protected int typeId;
+        protected List<Event> events;
 
         #region getter and setter
         public int TypeId
@@ -268,13 +276,13 @@ namespace PMEditor
 
     public partial class Event
     {
-        public double startTime;    //开始时间
-        public double endTime;      //终止时间
-        public int typeId;       //事件类型
-        public double startValue;   //开始值
-        public double endValue;     //结束值
-        public string easeFunctionID; //缓动函数
-        public Dictionary<string, object> properties;   //属性
+        protected double startTime;    //开始时间
+        protected double endTime;      //终止时间
+        protected int typeId;       //事件类型
+        protected double startValue;   //开始值
+        protected double endValue;     //结束值
+        protected string easeFunctionID; //缓动函数
+        protected Dictionary<string, object> properties;   //属性
 
         #region getter and setter
         public double StartTime
@@ -346,18 +354,18 @@ namespace PMEditor
 
     public partial class Function
     {
-        public double time;    //开始时间
-        public double rail;     //轨道
-        public string functionName; //函数名
+        protected double time;    //开始时间
+        protected int rail;     //轨道
+        protected string functionName; //函数名
 
         #region getter and setter
         public double Time { get => time; set => time = value; }
-        public double Rail { get => rail; set => rail = value; }
+        public int Rail { get => rail; set => rail = value; }
         public string FunctionName { get => functionName; set => functionName = value; }
         #endregion
 
         [JsonConstructor]
-        public Function(double time, double rail, string functionName)
+        public Function(double time, int rail, string functionName)
         {
             this.time = time;
             this.rail = rail;

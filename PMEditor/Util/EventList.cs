@@ -22,7 +22,7 @@ namespace PMEditor
             foreach (var item in events)
             {
                 item.type = type;
-                item.typeId = (int)type;
+                item.TypeId = (int)type;
                 item.rectangle.Fill = new System.Windows.Media.SolidColorBrush(EditorColors.GetEventColor(type));
                 item.rectangle.HighLightBorderBrush = new System.Windows.Media.SolidColorBrush(EditorColors.GetEventHighlightColor(type));
             }
@@ -30,10 +30,10 @@ namespace PMEditor
 
         public bool IsMainEvent()
         {
-            int index = parentLine.eventLists.IndexOf(this);
-            for(int i = 0; i < parentLine.eventLists.Count; i++)
+            int index = parentLine.EventLists.IndexOf(this);
+            for(int i = 0; i < parentLine.EventLists.Count; i++)
             {
-                if (parentLine.eventLists[i].type == type)
+                if (parentLine.EventLists[i].type == type)
                 {
                     return i == index;
                 }
@@ -44,22 +44,22 @@ namespace PMEditor
         public void GroupEvent()
         {
             double lastEndTime = -1;
-            Event headEvent = null;
+            Event? headEvent = null;
             foreach (var item in events)
             {
-                if(item.startTime > lastEndTime)
+                if(item.StartTime > lastEndTime)
                 {
                     item.isHeaderEvent = true;
                     item.EventGroup.Add(item);
                     headEvent = item;
                 }
-                else if (item.startTime == lastEndTime)
+                else if (item.StartTime == lastEndTime)
                 {
                     item.isHeaderEvent = false;
-                    headEvent.EventGroup.Add(item);
+                    headEvent!.EventGroup.Add(item);
 
                 }
-                lastEndTime = item.endTime;
+                lastEndTime = item.EndTime;
             }
         }
     }

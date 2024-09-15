@@ -15,7 +15,7 @@
         public override void Undo()
         {
             @event.parentList.GroupEvent();
-            list.events.Add(@event);
+            list.Events.Add(@event);
             TrackEditorPage.Instance.eventPanel.Children.Add(@event.rectangle);
             TrackEditorPage.Instance.UpdateEvent();
         }
@@ -23,7 +23,7 @@
         public override void Redo()
         {
             @event.parentList.GroupEvent();
-            list.events.Remove(@event);
+            list.Events.Remove(@event);
             TrackEditorPage.Instance.eventPanel.Children.Remove(@event.rectangle);
             @event.rectangle.Visibility = System.Windows.Visibility.Hidden;
             TrackEditorPage.Instance.UpdateEvent();

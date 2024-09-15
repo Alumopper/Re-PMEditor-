@@ -18,11 +18,11 @@ namespace PMEditor.Operation
         {
             if(note is FakeCatch f)
             {
-                line.fakeCatch.Add(f);
+                line.FakeCatch.Add(f);
             }
             else
             {
-                line.notes.Add(note);
+                line.Notes.Add(note);
             }
             TrackEditorPage.Instance.notePanel.Children.Add(note.rectangle);
             TrackEditorPage.Instance.UpdateNote();
@@ -36,7 +36,7 @@ namespace PMEditor.Operation
             }
             else
             {
-                line.notes.Remove(note);
+                line.Notes.Remove(note);
             }
             TrackEditorPage.Instance.notePanel.Children.Remove(note.rectangle);
             note.rectangle.Visibility = System.Windows.Visibility.Hidden;

@@ -182,5 +182,14 @@ namespace PMEditor
         }
 
     }
+    
+    public static class Extensions
+    {
+        public static T Apply<T>(this T obj, Action<T> action)
+        {
+            action(obj);
+            return obj;
+        }
+    }
 
 }

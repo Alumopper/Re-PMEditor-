@@ -1,4 +1,7 @@
-﻿using PMEditor.Util;
+﻿using System.Collections.Generic;
+using System.Text.Json.Serialization;
+using System.Windows.Documents;
+using PMEditor.Util;
 
 namespace PMEditor
 {
@@ -32,17 +35,17 @@ namespace PMEditor
         {
             foreach (var item in notes)
             {
-                if (item.rail != rail) continue;
+                if (item.Rail != rail) continue;
                 if(item.type == NoteType.Hold)
                 {
-                    if(item.actualTime < time && time < item.actualTime + item.actualHoldTime)
+                    if(item.ActualTime < time && time < item.ActualTime + item.ActualHoldTime)
                     {
                         return true;
                     }
                 }
                 else
                 {
-                    if(item.actualTime == time)
+                    if(item.ActualTime == time)
                     {
                         return true;
                     }
@@ -55,7 +58,7 @@ namespace PMEditor
         {
             foreach (var item in fakeCatch)
             {
-                if (item.rail == rail && item.actualTime == time)
+                if (item.Rail == rail && item.ActualTime == time)
                 {
                     return true;
                 }
@@ -66,9 +69,9 @@ namespace PMEditor
         public bool ClickOnEvent(double time, int rail)
         {
             if (eventLists.Count <= rail) return false;
-            foreach(var item in eventLists[rail].events)
+            foreach(var item in eventLists[rail].Events)
             {
-                if(item.startTime < time && time < item.endTime)
+                if(item.StartTime < time && time < item.EndTime)
                 {
                     return true;
                 }
@@ -80,7 +83,7 @@ namespace PMEditor
         {
             foreach (var item in functions)
             {
-                if (item.rail == rail && item.time == time)
+                if (item.Rail == rail && item.Time == time)
                 {
                     return true;
                 }
@@ -97,12 +100,12 @@ namespace PMEditor
             }
             double endValue = Event.GetDefaultValue(qwq);
             double endTime = 0;
-            foreach(Event item in eventLists[rail].events)
+            foreach(Event item in eventLists[rail].Events)
             {
-                if(item.endTime > endTime)
+                if(item.EndTime > endTime)
                 {
-                    endTime = item.endTime;
-                    endValue = item.endValue;
+                    endTime = item.EndTime;
+                    endValue = item.EndTime;
                 }
             }
             return endValue;
@@ -137,18 +140,18 @@ namespace PMEditor
                 bool isDefaultSpeed = true;
                 foreach(var e in list.Events)
                 {
-                    if (e.endTime <= time)
+                    if (e.EndTime <= time)
                     {
                         isDefaultSpeed = false;
-                        value = e.endValue;
+                        value = e.EndValue;
                     }
-                    if (e.startTime <= time && time <= e.endTime)
+                    if (e.StartTime <= time && time <= e.EndTime)
                     {
                         isDefaultSpeed = false;
-                        value = EaseFunctions.Interpolate(e.startValue, e.endValue, (time - e.startTime)/(e.endTime - e.startTime), e.easeFunction);
+                        value = EaseFunctions.Interpolate(e.StartValue, e.EndValue, (time - e.StartTime)/(e.EndTime - e.StartTime), e.easeFunction);
                         break;
                     }
-                    if (e.endTime > time) continue;
+                    if (e.EndTime > time) continue;
                 }
                 if (isDefaultSpeed)
                 {
@@ -179,7 +182,7 @@ namespace PMEditor
             for (int i = 0; i < eventLists.Count; i++)
             {
                 eventLists[i].parentLine = this;
-                eventLists[i].events.ForEach(e =>
+                eventLists[i].Events.ForEach(e =>
                 {
                     e.parentList = eventLists[i];
                     SetType(e.type, i);

@@ -14,13 +14,13 @@
 
         public override void Redo()
         {
-            line.notes.Add(note);
+            line.Notes.Add(note);
             TrackEditorPage.Instance.UpdateNote();
         }
 
         public override void Undo()
         {
-            line.notes.Remove(note);
+            line.Notes.Remove(note);
             TrackEditorPage.Instance.notePanel.Children.Remove(note.rectangle);
             note.rectangle.Visibility = System.Windows.Visibility.Hidden;
             TrackEditorPage.Instance.UpdateNote();

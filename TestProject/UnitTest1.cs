@@ -9,8 +9,8 @@ namespace TestProject
         public void TestMethod1()
         {
             Line line = new(0);
-            line.eventLists.Add(new EventList(line));
-            line.eventLists[0].events = new()
+            line.EventLists.Add(new EventList(line));
+            line.EventLists[0].Events = new()
             {
                 new Event(
                     0,

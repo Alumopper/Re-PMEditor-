@@ -1,4 +1,5 @@
-﻿using PMEditor.Util;
+﻿using System.Collections.Generic;
+using PMEditor.Util;
 using System.IO;
 using System.Text.Json;
 
@@ -14,20 +15,18 @@ namespace PMEditor
             get
             {
                 int count = 0;
-                foreach (var line in lines)
+                foreach (var line in AllLines)
                 {
-                    foreach (var note in line.notes)
+                    foreach (var note in line.Notes)
                     {
                         count += note.GetCount();
                     }
                 }
-                foreach (var note in freeLine.Notes)
-                {
-                    count += note.GetCount();
-                }
                 return count;
             }
         }
+        
+        public List<Line> AllLines => new (lines) { freeLine };
 
         public void Init()
         {
@@ -59,7 +58,7 @@ namespace PMEditor
 
         public string ToJsonString()
         {
-            return JsonSerializer.Serialize(this, new JsonSerializerOptions() { WriteIndented = true });
+            return JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
         }
     }
 }

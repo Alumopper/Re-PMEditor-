@@ -7,7 +7,7 @@ namespace PMEditor.Util
     {
         public static Settings currSetting;
 
-        public List<string> canSelectedSpeedList { get; set; } = new List<string>() { "1.0", "0.25", "0.5", "0.75", "1.0", "1.25", "1.5", "1.75", "2.0" };
+        public List<string> canSelectedSpeedList { get; set; }
 
         public double Tick { get; set; } = 20;
 
