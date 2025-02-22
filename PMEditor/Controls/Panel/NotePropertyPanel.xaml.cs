@@ -50,21 +50,21 @@ namespace PMEditor.Controls
         {
             var value = (double)((PropertyChangeEventArgs)e).PropertyValue;
             note.ActualTime = value;
-            (EditorWindow.Instance.page.Content as TrackEditorPage)?.UpdateNote();
+            (EditorWindow.Instance.Page.Content as TrackEditorPage)?.UpdateNote();
         }
 
         private void endTime_PropertyChangeEvent(object sender, RoutedEventArgs e)
         {
             var value = (double)((PropertyChangeEventArgs)e).PropertyValue;
             note.ActualHoldTime = value - note.ActualTime;
-            (EditorWindow.Instance.page.Content as TrackEditorPage)?.UpdateNote();
+            (EditorWindow.Instance.Page.Content as TrackEditorPage)?.UpdateNote();
         }
 
         private void fakeCatchHeight_PropertyChangeEvent(object sender, RoutedEventArgs e)
         {
             var value = (double)((PropertyChangeEventArgs)e).PropertyValue;
             (note as FakeCatch)!.Height = value;
-            (EditorWindow.Instance.page.Content as TrackEditorPage)?.UpdateNote();
+            (EditorWindow.Instance.Page.Content as TrackEditorPage)?.UpdateNote();
         }
 
         private void noteType_PropertyChangeEvent(object sender, RoutedEventArgs e)
@@ -80,7 +80,7 @@ namespace PMEditor.Controls
             if (!expr.HasErrors())
             {
                 note.Expression = expr;
-                (EditorWindow.Instance.page.Content as TrackEditorPage)?.UpdateNote();
+                (EditorWindow.Instance.Page.Content as TrackEditorPage)?.UpdateNote();
             }
             else
             {

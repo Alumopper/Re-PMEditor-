@@ -90,7 +90,7 @@ namespace PMEditor
             {
                 this.Title = "Re:PMEditor - " + info.TrackName + " *";
             }
-            this.operationInfo.Text = "撤销了 " + op!.GetInfo();
+            this.OperationInfo.Text = "撤销了 " + op!.GetInfo();
         }
 
         //重做
@@ -111,7 +111,7 @@ namespace PMEditor
             {
                 this.Title = "Re:PMEditor - " + info.TrackName + " *";
             }
-            this.operationInfo.Text = "重做了 " + op!.GetInfo();
+            this.OperationInfo.Text = "重做了 " + op!.GetInfo();
         }
 
         //保存
@@ -126,7 +126,7 @@ namespace PMEditor
             this.Title = "Re:PMEditor - " + info.TrackName;
             string text = track.ToJsonString();
             File.WriteAllText("./tracks/" + track.TrackName + "/track.json", text);
-            this.operationInfo.Text = "谱面文件已保存";
+            this.OperationInfo.Text = "谱面文件已保存";
         }
     }
 }

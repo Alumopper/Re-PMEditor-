@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Serialization;
 using System.Windows.Documents;
 using PMEditor.Util;
@@ -56,39 +57,18 @@ namespace PMEditor
 
         public bool ClickOnFakeCatch(double time, int rail)
         {
-            foreach (var item in fakeCatch)
-            {
-                if (item.Rail == rail && item.ActualTime == time)
-                {
-                    return true;
-                }
-            }
-            return false;
+            return fakeCatch.Any(item => item.Rail == rail && item.ActualTime == time);
         }
 
         public bool ClickOnEvent(double time, int rail)
         {
             if (eventLists.Count <= rail) return false;
-            foreach(var item in eventLists[rail].Events)
-            {
-                if(item.StartTime < time && time < item.EndTime)
-                {
-                    return true;
-                }
-            }
-            return false;
+            return eventLists[rail].Events.Any(item => item.StartTime < time && time < item.EndTime);
         }
 
         public bool ClickOnFunction(double time, int rail)
         {
-            foreach (var item in functions)
-            {
-                if (item.Rail == rail && item.Time == time)
-                {
-                    return true;
-                }
-            }
-            return false;
+            return functions.Any(item => item.Rail == rail && item.Time == time);
         }
 
         public double GetLastEventValue(int rail)
@@ -98,9 +78,9 @@ namespace PMEditor
             {
                 return double.NaN;
             }
-            double endValue = Event.GetDefaultValue(qwq);
+            var endValue = Event.GetDefaultValue(qwq);
             double endTime = 0;
-            foreach(Event item in eventLists[rail].Events)
+            foreach(var item in eventLists[rail].Events)
             {
                 if(item.EndTime > endTime)
                 {
@@ -132,12 +112,12 @@ namespace PMEditor
         /// <returns></returns>
         public double GetSpeed(double time)
         {
-            double speed = Event.GetDefaultValue(EventType.Speed);
+            var speed = Event.GetDefaultValue(EventType.Speed);
             foreach (var list in eventLists)
             {
                 if(list.type != EventType.Speed) continue;
                 double value = 0;
-                bool isDefaultSpeed = true;
+                var isDefaultSpeed = true;
                 foreach(var e in list.Events)
                 {
                     if (e.EndTime <= time)
@@ -148,10 +128,9 @@ namespace PMEditor
                     if (e.StartTime <= time && time <= e.EndTime)
                     {
                         isDefaultSpeed = false;
-                        value = EaseFunctions.Interpolate(e.StartValue, e.EndValue, (time - e.StartTime)/(e.EndTime - e.StartTime), e.easeFunction);
+                        value = EaseFunctions.Interpolate(e.StartValue, e.EndValue, (time - e.StartTime)/(e.EndTime - e.StartTime), e.EaseFunction);
                         break;
                     }
-                    if (e.EndTime > time) continue;
                 }
                 if (isDefaultSpeed)
                 {
@@ -184,8 +163,8 @@ namespace PMEditor
                 eventLists[i].parentLine = this;
                 eventLists[i].Events.ForEach(e =>
                 {
-                    e.parentList = eventLists[i];
-                    SetType(e.type, i);
+                    e.ParentList = eventLists[i];
+                    SetType(e.Type, i);
                 });
                 eventLists[i].GroupEvent();
             }

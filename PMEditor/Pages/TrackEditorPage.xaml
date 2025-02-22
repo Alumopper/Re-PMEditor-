@@ -44,8 +44,8 @@
                     <ColumnDefinition Width="170*"/>
                     <ColumnDefinition Width="13*"/>
                 </Grid.ColumnDefinitions>
-                <ScrollViewer x:Name="a" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto">
-                    <ListView x:Name="lineListView" BorderThickness="0" Margin="10,10,0,10" Background="Transparent" Foreground="White" Grid.ColumnSpan="2"
+                <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto">
+                    <ListView x:Name="LineListView" BorderThickness="0" Margin="10,10,0,10" Background="Transparent" Foreground="White" Grid.ColumnSpan="2"
                               SelectionChanged="lineListView_SelectionChanged">
                         <ListView.ItemContainerStyle>
                             <Style TargetType="ListViewItem">
@@ -94,24 +94,25 @@
                 <RowDefinition Height="33"/>
             </Grid.RowDefinitions>
             <!--判定线拍数-->
-            <Canvas Grid.Column="0" Grid.Row="1" x:Name="beatDisplay" Margin="9,6,-7,11" HorizontalAlignment="Stretch"/>
+            <Canvas Grid.Column="0" Grid.Row="1" x:Name="BeatDisplay" Margin="9,6,-7,11" HorizontalAlignment="Stretch"/>
             <!--信息-->
             <Canvas Grid.Column="1" Grid.Row="0" Margin="9,0,5,0">
-                <Label Name="beatDis" Content="beat 0:0/0" Foreground="White" FontSize="14" FontFamily="Consolas" Canvas.Left="0" Canvas.Top="12"/>
+                <Label Name="BeatDis" Content="beat 0:0/0" Foreground="White" FontSize="14" FontFamily="Consolas" Canvas.Left="0" Canvas.Top="12"/>
                 <WrapPanel Canvas.Left="0" Canvas.Bottom="-5">
-                    <Label x:Name="timeDis" Content="0.0/0.0s" Width="150" Foreground="White" Height="25" FontSize="14" FontFamily="Consolas"/>
-                    <Label x:Name="heightDis" Content="Fake Catch高度: 0.0" Foreground="White" FontSize="14" FontFamily="Consolas"/>
+                    <Label x:Name="TimeDis" Content="0.0/0.0s" Width="150" Foreground="White" Height="25" FontSize="14" FontFamily="Consolas"/>
+                    <Label x:Name="HeightDis" Content="Fake Catch高度: 0.0" Foreground="White" FontSize="14" FontFamily="Consolas"/>
                 </WrapPanel>
                 <WrapPanel Canvas.Right="0" Canvas.Bottom="0" Margin="0,0,5,0">
                     <Label Content="倍速: " Foreground="White"/>
-                    <ComboBox SelectedIndex="0" Name="speedChooseBox" Width="60" SelectionChanged="ComboBox_SelectionChanged" Foreground="Black" MouseEnter="speedChooseBox_MouseEnter" MouseLeave="speedChooseBox_MouseLeave"/>
+                    <ComboBox SelectedIndex="0" Name="SpeedChooseBox" Width="60" SelectionChanged="ComboBox_SelectionChanged" Foreground="Black" MouseEnter="speedChooseBox_MouseEnter" MouseLeave="speedChooseBox_MouseLeave"/>
                 </WrapPanel>
             </Canvas>
             <!--谱面编辑-->
             <Border BorderBrush="#FF61207B" Grid.Row="1" Grid.Column="1" BorderThickness="1,1,1,1" Margin="9,5,5,10">
                 <Grid MouseWheel="notePanel_MouseWheel" Background="Black">
                     <!--判定线和辅助格-->
-                    <Canvas Name="lineDisplay">
+                    <Canvas>
+                        <TextBlock Foreground="White" Text="FPS: " Name="Fps"></TextBlock>
                         <Grid Width="{Binding ElementName=notePanel, Path=ActualWidth}" Height="{Binding ElementName=notePanel, Path=ActualHeight}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -132,7 +133,7 @@
                     </Canvas>
                     <!--序号列表-->
                     <Canvas>
-                        <Grid x:Name="columnInfo" Width="{Binding ElementName=notePanel, Path=ActualWidth}" Height="{Binding ElementName=notePanel, Path=ActualHeight}">
+                        <Grid x:Name="ColumnInfo" Width="{Binding ElementName=notePanel, Path=ActualWidth}" Height="{Binding ElementName=notePanel, Path=ActualHeight}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>

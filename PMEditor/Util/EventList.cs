@@ -21,10 +21,10 @@ namespace PMEditor
             this.typeId = (int)type;
             foreach (var item in events)
             {
-                item.type = type;
+                item.Type = type;
                 item.TypeId = (int)type;
-                item.rectangle.Fill = new System.Windows.Media.SolidColorBrush(EditorColors.GetEventColor(type));
-                item.rectangle.HighLightBorderBrush = new System.Windows.Media.SolidColorBrush(EditorColors.GetEventHighlightColor(type));
+                item.Rectangle.Fill = new System.Windows.Media.SolidColorBrush(EditorColors.GetEventColor(type));
+                item.Rectangle.HighLightBorderBrush = new System.Windows.Media.SolidColorBrush(EditorColors.GetEventHighlightColor(type));
             }
         }
 
@@ -49,13 +49,13 @@ namespace PMEditor
             {
                 if(item.StartTime > lastEndTime)
                 {
-                    item.isHeaderEvent = true;
+                    item.IsHeaderEvent = true;
                     item.EventGroup.Add(item);
                     headEvent = item;
                 }
                 else if (item.StartTime == lastEndTime)
                 {
-                    item.isHeaderEvent = false;
+                    item.IsHeaderEvent = false;
                     headEvent!.EventGroup.Add(item);
 
                 }

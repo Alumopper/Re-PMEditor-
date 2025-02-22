@@ -16,7 +16,7 @@ namespace PMEditor.Pages
             MapName.Text = EditorWindow.Instance.track.TrackName;
             MapAuthor.Text = EditorWindow.Instance.track.TrackAuthor;
             MusicAuthor.Text = EditorWindow.Instance.track.MusicAuthor;
-            BPM.Text = EditorWindow.Instance.track.Bpm.ToString();
+            BPM.Text = EditorWindow.Instance.track.BaseBpm.ToString();
             MapLevel.Text = EditorWindow.Instance.track.Difficulty;
             MapLength.Text = Settings.currSetting.MapLength.ToString();
             
@@ -30,7 +30,7 @@ namespace PMEditor.Pages
             EditorWindow.Instance.track.TrackName = MapName.Text;
             EditorWindow.Instance.track.TrackAuthor = MapAuthor.Text;
             EditorWindow.Instance.track.MusicAuthor = MusicAuthor.Text;
-            EditorWindow.Instance.track.Bpm = double.Parse(BPM.Text);
+            EditorWindow.Instance.track.BaseBpm = double.Parse(BPM.Text);
             EditorWindow.Instance.track.Difficulty = MapLevel.Text;
             Settings.currSetting.MapLength = double.Parse(MapLength.Text);
             Settings.currSetting.Tick = double.Parse(TickValue.Text);

@@ -6,7 +6,12 @@ using System.IO;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 using NCalc;
+// ReSharper disable MemberCanBePrivate.Global
+// ReSharper disable InconsistentNaming
+// ReSharper disable PropertyCanBeMadeInitOnly.Global
 
+// ReSharper disable once CheckNamespace        
+#pragma warning disable CS8618
 namespace PMEditor
 {
     /// <summary>
@@ -17,11 +22,12 @@ namespace PMEditor
         protected string trackName;    //谱面名字
         protected string musicAuthor;  //曲师
         protected string trackAuthor;  //谱师
-        protected double bpm;          //bpm
+        protected double baseBpm;          //bpm
         protected double length;       //曲目长度
         protected string difficulty;   //谱面难度
         protected ObservableCollection<Line> lines;    //判定线
-        protected Line freeLine;   //自由判定线
+        protected Line freeLine = new();   //自由判定线
+        protected ObservableCollection<BpmInfo> bpmInfo;
 
         #region getter and setter
         public string TrackName
@@ -42,10 +48,10 @@ namespace PMEditor
             set { trackAuthor = value; }
         }
 
-        public double Bpm
+        public double BaseBpm
         {
-            get { return bpm; }
-            set { bpm = value; }
+            get { return baseBpm; }
+            set { baseBpm = value; }
         }
 
         public double Length
@@ -71,24 +77,71 @@ namespace PMEditor
             get { return freeLine; }
             set { freeLine = value; }
         }
+        
+        public ObservableCollection<BpmInfo> BpmInfo
+        {
+            get { return bpmInfo; }
+            set { bpmInfo = value; }
+        }
         #endregion
 
-        public Track(string trackName, string musicAuthor, string trackAuthor, double bpm, double length, string difficulty)
+        public Track(string trackName, string musicAuthor, string trackAuthor, double baseBpm, double length, string difficulty)
         {
             this.trackName = trackName;
             this.musicAuthor = musicAuthor;
             this.trackAuthor = trackAuthor;
-            this.bpm = bpm;
+            this.baseBpm = baseBpm;
             this.length = length;
             this.difficulty = difficulty;
-            this.lines = new();
+            this.lines = new ObservableCollection<Line>();
             lines.Add(new Line());
-            freeLine = new();
+            this.bpmInfo = new ObservableCollection<BpmInfo>();
 
-            target = new DirectoryInfo("./tracks/" + trackName + "/out/" + trackName);
-            datapack = new(target, trackName);
+            Target = new DirectoryInfo("./tracks/" + trackName + "/out/" + trackName);
+            Datapack = new DatapackGenerator(Target, trackName);
         }
 
+    }
+
+    public class BpmInfo
+    {
+        protected double value;
+        protected int startMeasure;
+        protected int endMeasure;
+        
+        #region getter and setter
+        public double Value
+        {
+            get { return value; }
+            set { this.value = value; }
+        }
+        
+        public int StartMeasure
+        {
+            get { return startMeasure; }
+            set { startMeasure = value; }
+        }
+        
+        public int EndMeasure
+        {
+            get { return endMeasure; }
+            set { endMeasure = value; }
+        }
+        
+        #endregion
+
+        public BpmInfo(double value, int startMeasure, int endMeasure)
+        {
+            this.value = value;
+            this.startMeasure = startMeasure;
+            this.endMeasure = endMeasure;
+        }
+
+        public BpmInfo Clone()
+        {
+            return new BpmInfo(value, startMeasure, endMeasure);
+        }
+        
     }
 
     public partial class Line
@@ -212,7 +265,7 @@ namespace PMEditor
         public Note(int rail, int noteType, int fallType, bool isFake, double actualTime, double actualHoldTime = 0, string? expressionString = null)
             : this(rail, noteType, fallType, isFake, actualTime, false, actualHoldTime, expressionString) { }
 
-
+        
         public Note(int rail, int noteType, int fallType, bool isFake, double actualTime, bool isCurrentLineNote, double actualHoldTime = 0, string? expressionString = null)
         {
             this.rail = rail;
@@ -340,13 +393,13 @@ namespace PMEditor
             this.startValue = startValue;
             this.endValue = endValue;
 
-            this.easeFunction = EaseFunctions.functions[easeFunctionID];
-            this.type = (EventType)Enum.Parse(typeof(EventType), typeId.ToString());
+            this.EaseFunction = EaseFunctions.functions[easeFunctionID];
+            this.Type = (EventType)Enum.Parse(typeof(EventType), typeId.ToString());
 
-            rectangle = new(this)
+            Rectangle = new(this)
             {
-                Fill = new SolidColorBrush(EditorColors.GetEventColor(type)),
-                HighLightBorderBrush = new SolidColorBrush(EditorColors.GetEventHighlightColor(type))
+                Fill = new SolidColorBrush(EditorColors.GetEventColor(Type)),
+                HighLightBorderBrush = new SolidColorBrush(EditorColors.GetEventHighlightColor(Type))
             };
             this.properties = properties;
         }

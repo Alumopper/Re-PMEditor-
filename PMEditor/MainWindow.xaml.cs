@@ -12,6 +12,7 @@ namespace PMEditor
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
+    // ReSharper disable once RedundantExtendsListEntry
     public partial class MainWindow : Window
     {
         public MainWindow()
@@ -22,12 +23,11 @@ namespace PMEditor
             DebugWindow debugWindow = new();
             debugWindow.Show();
 #endif
+            DebugWindow.Log("刚刚启动");
             //文件夹修改监视
-            FileSystemWatcher watcher = new FileSystemWatcher(@"./tracks/")
-            {
-                IncludeSubdirectories = true,
-                Filter = "*.txt"
-            };
+            using var watcher = new FileSystemWatcher(@"./tracks/");
+            watcher.IncludeSubdirectories = true;
+            watcher.Filter = "*.txt";
             watcher.Changed += Flush;
             watcher.Renamed += Flush;
             watcher.Deleted += Flush;
@@ -41,52 +41,53 @@ namespace PMEditor
 
         private void CreateButton_Click(object sender, RoutedEventArgs e)
         {
-            CreateTrack createTrack = new CreateTrack();
-            if (createTrack.ShowDialog() == true)
+            DebugWindow.Log("正在创建谱面");
+            var createTrack = new CreateTrack();
+            if (createTrack.ShowDialog() != true)
             {
-                EditorWindow editorWindow = new EditorWindow(createTrack.TrackInfo, Track.GetTrack(new FileInfo("./tracks/" + createTrack.TrackInfo.TrackName + "/track.json")));
-                editorWindow.Show();
-                this.Close();
+                DebugWindow.Log("创建谱面窗口被取消");
+                return;
             }
+            var editorWindow = new EditorWindow(createTrack.TrackInfo, Track.GetTrack(new FileInfo("./tracks/" + createTrack.TrackInfo.TrackName + "/track.json")));
+            editorWindow.Show();
+            this.Close();
+            DebugWindow.Log("导航窗口关闭");
         }
 
-        private void Button_Click_1(object sender, RoutedEventArgs e)
+        private void OpenTrackButtonClick(object? sender, RoutedEventArgs? e)
         {
-            if (trackList.SelectedItem is TrackInfo curr)
-            {
-                Track? track = Track.GetTrack(new FileInfo("./tracks/" + curr.TrackName + "/track.json"));
-                if (track != null)
-                {
-                    EditorWindow.Instance?.Close();
-                    EditorWindow editorWindow = new EditorWindow(curr, track);
-                    editorWindow.Show();
-                    this.Close();
-                }
-            }
+            if (trackList.SelectedItem is not TrackInfo curr) return;
+            DebugWindow.Log("正在读取谱面");
+            var track = Track.GetTrack(new FileInfo("./tracks/" + curr.TrackName + "/track.json"));
+            // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
+            EditorWindow.Instance?.Close();
+            var editorWindow = new EditorWindow(curr, track);
+            editorWindow.Show();
+            this.Close();
+            DebugWindow.Log("导航窗口关闭");
         }
 
         /// <summary>
         /// 刷新文件列表
         /// </summary>
-        private void Flush(object sender, FileSystemEventArgs e)
+        private void Flush(object? sender, FileSystemEventArgs? e)
         {
-            DirectoryInfo directoryInfo = new DirectoryInfo(@"./tracks/");
-            foreach (DirectoryInfo track in directoryInfo.GetDirectories())
+            DebugWindow.Log("正在刷新谱面列表");
+            var directoryInfo = new DirectoryInfo("./tracks/");
+            foreach (var track in directoryInfo.GetDirectories())
             {
-                foreach (FileInfo file in track.GetFiles())
+                foreach (var file in track.GetFiles())
                 {
-                    if (file.Name == "info.txt")
+                    if (file.Name != "info.txt") continue;
+                    var streamReader = new StreamReader(file.Open(FileMode.Open));
+                    var trackName = streamReader.ReadLine();
+                    var musicAuthor = streamReader.ReadLine();
+                    var trackAuthor = streamReader.ReadLine();
+                    if (trackName != null && trackAuthor != null && musicAuthor != null)
                     {
-                        StreamReader streamReader = new StreamReader(file.Open(FileMode.Open));
-                        string? trackName = streamReader.ReadLine();
-                        string? musicAuthor = streamReader.ReadLine();
-                        string? trackAuthor = streamReader.ReadLine();
-                        if (trackName != null && trackAuthor != null && musicAuthor != null)
-                        {
-                            trackList.Items.Add(new TrackInfo(trackName, musicAuthor, trackAuthor));
-                        }
-                        streamReader.Close();
+                        trackList.Items.Add(new TrackInfo(trackName, musicAuthor, trackAuthor));
                     }
+                    streamReader.Close();
                 }
             }
         }
@@ -96,13 +97,15 @@ namespace PMEditor
             //删除谱面
             if (trackList.SelectedItem is TrackInfo curr)
             {
+                DebugWindow.Log($"删除谱面 {curr.TrackName}");
                 Directory.Delete("./tracks/" + curr.TrackName, true);
             }
             trackList.Items.Remove(trackList.SelectedItem);
             Flush(null, null);
         }
 
-        int i = 0;
+        // ReSharper disable once RedundantDefaultMemberInitializer
+        private int i = 0;
         private void Grid_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.LeftButton != MouseButtonState.Pressed)
@@ -110,11 +113,11 @@ namespace PMEditor
                 return;
             }
             i += 1;
-            DispatcherTimer timer = new DispatcherTimer()
+            var timer = new DispatcherTimer
             {
                 Interval = new TimeSpan(0, 0, 0, 0, 100),
             };
-            timer.Tick += (sender, e) =>
+            timer.Tick += (_, _) =>
             {
                 timer.IsEnabled = false;
                 i = 0;
@@ -124,7 +127,7 @@ namespace PMEditor
             {
                 timer.IsEnabled = false;
                 i = 0;
-                Button_Click_1(null, null);
+                OpenTrackButtonClick(null, null);
             }
         }
 
@@ -136,22 +139,19 @@ namespace PMEditor
         private void MenuItem_Click_1(object sender, RoutedEventArgs e)
         {
             //导出为mcfunction
-            if (trackList.SelectedItem is TrackInfo curr)
+            if (trackList.SelectedItem is not TrackInfo curr) return;
+            DebugWindow.Log($"正在导出谱面 {curr.TrackName} 为数据包");
+            var track = Track.GetTrack(new FileInfo("./tracks/" + curr.TrackName + "/track.json"));
+            FolderBrowserDialog saveFileDialog = new();
+            if (saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                Track? track = Track.GetTrack(new FileInfo("./tracks/" + curr.TrackName + "/track.json"));
-                if (track == null) return;
-                FolderBrowserDialog saveFileDialog = new();
-                if (saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                Task.Run(() => NBTTrack.FromTrack(track).ToFrameFunctions(new DirectoryInfo(saveFileDialog.SelectedPath))).ContinueWith(_ =>
                 {
-                    Task.Run(() => NBTTrack.FromTrack(track).ToFrameFunctions(new(saveFileDialog.SelectedPath))).ContinueWith((t) =>
+                    Dispatcher.Invoke(() =>
                     {
-                        Dispatcher.Invoke(() =>
-                        {
-                            var re = System.Windows.MessageBox.Show("成功导出帧序列到 " + saveFileDialog.SelectedPath, "成功", MessageBoxButton.OK, MessageBoxImage.Information);
-                        });
+                        System.Windows.MessageBox.Show("成功导出帧序列到 " + saveFileDialog.SelectedPath, "成功", MessageBoxButton.OK, MessageBoxImage.Information);
                     });
-
-                }
+                });
             }
 
         }

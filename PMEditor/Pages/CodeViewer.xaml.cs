@@ -16,13 +16,13 @@ namespace PMEditor
         public CodeViewer()
         {
             IHighlightingDefinition highlightingDefinition;
-            string projName = Assembly.GetExecutingAssembly().GetName().Name;
-            using (Stream s = Assembly.GetExecutingAssembly().GetManifestResourceStream(projName + ".Json.xshd"))
+            string projName = Assembly.GetExecutingAssembly().GetName().Name!;
+            using (Stream s = Assembly.GetExecutingAssembly().GetManifestResourceStream(projName + ".Json.xshd")!)
             {
                 using XmlReader reader = new XmlTextReader(s);
                 highlightingDefinition = HighlightingLoader.Load(reader, HighlightingManager.Instance);
             }
-            HighlightingManager.Instance.RegisterHighlighting("JsonHighlighting", new string[] { ".json" }, highlightingDefinition);
+            HighlightingManager.Instance.RegisterHighlighting("JsonHighlighting", new[] { ".json" }, highlightingDefinition);
             InitializeComponent();
             jsonViewer.Text = EditorWindow.Instance.track.ToJsonString();
             jsonViewer.SyntaxHighlighting = HighlightingManager.Instance.GetDefinition("JsonHighlighting");

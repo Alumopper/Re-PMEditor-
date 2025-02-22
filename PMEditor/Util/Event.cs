@@ -7,25 +7,25 @@ namespace PMEditor
 {
     public partial class Event
     {
-        public EventList parentList;
+        public EventList ParentList;
 
         public static EventType puttingEvent = EventType.Speed;
 
-        public EventRectangle rectangle;
+        public readonly EventRectangle Rectangle;
 
-        public bool isHeaderEvent;
+        public bool IsHeaderEvent;
 
-        public List<Event> EventGroup = new();
+        public readonly List<Event> EventGroup = new();
 
-        public EventType type;
+        public EventType Type;
 
-        public Func<double, double> easeFunction;
+        public Func<double, double> EaseFunction;
 
         public Color Color
         {
             set
             {
-                rectangle.Fill = new SolidColorBrush(value);
+                Rectangle.Fill = new SolidColorBrush(value);
             }
         }
 
@@ -34,12 +34,12 @@ namespace PMEditor
 
         public void SetType(EventType type)
         {
-            this.type = type;
+            this.Type = type;
             this.typeId = (int)type;
-            easeFunction = EaseFunctions.functions[easeFunctionID];
-            rectangle.UpdateText();
-            this.rectangle.Fill = new SolidColorBrush(EditorColors.GetEventColor(type));
-            this.rectangle.HighLightBorderBrush = new SolidColorBrush(EditorColors.GetEventHighlightColor(type));
+            EaseFunction = EaseFunctions.functions[easeFunctionID];
+            Rectangle.UpdateText();
+            this.Rectangle.Fill = new SolidColorBrush(EditorColors.GetEventColor(type));
+            this.Rectangle.HighLightBorderBrush = new SolidColorBrush(EditorColors.GetEventHighlightColor(type));
         }
 
         public static Dictionary<string, object> InitProperties(EventType type)
@@ -50,7 +50,7 @@ namespace PMEditor
 
         public override string ToString()
         {
-            return $"Event[line={parentList.parentLine.Id},type={type}]";
+            return $"Event[line={ParentList.parentLine.Id},type={Type}]";
         }
 
         public static string TypeString(EventType type)
@@ -76,7 +76,7 @@ namespace PMEditor
     }
 
     public enum EventType
-    {
+    { 
         Speed, YPosition, Unknown
     }
 }

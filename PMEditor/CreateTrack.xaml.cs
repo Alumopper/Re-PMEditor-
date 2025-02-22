@@ -38,7 +38,7 @@ namespace PMEditor
         {
             //调用python
             Process p = new();
-            string args = @"python ./lib/getbpm.py " + "\"" + chosenFile.FullName + "\"" + "&exit";
+            var args = @"python ./lib/getbpm.py " + "\"" + chosenFile.FullName + "\"" + "&exit";
 
             p.StartInfo.FileName = @"cmd.exe";
             p.StartInfo.UseShellExecute = false;
@@ -54,7 +54,7 @@ namespace PMEditor
             {
                 output = p.StandardOutput.ReadLine();
             }
-            bpm.Text = output;
+            Bpm.Text = output;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -67,23 +67,23 @@ namespace PMEditor
             if (openFileDialog.ShowDialog() == true)
             {
                 chosenFile = new FileInfo(openFileDialog.FileName);
-                string file = chosenFile.Name;
-                fileName.Text = file;
+                var file = chosenFile.Name;
+                FileName.Text = file;
             }
         }
 
         //创建谱面
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            if(fileName.Text == "" || musicAuthor.Text == "" || trackAuthor.Text == "" || bpm.Text == "" || difficulty.Text == "")
+            if(FileName.Text == "" || MusicAuthor.Text == "" || TrackAuthor.Text == "" || Bpm.Text == "" || Difficulty.Text == "")
             {
                 MessageBox.Show("请填写完整信息", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
             //创建文件夹和文件
-            string trackName = fileName.Text[..fileName.Text.LastIndexOf(".")];
-            string ma = musicAuthor.Text;
-            string ta = trackAuthor.Text;
+            string trackName = FileName.Text[..FileName.Text.LastIndexOf(".", StringComparison.Ordinal)];
+            string ma = MusicAuthor.Text;
+            string ta = TrackAuthor.Text;
             MediaPlayer md = new();
             double time = 0;
             md.Open(new Uri(chosenFile.FullName));
@@ -96,7 +96,7 @@ namespace PMEditor
                 Directory.CreateDirectory("./tracks/" + trackName);
                 File.WriteAllText("./tracks/" + trackName + "/info.txt", trackInfo.ToString()); //info
                 File.Copy(chosenFile.FullName, "./tracks/" + trackName + "/" + chosenFile.Name, true);  //音频
-                File.WriteAllText("./tracks/" + trackName + "/track.json", new Track(trackName, ma, ta, double.Parse(bpm.Text), time, difficulty.Text).ToJsonString());
+                File.WriteAllText("./tracks/" + trackName + "/track.json", new Track(trackName, ma, ta, double.Parse(Bpm.Text), time, Difficulty.Text).ToJsonString());
                 this.DialogResult = true;
                 this.Close();
             };

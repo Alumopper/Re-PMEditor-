@@ -28,7 +28,7 @@ namespace PMEditor
 
         public bool TryLink(Track track, bool autoCreate = false)
         {
-            var dir = track.datapack.FrameFunction;
+            var dir = track.Datapack.FrameFunction;
             linkedFile = new FileInfo(Path.Combine(dir.FullName, LegalName + ".mcfunction"));
             if(linkedFile.Exists)
             {

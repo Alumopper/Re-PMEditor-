@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -18,12 +19,12 @@ namespace PMEditor
         /// <summary>
         /// 这个矩形对应的note
         /// </summary>
-        public Event @event;
+        public Event Event;
 
         public EventRectangle(Event @event)
         {
             InitializeComponent();
-            this.@event = @event;
+            this.Event = @event;
             startValue.Text = @event.StartValue.ToString();
             endValue.Text = @event.EndTime.ToString();
         }
@@ -62,8 +63,8 @@ namespace PMEditor
         public double EventHeight
         {
             get {
-                double a = TrackEditorPage.Instance.GetYFromTime(@event.StartTime);
-                double b = TrackEditorPage.Instance.GetYFromTime(@event.EndTime);
+                var a = TrackEditorPage.Instance!.GetBottomYFromTime(Event.StartTime);
+                var b = TrackEditorPage.Instance.GetBottomYFromTime(Event.EndTime);
                 return Math.Abs(a - b);
             }
         }
@@ -72,31 +73,31 @@ namespace PMEditor
         {
             //获取曲线的较大点和较小点
             double max = double.MinValue, min = double.MaxValue;
-            foreach(EventRectangle eventRectangle in eventRectangles)
+            foreach(var eventRectangle in eventRectangles)
             {
-                max = Math.Max(max, eventRectangle.@event.StartValue);
-                max = Math.Max(max, eventRectangle.@event.EndValue);
-                min = Math.Min(min, eventRectangle.@event.StartValue);
-                min = Math.Min(min, eventRectangle.@event.EndValue);
+                max = Math.Max(max, eventRectangle.Event.StartValue);
+                max = Math.Max(max, eventRectangle.Event.EndValue);
+                min = Math.Min(min, eventRectangle.Event.StartValue);
+                min = Math.Min(min, eventRectangle.Event.EndValue);
             }
             //宽度
-            double width = eventRectangles[0].ActualWidth;
+            var width = eventRectangles[0].ActualWidth;
             foreach(var er in eventRectangles)
             {
                 if(er.functionPath.Data is not PathGeometry)
                 {
                     PathGeometry pg = new();
-                    pg.Figures.Add(new());
+                    pg.Figures.Add(new PathFigure());
                     er.functionPath.Data = pg;
                 }
                 (er.functionPath.Data as PathGeometry)!.Figures[0].Segments.Clear();
-                Event e = er.@event;
-                PathGeometry pathGeometry = (er.functionPath.Data as PathGeometry)!;
-                PathFigure pathFigure = pathGeometry.Figures[0];
-                double height = er.EventHeight;
+                var e = er.Event;
+                var pathGeometry = (er.functionPath.Data as PathGeometry)!;
+                var pathFigure = pathGeometry.Figures[0];
+                var height = er.EventHeight;
                 for(double i = 0; i <= height; i++)
                 {
-                    double value = EaseFunctions.Interpolate(e.StartValue, e.EndValue, i / height, e.easeFunction);
+                    var value = EaseFunctions.Interpolate(e.StartValue, e.EndValue, i / height, e.EaseFunction);
                     Point point = new((value - min) / (max - min) * width, height - i);
                     if(pathFigure.Segments.Count == 0)
                     {
@@ -109,24 +110,24 @@ namespace PMEditor
 
         public void UpdateText()
         {
-            startValue.Text = @event.StartValue.ToString();
-            endValue.Text = @event.EndValue.ToString();
+            startValue.Text = Event.StartValue.ToString(CultureInfo.InvariantCulture);
+            endValue.Text = Event.EndValue.ToString(CultureInfo.InvariantCulture);
         }
 
         //右键删除此event
         private void Rectangle_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
-            @event.parentList.GroupEvent();
-            @event.parentList.Events.Remove(@event);
-            TrackEditorPage.Instance.eventPanel.Children.Remove(this);
-            OperationManager.AddOperation(new RemoveEventOperation(@event, @event.parentList));
+            Event.ParentList.GroupEvent();
+            Event.ParentList.Events.Remove(Event);
+            TrackEditorPage.Instance!.eventPanel.Children.Remove(this);
+            OperationManager.AddOperation(new RemoveEventOperation(Event, Event.ParentList));
         }
 
         //选中此事件
         private void Rectangle_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            TrackEditorPage.Instance.infoFrame.Content = new EventPropertyPanel(@event);
-            TrackEditorPage.Instance.UpdateSelectedEvent(@event); 
+            TrackEditorPage.Instance.infoFrame.Content = new EventPropertyPanel(Event);
+            TrackEditorPage.Instance.UpdateSelectedEvent(Event); 
             if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
             {
                 Point currentPosition = e.GetPosition(rect);

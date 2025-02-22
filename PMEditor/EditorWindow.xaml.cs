@@ -8,45 +8,68 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
+// ReSharper disable InconsistentNaming
 
 namespace PMEditor
 {
     /// <summary>
     /// EditorWindow.xaml 的交互逻辑
     /// </summary>
+    // ReSharper disable once RedundantExtendsListEntry
     public partial class EditorWindow : Window
     {
+#pragma warning disable CS8618
         public static EditorWindow Instance { get; private set; }
+#pragma warning restore CS8618
 
-        public TrackInfo info;
-        public Track track;
-        public List<Page> pages;
-        public MediaPlayer player;
-        public DispatcherTimer timer;
+        public readonly TrackInfo info;
+        public readonly Track track;
+        // ReSharper disable once MemberCanBePrivate.Global
+        public readonly List<Page> pages;
+        public readonly MediaPlayer player;
+        // ReSharper disable once MemberCanBePrivate.Global
+        public readonly DispatcherTimer timer;
 
-        public SoundEventManager tapSoundManager;
-        public SoundEventManager catchSoundManager;
+        public readonly SoundEventManager tapSoundManager;
+        public readonly SoundEventManager catchSoundManager;
 
-        public string? vscodePath = null;
+        // ReSharper disable once RedundantDefaultMemberInitializer
+        public readonly string? vscodePath = null;
 
+        // ReSharper disable once RedundantDefaultMemberInitializer
         public bool isPlaying = false;
         public bool puttingTap = true;
 
-        public double playerTime = 0;
+        public double playerTime
+        {
+            get
+            {
+                return player.Position.TotalSeconds;
+            }
+            set
+            {
+                player.Position = TimeSpan.FromSeconds(value);
+            }
+        }
 
         int currPageIndex;
 
         public EditorWindow(TrackInfo info, Track track)
         {
+            DebugWindow.Log("正在打开谱面编辑窗口");
             InitializeComponent();
 
+            RenderOptions.ProcessRenderMode = RenderMode.Default;
+            
             Instance = this;
             if (track.Lines.Count == 0)
             {
                 track.Lines.Add(new Line());
             }
+            track.UpdateLineTimes();
             this.info = info;
             this.track = track;
             this.Title = "Re:PMEditor - " + info.TrackName;
@@ -61,11 +84,17 @@ namespace PMEditor
             player.Play();
             player.Pause();
             player.Volume = 1;
-            player.MediaEnded += (object? sender, EventArgs e) =>
+            player.MediaEnded += (_, _) =>
             {
                 isPlaying = false;
             };
-            pages = new List<Page>() { new TrackEditorPage(), new CodeViewer(), new TODOPage(), new SettingPage()};
+            pages = new List<Page>
+            {
+                new TrackEditorPage(),
+                new CodeViewer(),
+                new TODOPage(),
+                new SettingPage()
+            };
             SetCurrPage(0);
             UpdateStatusBar();
             SoundPool tapSounds = new("./assets/sounds/tap.wav");
@@ -74,19 +103,17 @@ namespace PMEditor
             catchSoundManager = new SoundEventManager(catchSounds);
             //检查vscode路径
             vscodePath = Utils.GetVSCodePath();
-            if(vscodePath == null)
+            if (vscodePath != null) return;
+            var result = System.Windows.MessageBox.Show("未找到VSCode，请手动选择路径", "Re:PMEditor", MessageBoxButton.OK, MessageBoxImage.Warning);
+            if(result == MessageBoxResult.OK)
             {
-                var result = System.Windows.MessageBox.Show("未找到VSCode，请手动选择路径", "Re:PMEditor", MessageBoxButton.OK, MessageBoxImage.Warning);
-                if(result == MessageBoxResult.OK)
+                var dialog = new Microsoft.Win32.OpenFileDialog
                 {
-                    var dialog = new Microsoft.Win32.OpenFileDialog
-                    {
-                        Filter = "VSCode|*.*"
-                    };
-                    if (dialog.ShowDialog() == true)
-                    {
-                        vscodePath = dialog.FileName;
-                    }
+                    Filter = "VSCode|*.*"
+                };
+                if (dialog.ShowDialog() == true)
+                {
+                    vscodePath = dialog.FileName;
                 }
             }
         }
@@ -111,16 +138,17 @@ namespace PMEditor
             SetCurrPage(3);
         }
 
+        // ReSharper disable once MemberCanBePrivate.Global
         public void SetCurrPage(int index)
         {
             currPageIndex = index;
             //设置页面
-            page.Content = pages[index];
+            Page.Content = pages[index];
             //刷新json
             (pages[1] as CodeViewer)!.jsonViewer.Text = track.ToJsonString();
             //设置按钮状态
-            UIElementCollection uIElements = buttonPanel.Children;
-            for (int i = 0; i < uIElements.Count; i++)
+            var uIElements = ButtonPanel.Children;
+            for (var i = 0; i < uIElements.Count; i++)
             {
                 if (i == index * 2 + 1 || (i != index * 2 && i % 2 == 0))
                 {
@@ -137,17 +165,15 @@ namespace PMEditor
         {
             player.Stop();
             isPlaying = false;
-            if (!OperationManager.HasSaved)
+            if (OperationManager.HasSaved) return;
+            var result = System.Windows.MessageBox.Show("是否保存对谱面的修改", "Re:PMEditor", MessageBoxButton.YesNoCancel);
+            if (result == MessageBoxResult.Yes)
             {
-                var result = System.Windows.MessageBox.Show("是否保存对谱面的修改", "Re:PMEditor", MessageBoxButton.YesNoCancel);
-                if (result == MessageBoxResult.Yes)
-                {
-                    CommandBinding_Executed_4(sender, null);
-                }
-                else if (result == MessageBoxResult.Cancel)
-                {
-                    e.Cancel = true;
-                }
+                CommandBinding_Executed_4(sender, null);
+            }
+            else if (result == MessageBoxResult.Cancel)
+            {
+                e.Cancel = true;
             }
         }
 
@@ -162,7 +188,7 @@ namespace PMEditor
             {
                 File.WriteAllText(saveFileDialog.FileName, NBTTrack.FromTrack(track).ToNBTTag().Stringify());
             }
-            operationInfo.Text = "成功导出谱面SNBT到 " + saveFileDialog.FileName;
+            OperationInfo.Text = "成功导出谱面SNBT到 " + saveFileDialog.FileName;
         }
 
         //导出为mcfunction
@@ -171,18 +197,18 @@ namespace PMEditor
             FolderBrowserDialog saveFileDialog = new();
             if (saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                operationInfo.Text = "正在导出帧序列到 " + saveFileDialog.SelectedPath;
+                OperationInfo.Text = "正在导出帧序列到 " + saveFileDialog.SelectedPath;
 
                 Task.Run(() =>
                 {
                     track.Build();
                     //复制datapack到指定文件夹
-                    Utils.CopyAllFiles(track.target.FullName, saveFileDialog.SelectedPath);
-                }).ContinueWith((t) =>
+                    Utils.CopyAllFiles(track.Target.FullName, saveFileDialog.SelectedPath);
+                }).ContinueWith(_ =>
                 {
                     Dispatcher.Invoke(() =>
                     {
-                        operationInfo.Text = "成功导出帧序列到 " + saveFileDialog.SelectedPath;
+                        OperationInfo.Text = "成功导出帧序列到 " + saveFileDialog.SelectedPath;
                     });
                 });
             }
@@ -195,7 +221,7 @@ namespace PMEditor
 
         public void UpdateStatusBar()
         {
-            allNotesCount.Text = "谱面物量: " + track.Count;
+            AllNotesCount.Text = "谱面物量: " + track.Count;
         }
 
         //从谱面文件info.txt打开
@@ -207,8 +233,8 @@ namespace PMEditor
             };
             if(fileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                TrackInfo? info = TrackInfo.FromFile(fileDialog.FileName);
-                if(info == null)
+                var trackInfo = TrackInfo.FromFile(fileDialog.FileName);
+                if(trackInfo == null)
                 {
                     //错误
                     System.Windows.MessageBox.Show("错误的谱面信息文件格式", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -222,20 +248,20 @@ namespace PMEditor
                     System.Windows.MessageBox.Show("同级文件夹下未找到track.json", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
-                if(!File.Exists(file.DirectoryName + "/" + info.TrackName + ".wav"))
+                if(!File.Exists(file.DirectoryName + "/" + trackInfo.TrackName + ".wav"))
                 {
                     //错误
-                    System.Windows.MessageBox.Show("同级文件夹下未找到" + info.TrackName + ".wav", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    System.Windows.MessageBox.Show("同级文件夹下未找到" + trackInfo.TrackName + ".wav", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
-                Track? track = Track.GetTrack(new FileInfo(file.DirectoryName + "/track.json"));
-                if(track == null)
+                var track1 = Track.GetTrack(new FileInfo(file.DirectoryName + "/track.json"));
+                if(track1 == null)
                 {
                     //错误
                     System.Windows.MessageBox.Show("无法解析track.json", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
-                EditorWindow editorWindow = new(info, track);
+                EditorWindow editorWindow = new(trackInfo, track1);
                 editorWindow.Show();
                 this.Close();
             }
@@ -270,13 +296,13 @@ namespace PMEditor
         //生成
         private void MenuItem_Click_6(object sender, RoutedEventArgs e)
         {
-            operationInfo.Text = "正在生成谱面 " + track.TrackName;
+            OperationInfo.Text = "正在生成谱面 " + track.TrackName;
 
-            Task.Run(track.Build).ContinueWith((t) =>
+            Task.Run(track.Build).ContinueWith(_ =>
             {
                 Dispatcher.Invoke(() =>
                 {
-                    operationInfo.Text = "成功生成谱面 " + track.TrackName;
+                    OperationInfo.Text = "成功生成谱面 " + track.TrackName;
                 });
             });
         }
@@ -284,13 +310,13 @@ namespace PMEditor
         //清理
         private void MenuItem_Click_7(object sender, RoutedEventArgs e)
         {
-            operationInfo.Text = "正在清理谱面 " + track.TrackName;
+            OperationInfo.Text = "正在清理谱面 " + track.TrackName;
 
-            Task.Run(track.datapack.Clear).ContinueWith((t) =>
+            Task.Run(track.Datapack.Clear).ContinueWith(_ =>
             {
                 Dispatcher.Invoke(() =>
                 {
-                    operationInfo.Text = "成功清理谱面 " + track.TrackName;
+                    OperationInfo.Text = "成功清理谱面 " + track.TrackName;
                 });
             });
         }
@@ -298,16 +324,16 @@ namespace PMEditor
         //清理并生成
         private void MenuItem_Click_8(object sender, RoutedEventArgs e)
         {
-            operationInfo.Text = "正在清理并生成谱面 " + track.TrackName;
+            OperationInfo.Text = "正在清理并生成谱面 " + track.TrackName;
 
             Task.Run(() => { 
-                track.datapack.Clear(); 
+                track.Datapack.Clear(); 
                 track.Build(); 
-            }).ContinueWith((t) =>
+            }).ContinueWith(_ =>
             {
                 Dispatcher.Invoke(() =>
                 {
-                    operationInfo.Text = "成功清理并生成谱面 " + track.TrackName;
+                    OperationInfo.Text = "成功清理并生成谱面 " + track.TrackName;
                 });
             });
 
@@ -319,17 +345,17 @@ namespace PMEditor
             FolderBrowserDialog saveFileDialog = new();
             if (saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                operationInfo.Text = "正在复制到 " + saveFileDialog.SelectedPath;
+                OperationInfo.Text = "正在复制到 " + saveFileDialog.SelectedPath;
 
                 Task.Run(() =>
                 {
                     //复制datapack到指定文件夹
-                    Utils.CopyAllFiles(track.target.Parent!.FullName, saveFileDialog.SelectedPath);
-                }).ContinueWith((t) =>
+                    Utils.CopyAllFiles(track.Target.Parent!.FullName, saveFileDialog.SelectedPath);
+                }).ContinueWith(_ =>
                 {
                     Dispatcher.Invoke(() =>
                     {
-                        operationInfo.Text = "成功复制到 " + saveFileDialog.SelectedPath;
+                        OperationInfo.Text = "成功复制到 " + saveFileDialog.SelectedPath;
                     });
                 });
             }
@@ -338,7 +364,13 @@ namespace PMEditor
         //在资源管理器中打开
         private void MenuItem_Click_10(object sender, RoutedEventArgs e)
         {
-            Utils.OpenInExplorer(track.target.Parent!.FullName);
+            Utils.OpenInExplorer(track.Target.Parent!.FullName);
+        }
+
+        private void OpenBpmSettingWindow(object sender, RoutedEventArgs e)
+        {
+            var bpmWindow = new BpmConfigWindow();
+            bpmWindow.ShowDialog();
         }
     }
 

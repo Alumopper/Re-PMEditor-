@@ -14,17 +14,17 @@
 
         public override void Redo()
         {
-            @event.parentList.GroupEvent();
+            @event.ParentList.GroupEvent();
             list.Events.Add(@event);
             TrackEditorPage.Instance.UpdateEvent();
         }
 
         public override void Undo()
         {
-            @event.parentList.GroupEvent();
+            @event.ParentList.GroupEvent();
             list.Events.Remove(@event);
-            TrackEditorPage.Instance.eventPanel.Children.Remove(@event.rectangle);
-            @event.rectangle.Visibility = System.Windows.Visibility.Hidden;
+            TrackEditorPage.Instance.eventPanel.Children.Remove(@event.Rectangle);
+            @event.Rectangle.Visibility = System.Windows.Visibility.Hidden;
             TrackEditorPage.Instance.UpdateEvent();
         }
 

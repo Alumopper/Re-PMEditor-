@@ -7,17 +7,24 @@ namespace PMEditor
 {
     public partial class TrackEditorPage
     {
-        //坐标对齐转换
-        public Point GetAlignedPoint(Point p)
+        /// <summary>
+        /// 坐标对齐转换。返回的x坐标是对齐的，y坐标是相对于底部的长度
+        /// </summary>
+        /// <returns>
+        /// 对齐后的时间，对齐后的小节数，对齐后的排数，对齐后鼠标的位置
+        /// </returns>
+        ///
+        /// 
+        public (double time, int measure ,int beat, Point mousePos, int rail) GetAlignedPoint(Point p)
         {
             //获取时间
             //获取鼠标位置，生成note位置预览
-            Point mousePos = p;
-            double width = notePanel.ActualWidth / 9;
+            var mousePos = p;
+            var width = notePanel.ActualWidth / 9;
             //x坐标对齐
-            int rail = (int)(mousePos.X / width);
+            var rail = (int)(mousePos.X / width);
             //如果是Tap，额外需要对齐主线
-            if (editingMode == 0 && window.puttingTap)
+            if (editingMode == 0 && Window.puttingTap)
             {
                 if (rail == 0) { rail = 1; }
                 if (rail == 2) { rail = 3; }
@@ -26,15 +33,18 @@ namespace PMEditor
                 if (rail == 8) { rail = 7; }
             }
             mousePos.X = rail * width;
-            //y坐标对齐
-            //基准线相对坐标计算
-            double fix = 0;
-            if (window.player.Position.TotalSeconds / secondsPreDevideBeat % 1 > 0.001)
-            {
-                fix = window.player.Position.TotalSeconds / secondsPreDevideBeat % 1 * pixelPreDividedBeat;
-            }
-            mousePos.Y = (Math.Round(((notePanel.ActualHeight - mousePos.Y + fix) / pixelPreDividedBeat))) * pixelPreDividedBeat - fix;
-            return mousePos;
+            //获取当前小节数
+            var (measure, deltime) = Window.track.GetMeasureFromTime(
+                (notePanel.ActualHeight - mousePos.Y) / notePanel.ActualHeight * currDisplayLength + Window.playerTime
+                );
+            //获取当前bpm
+            var bpm = Window.track.GetBPM(measure);
+            //获取当前拍数
+            var beat = (int)(deltime / 60 * bpm * divideNum);
+            //计算y坐标
+            var time = Window.track.GetTimeRange(measure).startTime + beat/(double)divideNum * (60 / bpm);
+            mousePos.Y = GetBottomYFromTime(time);
+            return (time, measure, beat, mousePos, rail);
         }
 
         /// <summary>
@@ -42,14 +52,14 @@ namespace PMEditor
         /// </summary>
         /// <param name="y">相对于底部的长度</param>
         /// <returns></returns>
-        public double GetTimeFromY(double y)
+        public double GetTimeFromBottomY(double y)
         {
-            return y / pixelPreDividedBeat * secondsPreDevideBeat + window.player.Position.TotalSeconds;
+            return y / notePanel.ActualHeight * currDisplayLength + Window.player.Position.TotalSeconds;
         }
 
-        public double GetYFromTime(double time)
+        public double GetBottomYFromTime(double time)
         {
-            return (time - window.player.Position.TotalSeconds) / secondsPreDevideBeat * pixelPreDividedBeat;
+            return (time - Window.playerTime) / currDisplayLength * notePanel.ActualHeight;
         }
     }
 

@@ -13,7 +13,7 @@
             <ColumnDefinition Width="377*"/>
         </Grid.ColumnDefinitions>
         <Grid Grid.Column="1"/>
-        <Button Name="open" Content="打开" HorizontalAlignment="Center" Margin="0,407,0,0" VerticalAlignment="Top" Height="53" Width="177" Grid.Column="1" Click="Button_Click_1" FontSize="20" Background="#FF4B2E59" Foreground="White"/>
+        <Button Name="open" Content="打开" HorizontalAlignment="Center" Margin="0,407,0,0" VerticalAlignment="Top" Height="53" Width="177" Grid.Column="1" Click="OpenTrackButtonClick" FontSize="20" Background="#FF4B2E59" Foreground="White"/>
         <Button Name="create" Content="新建" HorizontalAlignment="Center" VerticalAlignment="Top" Height="53" Width="177" Click="CreateButton_Click" Margin="0,494,0,0" Grid.Column="1" FontSize="20" Background="White"/>
         <Label Content="谱面" HorizontalAlignment="Left" Height="66" Margin="29,28,0,0" VerticalAlignment="Top" Width="503" Foreground="White" FontSize="45"/>
         <Grid HorizontalAlignment="Left" Height="434" Margin="29,113,0,0" VerticalAlignment="Top" Width="657" Grid.ColumnSpan="2">
@@ -25,7 +25,7 @@
                             <Label Content="{Binding TrackAuthor}" HorizontalAlignment="Left" Margin="38,38,0,0" VerticalAlignment="Top" Width="449" FontSize="16" Foreground="White"/>
                             <Grid.ContextMenu>
                                 <ContextMenu>
-                                    <MenuItem Header="打开" Click="Button_Click_1"/>
+                                    <MenuItem Header="打开" Click="OpenTrackButtonClick"/>
                                     <MenuItem Header="删除" Click="deleteTrack_Click"/>
                                     <MenuItem Header="导出为...">
                                         <MenuItem Header="SNBT" Foreground="#FF000000" Click="MenuItem_Click"/>

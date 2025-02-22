@@ -37,7 +37,7 @@ namespace PMEditor.Controls
             {
                 if(EditorWindow.Instance.vscodePath != null)
                 {
-                    Process.Start(EditorWindow.Instance.vscodePath, EditorWindow.Instance.track.datapack.target.FullName);
+                    Process.Start(EditorWindow.Instance.vscodePath, EditorWindow.Instance.track.Datapack.target.FullName);
                     Process.Start(EditorWindow.Instance.vscodePath, function.linkedFile.FullName);
                 }
                 else
@@ -51,7 +51,7 @@ namespace PMEditor.Controls
         {
             var value = (double)((PropertyChangeEventArgs)e).PropertyValue;
             function.Time = value;
-            (EditorWindow.Instance.page.Content as TrackEditorPage)?.UpdateFunction();
+            (EditorWindow.Instance.Page.Content as TrackEditorPage)?.UpdateFunction();
         }
     }
 }

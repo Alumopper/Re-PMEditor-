@@ -60,16 +60,17 @@
                 <MenuItem Header="重做(_Y)" Foreground="#FF000000" Command="local:Commands.Redo"/>
                 <MenuItem Header="切换Note类型(_D)" Foreground="#FF000000" Command="local:Commands.ChangeNoteType"/>
             </MenuItem>
-            <MenuItem Header="媒体(_M)" Margin="0,0,3,0">
-                <MenuItem Header="开始/暂停(_P)" Foreground="#FF000000" Command="local:Commands.PlayOrPause" />
-            </MenuItem>
             <MenuItem Header="项目(_P)" Margin="0,0,3,0">
                 <MenuItem Header="设置(_S)" Foreground="#FF000000" Click="MenuItem_Click_5"/>
+                <MenuItem Header="BPM设置(_B)" Foreground="#FF000000" Click="OpenBpmSettingWindow"></MenuItem>
                 <Separator/>
                 <MenuItem Header="生成(_G)" Foreground="#FF000000" Click="MenuItem_Click_6"/>
                 <MenuItem Header="清理(_C)" Foreground="#FF000000" Click="MenuItem_Click_7"/>
                 <MenuItem Header="清理并生成(_A)" Foreground="#FF000000" Click="MenuItem_Click_8"/>
                 <MenuItem Header="复制到...(_M)" Foreground="#FF000000" Click="MenuItem_Click_9"/>
+            </MenuItem>
+            <MenuItem Header="媒体(_M)" Margin="0,0,3,0">
+                <MenuItem Header="开始/暂停(_P)" Foreground="#FF000000" Command="local:Commands.PlayOrPause" />
             </MenuItem>
         </Menu>
         <Grid Grid.Row="1">
@@ -79,50 +80,51 @@
                 <ColumnDefinition Width="1061*"/>
             </Grid.ColumnDefinitions>
             <!--左侧切换页面栏-->
-            <StackPanel Name="buttonPanel" Grid.Column="0" Background="#FF1B0E2A">
-                <Label Name="editorButton_dis" Background="#FF2E143E" BorderBrush="White" Foreground="{x:Null}" Height="60" BorderThickness="2,0,0,0" Cursor="Hand" ToolTip="谱面编辑">
+            <StackPanel Name="ButtonPanel" Grid.Column="0" Background="#FF1B0E2A">
+                <Label Name="EditorButtonDis" Background="#FF2E143E" BorderBrush="White" Foreground="{x:Null}" Height="60" BorderThickness="2,0,0,0" Cursor="Hand" ToolTip="谱面编辑">
                     <Image Source="/editor.png"  Margin="7,9,9,9"/>
                 </Label>
-                <Button Name="editorButton" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}" Height="60" Click="editorButton_Click" Visibility="Collapsed" ToolTip="谱面编辑">
+                <Button Name="EditorButton" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}" Height="60" Click="editorButton_Click" Visibility="Collapsed" ToolTip="谱面编辑">
                     <Image Source="/editor.png"  Margin="13"/>
                 </Button>
-                <Label Name="codeButton_dis" Background="#FF2E143E" BorderBrush="White" Foreground="{x:Null}" Height="60" BorderThickness="2,0,0,0" Cursor="Hand" Visibility="Collapsed" ToolTip="谱面文件">
+                <Label Name="CodeButtonDis" Background="#FF2E143E" BorderBrush="White" Foreground="{x:Null}" Height="60" BorderThickness="2,0,0,0" Cursor="Hand" Visibility="Collapsed" ToolTip="谱面文件">
                     <Image Source="/code.png" Margin="7,9,9,9"/>
                 </Label>
-                <Button Name="codeButton" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}" Height="60" Click="codeButton_Click" ToolTip="谱面文件">
+                <Button Name="CodeButton" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}" Height="60" Click="codeButton_Click" ToolTip="谱面文件">
                     <Image Source="/code.png" Margin="13,13,13,13"/>
                 </Button>
-                <Label Name="playButton" Background="#FF2E143E" BorderBrush="White" Foreground="{x:Null}" Height="60" BorderThickness="2,0,0,0" Cursor="Hand" Visibility="Collapsed" ToolTip="谱面预览">
+                <Label Name="PlayButton" Background="#FF2E143E" BorderBrush="White" Foreground="{x:Null}" Height="60" BorderThickness="2,0,0,0" Cursor="Hand" Visibility="Collapsed" ToolTip="谱面预览">
                     <Image Source="/play.png"  Margin="7,9,9,9"/>
                 </Label>
-                <Button Name="playButton_dis" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}" Height="60" Click="playButton_Click" ToolTip="谱面预览">
+                <Button Name="PlayButtonDis" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}" Height="60" Click="playButton_Click" ToolTip="谱面预览">
                     <Image Source="/play.png" Margin="13,13,13,13"/>
                 </Button>
-                <Label Name="settingButton_dis" Background="#FF2E143E" BorderBrush="White" Foreground="{x:Null}" Height="60" BorderThickness="2,0,0,0" Cursor="Hand" Visibility="Collapsed" ToolTip="谱面设置">
+                <Label Name="SettingButtonDis" Background="#FF2E143E" BorderBrush="White" Foreground="{x:Null}" Height="60" BorderThickness="2,0,0,0" Cursor="Hand" Visibility="Collapsed" ToolTip="谱面设置">
                     <Image Source="/settings.png"  Margin="7,9,9,9"/>
                 </Label>
-                <Button Name="settingButton" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}" Height="60" Click="settingButton_Click" ToolTip="谱面设置">
+                <Button Name="SettingButton" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="{x:Null}" Height="60" Click="settingButton_Click" ToolTip="谱面设置">
                     <Image Source="/settings.png" Margin="13,13,13,13"/>
                 </Button>
             </StackPanel>
             <!--要显示的页面-->
-            <Frame Name="page" Grid.Column="1" NavigationUIVisibility="Hidden" Grid.ColumnSpan="2"/>
+            <Frame Name="Page" Grid.Column="1" NavigationUIVisibility="Hidden" Grid.ColumnSpan="2"/>
         </Grid>
         <!--底部状态栏-->
-        <StatusBar Background="#FF342249" Grid.Row="2" x:Name="statusBar">
-            <Grid Width="{Binding ElementName=statusBar, Path=ActualWidth}">
+        <StatusBar Background="#FF342249" Grid.Row="2" x:Name="StatusBar">
+            <Grid Width="{Binding ElementName=StatusBar, Path=ActualWidth}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <!--操作指示栏-->
-                <TextBlock Grid.Column="0" Margin="10,0,0,0" Text="初始化中" Name="operationInfo" Foreground="White"/>
+                <TextBlock Grid.Column="0" Margin="10,0,0,0" Text="初始化中" Name="OperationInfo" Foreground="White"/>
                 <!--谱面信息提示栏-->
-                <TextBlock Grid.Column="2" Margin="0,0,10,0" Text="谱面物量: 0" Name="allNotesCount" Foreground="White" HorizontalAlignment="Right"/>
+                <TextBlock Grid.Column="3" Margin="0,0,10,0" Text="谱面物量: 0" Name="AllNotesCount" Foreground="White" HorizontalAlignment="Right"/>
                 <!--信息提示框按钮-->
-                <Button Grid.Column="3" Margin="0,0,10,0" Name="infoButton" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="White" Click="infoButton_Click"  Content="🔔"/>
+                <Button Grid.Column="4" Margin="0,0,10,0" Name="InfoButton" Background="{x:Null}" BorderBrush="{x:Null}" Foreground="White" Click="infoButton_Click"  Content="🔔"/>
             </Grid>
         </StatusBar>
     </Grid>

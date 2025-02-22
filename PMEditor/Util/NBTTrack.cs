@@ -99,7 +99,7 @@ public class NBTTrack
             trackName = track.TrackName,
             musicAuthor = track.MusicAuthor,
             trackAuthor = track.TrackAuthor,
-            bpm = track.Bpm,
+            bpm = track.BaseBpm,
             length = track.Length,
             difficulty = track.Difficulty,
             count = track.Count,
@@ -487,48 +487,96 @@ public class NBTTrack
             if (note is NBTHold hold)
             {
                 var length = hold.holdLength;
-                for (var i = endTick; i > startTick; i--)
+                if (hold.Expression != null)
                 {
-                    frames[i + readyTick - 1]
-                        .Add($"scoreboard players set {note.uuid} PR_cpos {(int)(distance * 100)}");
-                    frames[i + readyTick - 1]
-                        .Add($"scoreboard players set {note.uuid} PR_cpos_h {(int)((length + distance) * 100)}");
+                    for (var i = endTick; i > startTick; i--)
+                    {
+                        hold.Expression.Parameters["t"] = i;
+                        hold.Expression.Parameters["l"] = Settings.currSetting.MapLength;
+                        distance = Convert.ToDouble(hold.Expression.Evaluate() ?? 0);
+                        frames[i + readyTick - 1]
+                            .Add($"scoreboard players set {note.uuid} PR_cpos {(int)(distance * 100)}");
+                        frames[i + readyTick - 1]
+                            .Add($"scoreboard players set {note.uuid} PR_cpos_h {(int)((length + distance) * 100)}");
+                    }
 
-                    distance += line.line.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
+                    for (var i = endTick + 1; i < endTick + (int)(hold.holdTime * Settings.currSetting.Tick); i++)
+                    {
+                        hold.Expression.Parameters["t"] = i;
+                        hold.Expression.Parameters["l"] = Settings.currSetting.MapLength;
+                        distance = Convert.ToDouble(hold.Expression.Evaluate() ?? 0);
+                        frames[i + readyTick - 1]
+                            .Add($"scoreboard players set {note.uuid} PR_cpos_h {(int)((length + distance) * 100)}");
+                    }
                 }
-
-                for (var i = endTick + 1; i < endTick + (int)(hold.holdTime * Settings.currSetting.Tick); i++)
+                else
                 {
-                    length -= line.line.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
-                    frames[i + readyTick - 1]
-                        .Add($"scoreboard players set {note.uuid} PR_cpos_h {(int)(length * 100)}");
+                    for (var i = endTick; i > startTick; i--)
+                    {
+                        frames[i + readyTick - 1]
+                            .Add($"scoreboard players set {note.uuid} PR_cpos {(int)(distance * 100)}");
+                        frames[i + readyTick - 1]
+                            .Add($"scoreboard players set {note.uuid} PR_cpos_h {(int)((length + distance) * 100)}");
+
+                        distance += line.line.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
+                    }
+
+                    for (var i = endTick + 1; i < endTick + (int)(hold.holdTime * Settings.currSetting.Tick); i++)
+                    {
+                        length -= line.line.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
+                        frames[i + readyTick - 1]
+                            .Add($"scoreboard players set {note.uuid} PR_cpos_h {(int)(length * 100)}");
+                    }
                 }
             }
             else
             {
-                for (var i = endTick; i > startTick; i--)
+                if (note.Expression != null)
                 {
-                    frames[i + readyTick - 1]
-                        .Add($"scoreboard players set {note.uuid} PR_cpos {(int)(distance * 100)}");
-                    distance += line.line.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
-                }
+                    for (var i = endTick; i > startTick; i--)
+                    {
+                        note.Expression.Parameters["t"] = i;
+                        note.Expression.Parameters["l"] = Settings.currSetting.MapLength;
+                        distance = Convert.ToDouble(note.Expression.Evaluate() ?? 0);
+                        frames[i + readyTick - 1]
+                            .Add($"scoreboard players set {note.uuid} PR_cpos {(int)(distance * 100)}");
+                    }
 
-                distance = 0;
-                for (var i = endTick + 1; i < endTick + 4 * (Settings.currSetting.Tick / 20) + 1; i++)
+                    for (var i = endTick + 1; i < endTick + 4 * (Settings.currSetting.Tick / 20) + 1; i++)
+                    {
+                        note.Expression.Parameters["t"] = i;
+                        note.Expression.Parameters["l"] = Settings.currSetting.MapLength;
+                        distance = Convert.ToDouble(note.Expression.Evaluate() ?? 0);
+                        frames[i + readyTick - 1]
+                            .Add($"scoreboard players set {note.uuid} PR_cpos {(int)(distance * 100)}");
+                    }   
+                }
+                else
                 {
-                    distance -= line.line.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
-                    frames[i + readyTick - 1]
-                        .Add($"scoreboard players set {note.uuid} PR_cpos {(int)(distance * 100)}");
+                    for (var i = endTick; i > startTick; i--)
+                    {
+                        frames[i + readyTick - 1]
+                            .Add($"scoreboard players set {note.uuid} PR_cpos {(int)(distance * 100)}");
+                        distance += line.line.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
+                    }
+
+                    distance = 0;
+                    for (var i = endTick + 1; i < endTick + 4 * (Settings.currSetting.Tick / 20) + 1; i++)
+                    {
+                        distance -= line.line.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
+                        frames[i + readyTick - 1]
+                            .Add($"scoreboard players set {note.uuid} PR_cpos {(int)(distance * 100)}");
+                    }
                 }
             }
         }
 
-        originalTrack.datapack.Clear();
+        originalTrack.Datapack.Clear();
 
         for (var i = 0; i < frames.Length; i++)
-            originalTrack.datapack.WriteFunction((int)Settings.currSetting.Tick, i, frames[i]);
+            originalTrack.Datapack.WriteFunction((int)Settings.currSetting.Tick, i, frames[i]);
         //初始化函数
-        originalTrack.datapack.WriteInitFunction((int)Settings.currSetting.Tick, new[]
+        originalTrack.Datapack.WriteInitFunction((int)Settings.currSetting.Tick, new[]
         {
             $"scoreboard players set $time PR_chartinfo {(int)(length * Settings.currSetting.Tick)}",
             $"scoreboard players set $count PR_chartinfo {count}",

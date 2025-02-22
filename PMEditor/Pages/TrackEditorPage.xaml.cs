@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -10,37 +12,49 @@ using PMEditor.Operation;
 using PMEditor.Pages;
 using PMEditor.Util;
 
+// ReSharper disable once CheckNamespace
 namespace PMEditor;
 
 /// <summary>
 ///     TrackEditorPage.xaml 的交互逻辑
 /// </summary>
+// ReSharper disable once RedundantExtendsListEntry
 public partial class TrackEditorPage : Page
 {
+    private delegate void InputEvent(); 
+    
+    // ReSharper disable once InconsistentNaming
+    // ReSharper disable once MemberCanBePrivate.Global
     public const double FPS = double.NaN;
+    
+    // ReSharper disable once InconsistentNaming
     private const byte NOTE = 0;
+    // ReSharper disable once InconsistentNaming
     private const byte EVENT = 1;
+    // ReSharper disable once InconsistentNaming
     private const byte FAKE_CATCH = 2;
+    // ReSharper disable once InconsistentNaming
     private const byte FUNCTION = 3;
+    // ReSharper disable once InconsistentNaming
     private const byte MAX_MODE = 4;
 
-    private static readonly SolidColorBrush tapBrush = new(
+    private static readonly SolidColorBrush TapBrush = new(
         Color.FromArgb(102, 109, 209, 213)
     );
 
-    private static readonly SolidColorBrush catchBrush = new(
+    private static readonly SolidColorBrush CatchBrush = new(
         Color.FromArgb(102, 227, 214, 76)
     );
 
-    private static readonly SolidColorBrush fakeCatchBrush = new(
+    private static readonly SolidColorBrush FakeCatchBrush = new(
         Color.FromArgb(102, 255, 255, 255)
     );
 
     //可能会加入的，事件可以翻页，防止事件太多放不下
     private readonly int page = 0;
 
-    //节拍线显示间隔
-    private readonly double pixelPreDividedBeat = 30;
+    //当前能看到的总谱面时长
+    private double currDisplayLength = 4;
 
     private double catchHeight = 1.0;
 
@@ -62,7 +76,7 @@ public partial class TrackEditorPage : Page
 
     private bool isDeleting;
 
-    private bool isDraging;
+    private bool isDragging;
 
     private bool isMouseDown;
 
@@ -95,34 +109,67 @@ public partial class TrackEditorPage : Page
 
     private Note? willPutNote;
 
+    public static TrackEditorPage? Instance { get; private set; }
+
+    private static EditorWindow Window => EditorWindow.Instance;
+
+    //private static double SecondsPreBeat => 60.0 / Window.track.BaseBpm;
+
+    //private double SecondsPreDivideBeat => SecondsPreBeat / divideNum;
+
+    //private double PixelPreBeat => pixelPreDividedBeat * divideNum;
+ 
+    // ReSharper disable once MemberCanBePrivate.Global
+    public int LineIndex { get; private set; }
+    
+    public double WheelSpeed = 0.1;
+
+    //public List<double> BeatLineTimes;
+
+    //public List<double> DivideBeatLineTimes;
+
+    private Line CurrLine
+    {
+        get
+        {
+            return selectingFreeLine ? Window.track.FreeLine : Window.track.Lines[LineIndex];
+        }
+    }
+    
+    private Thread inputThread;
+    private ConcurrentQueue<InputEvent> inputQueue = new();
+    private bool isRunning = true;
+
+#pragma warning disable CS8618
     public TrackEditorPage()
+#pragma warning restore CS8618
     {
         InitializeComponent();
         Instance = this;
-        timeDis.Content = "0.00" + " / " + window.track.Length.ToString("0.00");
+        TimeDis.Content = "0.00" + " / " + Window.track.Length.ToString("0.00");
         CompositionTarget.Rendering += Tick;
         //添加note渲染和事件渲染
-        foreach (var line in window.track.AllLines)
+        foreach (var line in Window.track.AllLines)
         {
             line.Notes.ForEach(note =>
             {
                 note.rectangle.Visibility = Visibility.Hidden;
                 notePanel.Children.Add(note.rectangle);
                 if (note.ActualHoldTime != 0)
-                    note.rectangle.Height = GetYFromTime(note.ActualTime + note.ActualHoldTime) -
-                                            GetYFromTime(note.ActualTime);
+                    note.rectangle.Height = GetBottomYFromTime(note.ActualTime + note.ActualHoldTime) -
+                                            GetBottomYFromTime(note.ActualTime);
                 else
                     note.rectangle.Height = 10;
                 note.rectangle.Width = notePanel.ActualWidth / 9;
             });
-            for (var i = 0; i < line.EventLists.Count; i++)
+            foreach (var t in line.EventLists)
             {
-                line.EventLists[i].Events.ForEach(e =>
+                t.Events.ForEach(e =>
                 {
-                    e.rectangle.Visibility = Visibility.Hidden;
-                    eventPanel.Children.Add(e.rectangle);
-                    e.rectangle.Height = GetYFromTime(e.EndTime) - GetYFromTime(e.StartTime);
-                    e.rectangle.Width = eventPanel.ActualWidth / 9;
+                    e.Rectangle.Visibility = Visibility.Hidden;
+                    eventPanel.Children.Add(e.Rectangle);
+                    e.Rectangle.Height = GetBottomYFromTime(e.EndTime) - GetBottomYFromTime(e.StartTime);
+                    e.Rectangle.Width = eventPanel.ActualWidth / 9;
                 });
             }
             foreach (var fakeCatch in line.FakeCatch)
@@ -139,73 +186,54 @@ public partial class TrackEditorPage : Page
                 function.rectangle.Height = 10;
             }
         }
-        speedChooseBox.ItemsSource = Settings.currSetting.canSelectedSpeedList;
-        lineListView.ItemsSource = window.track.Lines;
-        lineListView.SelectedIndex = 0;
+        SpeedChooseBox.ItemsSource = Settings.currSetting.canSelectedSpeedList;
+        LineListView.ItemsSource = Window.track.Lines;
+        LineListView.SelectedIndex = 0;
         init = true;
-        previewRange = 30.0 / window.track.Length;
+        previewRange = 30.0 / Window.track.Length;
     }
-
-    public static TrackEditorPage? Instance { get; private set; }
-
-    public EditorWindow window => EditorWindow.Instance;
-
-    private double secondsPreBeat => 60.0 / window.track.Bpm;
-
-    private double secondsPreDevideBeat => secondsPreBeat / divideNum;
-
-    private double pixelPreBeat => pixelPreDividedBeat * divideNum;
-
-    public int LineIndex { get; private set; }
-
-    private Line CurrLine
-    {
-        get
-        {
-            if (selectingFreeLine)
-                return window.track.FreeLine;
-            return window.track.Lines[LineIndex];
-        }
-    }
-
+    
     private void Tick(object? sender, EventArgs e)
     {
         if (!double.IsNaN(FPS) && (DateTime.Now - lastRenderTime).TotalMilliseconds < 1000.0 / FPS) return;
+        Fps.Text = $"FPS: {(int)(1000.0 / (DateTime.Now - lastRenderTime).TotalMilliseconds)}";
         lastRenderTime = DateTime.Now;
-        if (window.isPlaying) Update();
+        if (Window.isPlaying) Update();
         //初始化的时候进行第一次绘制
         if (init && notePanel.ActualWidth != 0)
         {
             UpdateNote();
             UpdateEvent();
             UpdateFakeCatch();
-            UpdateFunctionCurve();
             UpdateEventTypeList();
             init = false;
-            window.operationInfo.Text = "就绪";
+            Window.OperationInfo.Text = "就绪";
         }
 
         DrawLineAndBeat();
         DrawPreview();
     }
-
+    
     //滚轮滚动
     private void notePanel_MouseWheel(object sender, MouseWheelEventArgs e)
     {
         var num = e.Delta / 60.0;
-        var currTime = window.playerTime;
         //更改fake catch高度
         if (Keyboard.IsKeyDown(Key.LeftAlt))
         {
             catchHeight = Math.Max(0, Math.Min(1, catchHeight + num / 50));
             if (selectedNotes.Count != 0)
+            {
                 foreach (var note in selectedNotes)
-                    if (note is FakeCatch f)
-                        f.Height = catchHeight;
+                {
+                    if (note is FakeCatch f) f.Height = catchHeight;
+                }
+            }
         }
         //更改谱面缩放比例
         else if (Keyboard.IsKeyDown(Key.LeftCtrl))
         {
+            currDisplayLength = Math.Max(1, Math.Min(30, currDisplayLength + num));
         }
         //更改谱面拍数
         else if (Keyboard.IsKeyDown(Key.LeftShift))
@@ -215,117 +243,142 @@ public partial class TrackEditorPage : Page
         else
         {
             //时间设置
-            window.player.Pause();
-            window.isPlaying = false;
-            //横线自动对齐
-            if (currTime / secondsPreDevideBeat % 1 > 0.001 && currTime / secondsPreDevideBeat % 1 < 0.999)
-            {
-                currTime = (int)(currTime / secondsPreDevideBeat) * secondsPreDevideBeat;
-                if (num < 0) num = 0;
-            }
-
-            currTime += num * secondsPreDevideBeat;
-            if (currTime < 0)
-                currTime = 0;
-            else if (currTime > window.track.Length) currTime = window.track.Length;
-            window.player.Position = TimeSpan.FromSeconds(currTime);
+            Window.player.Pause();
+            Window.isPlaying = false;
+            Window.playerTime += num * WheelSpeed;
         }
-
-        //Lable设置
-        timeDis.Content = currTime.ToString("0.00") + " / " + window.track.Length.ToString("0.00");
-        heightDis.Content = $"Fake Catch高度: {catchHeight:F2}";
+        CheckCurrTime();
+        //Label设置
+        TimeDis.Content = Window.playerTime.ToString("0.00") + " / " + Window.track.Length.ToString("0.00");
+        HeightDis.Content = $"Fake Catch高度: {catchHeight:F2}";
         noteChange = true;
         eventChange = true;
         fakeCatchChange = true;
         functionChange = true;
-        window.playerTime = currTime;
         Update();
     }
 
+    private void CheckCurrTime()
+    {
+        if (Window.playerTime < 0)
+        {
+            Window.playerTime = 0;
+        }
+    }
+    
     //绘制辅助线
-    public void DrawLineAndBeat()
+    private void DrawLineAndBeat()
     {
         //移除线
         for (var i = 0; i < notePanel.Children.Count; i++)
-            if (notePanel.Children[i] is System.Windows.Shapes.Line line)
-            {
-                line.Stroke = null;
-                notePanel.Children.RemoveAt(i);
-                i--;
-            }
+        {
+            if (notePanel.Children[i] is not System.Windows.Shapes.Line line) continue;
+            line.Stroke = null;
+            notePanel.Children.RemoveAt(i);
+            i--;
+        }
 
         //移除拍数
-        beatDisplay.Children.Clear();
+        BeatDisplay.Children.Clear();
         //绘制节拍线
         //开始绘制
         //整拍
         //基准线相对坐标计算
-        double fix = 0;
-        if (window.playerTime / secondsPreBeat % 1 > 0.001) fix = window.playerTime / secondsPreBeat % 1 * pixelPreBeat;
-        for (var i = notePanel.ActualHeight; i + fix > 0; i -= pixelPreDividedBeat)
+        var currTime = Window.playerTime;
+        var startMeasure = 0;
+        double drawTime = 0;
+        for (var i = 0; i < Window.track.LineTimes.Count; i++)
         {
-            var actualY = i + fix;
-            System.Windows.Shapes.Line line = new()
+            if (Window.track.LineTimes[i] <= currTime && Window.track.LineTimes[i + 1] > currTime)
             {
-                X1 = 0,
-                X2 = notePanel.ActualWidth,
-                Y1 = actualY,
-                Y2 = actualY
-            };
-            if ((notePanel.ActualHeight - i) % pixelPreBeat < 0.001 ||
-                ((notePanel.ActualHeight - i) % pixelPreBeat > 0.999 &&
-                 (notePanel.ActualHeight - i) % pixelPreBeat < 1))
+                startMeasure = i;
+                drawTime = Window.track.LineTimes[i];
+                break;
+            }
+        }
+
+        //绘制
+        for (var i = startMeasure; drawTime < currTime + currDisplayLength ; i++)
+        {
+            var (_, length) = Window.track.GetTimeRange(i);
+            var div = length / divideNum;
+            //绘制主线
+            if (drawTime >= currTime)
             {
-                //是整拍
-                line.Stroke = new SolidColorBrush(Color.FromRgb(237, 70, 255));
-                line.StrokeThickness = 3;
-                //获取当前拍数
-                var beats = (int)Math.Round(GetTimeFromY(notePanel.ActualHeight - actualY) / secondsPreBeat);
+                var y = notePanel.ActualHeight - GetBottomYFromTime(drawTime);
+                System.Windows.Shapes.Line line = new()
+                {
+                    X1 = 0,
+                    X2 = notePanel.ActualWidth,
+                    Y1 = y,
+                    Y2 = y,
+                    Stroke = new SolidColorBrush(Color.FromRgb(237, 70, 255)),
+                    StrokeThickness = 3
+                };
                 //拍数
                 TextBlock textBlock = new()
                 {
-                    Text = beats.ToString(),
+                    Text = i.ToString(),
                     Foreground = new SolidColorBrush(Colors.White),
                     FontSize = 12
                 };
-                beatDisplay.Children.Add(textBlock);
-                Canvas.SetBottom(textBlock, notePanel.ActualHeight - actualY);
+                BeatDisplay.Children.Add(textBlock);
+                Canvas.SetTop(textBlock, y);
+                notePanel.Children.Add(line); 
             }
-            else
+            drawTime += div;
+            for (var j = 0; j < divideNum - 1; j++)
             {
-                //是分拍
-                line.Stroke = new SolidColorBrush(Color.FromRgb(254, 235, 255));
-                line.StrokeThickness = 1;
+                if(drawTime < currTime)
+                {
+                    drawTime += div;
+                    continue;
+                }
+                var y = notePanel.ActualHeight - GetBottomYFromTime(drawTime);
+                System.Windows.Shapes.Line line = new()
+                {
+                    X1 = 0,
+                    X2 = notePanel.ActualWidth,
+                    Y1 = y,
+                    Y2 = y,
+                    Stroke = new SolidColorBrush(Color.FromRgb(254, 235, 255)),
+                    StrokeThickness = 1
+                };
+                notePanel.Children.Add(line);
+                drawTime += div;
             }
-
-            notePanel.Children.Add(line);
         }
     }
 
     //绘制谱面预览
-    public void DrawPreview()
+    private void DrawPreview()
     {
         var width = trackPreview.ActualWidth;
         var height = trackPreview.ActualHeight;
         foreach (var item in trackPreview.Children)
-            if (item is System.Windows.Shapes.Line line)
-                line.Stroke = null;
-            else if (item is Rectangle rect) rect.Fill = null;
+            switch (item)
+            {
+                case System.Windows.Shapes.Line line:
+                    line.Stroke = null;
+                    break;
+                case Rectangle rect:
+                    rect.Fill = null;
+                    break;
+            }
         trackPreview.Children.Clear();
         //调整预览范围
-        if (window.playerTime < previewStartTime)
-            previewStartTime = window.playerTime;
-        else if (window.playerTime > previewStartTime + previewRange * window.track.Length)
-            previewStartTime = window.playerTime - previewRange * window.track.Length;
+        if (Window.playerTime < previewStartTime)
+            previewStartTime = Window.playerTime;
+        else if (Window.playerTime > previewStartTime + previewRange * Window.track.Length)
+            previewStartTime = Window.playerTime - previewRange * Window.track.Length;
         //绘制谱面
-        foreach (var line in window.track.AllLines)
-        foreach (var note in line.Notes)
+        foreach (var note in Window.track.AllLines.SelectMany(line => line.Notes))
             if (note.type == NoteType.Hold)
             {
                 var x = note.Rail * width / 9;
-                var y = (note.ActualTime - previewStartTime) / (window.track.Length * previewRange) * height;
+                var y = (note.ActualTime - previewStartTime) / (Window.track.Length * previewRange) * height;
                 var w = width / 9;
-                var h = note.ActualHoldTime / (window.track.Length * previewRange) * height;
+                var h = note.ActualHoldTime / (Window.track.Length * previewRange) * height;
                 Rectangle rect = new()
                 {
                     Width = w,
@@ -339,9 +392,9 @@ public partial class TrackEditorPage : Page
             else
             {
                 var x = note.Rail * width / 9;
-                var y = (note.ActualTime - previewStartTime) / (window.track.Length * previewRange) * height;
+                var y = (note.ActualTime - previewStartTime) / (Window.track.Length * previewRange) * height;
                 var w = width / 9;
-                double h = 2;
+                const double h = 2;
                 Rectangle rect = new()
                 {
                     Width = w,
@@ -356,7 +409,7 @@ public partial class TrackEditorPage : Page
             }
 
         //绘制时间线
-        var timeLineY = height - (window.playerTime - previewStartTime) / (window.track.Length * previewRange) * height;
+        var timeLineY = height - (Window.playerTime - previewStartTime) / (Window.track.Length * previewRange) * height;
         System.Windows.Shapes.Line timeLine = new()
         {
             X1 = 0,
@@ -370,7 +423,7 @@ public partial class TrackEditorPage : Page
         trackPreview.Children.Add(timeLine);
     }
 
-    public void DrawTrackWithEvent()
+    private void DrawTrackWithEvent()
     {
         //清空画布
         trackPreviewWithEvent.Children.OfType<Rectangle>()
@@ -387,7 +440,7 @@ public partial class TrackEditorPage : Page
         //绘制note
         //如果谱面正在播放，就直接让note按照对应速度移动
         //如果谱面没有播放，就计算note的位置
-        var time = window.playerTime;
+        var time = Window.playerTime;
         var noteWidth = windowWidth / 9;
         foreach (var line in nbtTrack.lines)
         {
@@ -485,10 +538,10 @@ public partial class TrackEditorPage : Page
         }
         //播放note音效
         //目前显示的时间范围
-        var minTime = window.playerTime;
-        var maxTime = minTime + notePanel.ActualHeight / pixelPreBeat * secondsPreBeat;
-        for (var i = 0; i < window.track.Lines.Count; i++)
-            foreach (var note in window.track.Lines[i].Notes)
+        var minTime = Window.playerTime;
+        foreach (var t in Window.track.Lines)
+        {
+            foreach (var note in t.Notes)
             {
                 if (note.type == NoteType.Hold)
                 {
@@ -502,9 +555,9 @@ public partial class TrackEditorPage : Page
                         else
                         {
                             //如果未被判定过且谱面正在被播放
-                            if (!note.hasJudged && window.isPlaying)
+                            if (!note.hasJudged && Window.isPlaying)
                             {
-                                window.tapSoundManager.AppendSoundRequest();
+                                Window.tapSoundManager.AppendSoundRequest();
                                 note.hasJudged = true;
                             }
                         }
@@ -521,28 +574,31 @@ public partial class TrackEditorPage : Page
                 //在判定线下方
                 else
                 {
+                    if (note.hasJudged || !Window.isPlaying) continue;
                     //如果未被判定过且谱面正在被播放
-                    if (!note.hasJudged && window.isPlaying)
+                    if (note.type == NoteType.Tap)
                     {
-                        if (note.type == NoteType.Tap)
-                            window.tapSoundManager.AppendSoundRequest();
-                        else
-                            window.catchSoundManager.AppendSoundRequest();
-                        note.hasJudged = true;
+                        Window.tapSoundManager.AppendSoundRequest();
                     }
+                    else
+                    {
+                        Window.catchSoundManager.AppendSoundRequest();
+                    }
+                    note.hasJudged = true;
                 }
             }
+        }
     }
 
     //更新
     private void Update()
     {
-        if (window.isPlaying)
+        if (Window.isPlaying)
         {
-            window.playerTime = window.player.Position.TotalSeconds;
+            Window.playerTime = Window.player.Position.TotalSeconds;
             //更新时间
-            timeDis.Content = window.playerTime.ToString("0.00") + " / " + window.track.Length.ToString("0.00");
-            heightDis.Content = $"Fake Catch高度: {catchHeight:F2}";
+            TimeDis.Content = Window.playerTime.ToString("0.00") + " / " + Window.track.Length.ToString("0.00");
+            HeightDis.Content = $"Fake Catch高度: {catchHeight:F2}";
         }
 
         if (previewing)
@@ -553,97 +609,70 @@ public partial class TrackEditorPage : Page
         else
         {
             //更新note和事件
-            if (window.isPlaying || noteChange)
+            if (Window.isPlaying || noteChange)
             {
                 UpdateNote();
                 noteChange = false;
             }
 
-            if (editingMode == EVENT && (window.isPlaying || eventChange))
+            if (editingMode == EVENT && (Window.isPlaying || eventChange))
             {
                 UpdateEvent();
                 eventChange = false;
             }
 
-            if (editingMode == FAKE_CATCH && (window.isPlaying || fakeCatchChange))
+            if (editingMode == FAKE_CATCH && (Window.isPlaying || fakeCatchChange))
             {
                 UpdateFakeCatch();
                 fakeCatchChange = false;
             }
 
-            if (editingMode == FUNCTION && (window.isPlaying || functionChange))
+            if (editingMode == FUNCTION && (Window.isPlaying || functionChange))
             {
                 UpdateFunction();
                 functionChange = false;
             }
         }
 
-        window.tapSoundManager.PlaySound();
-        window.catchSoundManager.PlaySound();
+        Window.tapSoundManager.PlaySound();
+        Window.catchSoundManager.PlaySound();
     }
-
+    
     public void UpdateNote()
     {
         //目前显示的时间范围
-        var minTime = window.playerTime;
-        var maxTime = minTime + notePanel.ActualHeight / pixelPreBeat * secondsPreBeat;
-        var lines = window.track.Lines.Concat(new[]{window.track.FreeLine}).ToList();
-        for (var i = 0; i < lines.Count; i++)
+        var minTime = Window.playerTime;
+        var maxTime = minTime + currDisplayLength;
+        var lines = Window.track.Lines.Concat(new[]{ Window.track.FreeLine}).ToList();
+        foreach (var note in lines.SelectMany(t => t.Notes))
         {
-            foreach (var note in lines[i].Notes)
+            if (note.type == NoteType.Hold)
             {
-                if (note.type == NoteType.Hold)
+                if (minTime <= note.ActualTime + note.ActualHoldTime)
                 {
-                    if (minTime <= note.ActualTime + note.ActualHoldTime)
+                    //在判定线上方
+                    if (minTime <= note.ActualTime)
                     {
-                        //在判定线上方
-                        if (minTime <= note.ActualTime)
-                        {
-                            if (note.hasJudged) note.hasJudged = false;
-                        }
-                        else
-                        {
-                            //如果未被判定过且谱面正在被播放
-                            if (!note.hasJudged && window.isPlaying)
-                            {
-                                window.tapSoundManager.AppendSoundRequest();
-                                note.hasJudged = true;
-                            }
-                        }
-
-                        //在可视区域内
-                        if (note.ActualTime < maxTime)
-                        {
-                            note.rectangle.Visibility = Visibility.Visible;
-                            var qwq = Math.Max(minTime, note.ActualTime); //末端
-                            var pwp = Math.Min(note.ActualTime + note.ActualHoldTime, maxTime); //上端
-                            note.rectangle.Height = GetYFromTime(pwp) - GetYFromTime(qwq);
-                            Canvas.SetBottom(note.rectangle, GetYFromTime(qwq));
-                            Canvas.SetLeft(note.rectangle, note.Rail * notePanel.ActualWidth / 9);
-                        }
-                        else
-                        {
-                            note.rectangle.Visibility = Visibility.Hidden;
-                        }
+                        if (note.hasJudged) note.hasJudged = false;
                     }
                     else
                     {
-                        note.rectangle.Visibility = Visibility.Hidden;
+                        //如果未被判定过且谱面正在被播放
+                        if (!note.hasJudged && Window.isPlaying)
+                        {
+                            Window.tapSoundManager.AppendSoundRequest();
+                            note.hasJudged = true;
+                        }
                     }
 
-                    continue;
-                }
-
-                //在判定线上方
-                if (minTime <= note.ActualTime)
-                {
-                    if (note.hasJudged) note.hasJudged = false;
                     //在可视区域内
-                    if (note.ActualTime <= maxTime)
+                    if (note.ActualTime < maxTime)
                     {
                         note.rectangle.Visibility = Visibility.Visible;
-                        var qwq = note.ActualTime - minTime;
-                        Canvas.SetBottom(note.rectangle, qwq / secondsPreBeat * pixelPreBeat);
+                        var qwq = Math.Max(minTime, note.ActualTime); //末端
+                        var pwp = Math.Min(note.ActualTime + note.ActualHoldTime, maxTime); //上端
+                        note.rectangle.Height = GetBottomYFromTime(pwp) - GetBottomYFromTime(qwq);
+                        Canvas.SetBottom(note.rectangle, GetBottomYFromTime(qwq));
                         Canvas.SetLeft(note.rectangle, note.Rail * notePanel.ActualWidth / 9);
                     }
                     else
@@ -651,21 +680,44 @@ public partial class TrackEditorPage : Page
                         note.rectangle.Visibility = Visibility.Hidden;
                     }
                 }
-                //在判定线下方
                 else
                 {
-                    //如果未被判定过且谱面正在被播放
-                    if (!note.hasJudged && window.isPlaying)
-                    {
-                        if (note.type == NoteType.Tap)
-                            window.tapSoundManager.AppendSoundRequest();
-                        else
-                            window.catchSoundManager.AppendSoundRequest();
-                        note.hasJudged = true;
-                    }
-
                     note.rectangle.Visibility = Visibility.Hidden;
                 }
+
+                continue;
+            }
+
+            //在判定线上方
+            if (minTime <= note.ActualTime)
+            {
+                if (note.hasJudged) note.hasJudged = false;
+                //在可视区域内
+                if (note.ActualTime <= maxTime)
+                {
+                    note.rectangle.Visibility = Visibility.Visible;
+                    Canvas.SetBottom(note.rectangle, GetBottomYFromTime(note.ActualTime));
+                    Canvas.SetLeft(note.rectangle, note.Rail * notePanel.ActualWidth / 9);
+                }
+                else
+                {
+                    note.rectangle.Visibility = Visibility.Hidden;
+                }
+            }
+            //在判定线下方
+            else
+            {
+                //如果未被判定过且谱面正在被播放
+                if (!note.hasJudged && Window.isPlaying)
+                {
+                    if (note.type == NoteType.Tap)
+                        Window.tapSoundManager.AppendSoundRequest();
+                    else
+                        Window.catchSoundManager.AppendSoundRequest();
+                    note.hasJudged = true;
+                }
+
+                note.rectangle.Visibility = Visibility.Hidden;
             }
         }
     }
@@ -673,8 +725,8 @@ public partial class TrackEditorPage : Page
     public void UpdateFakeCatch()
     {
         //目前显示的时间范围
-        var minTime = window.playerTime;
-        var maxTime = minTime + notePanel.ActualHeight / pixelPreBeat * secondsPreBeat;
+        var minTime = Window.playerTime;
+        var maxTime = minTime + currDisplayLength;
         foreach (var fakeCatch in CurrLine.FakeCatch)
         {
             //在判定线上方
@@ -684,8 +736,7 @@ public partial class TrackEditorPage : Page
                 if (fakeCatch.ActualTime <= maxTime)
                 {
                     fakeCatch.rectangle.Visibility = Visibility.Visible;
-                    var qwq = fakeCatch.ActualTime - minTime;
-                    Canvas.SetBottom(fakeCatch.rectangle, qwq / secondsPreBeat * pixelPreBeat);
+                    Canvas.SetBottom(fakeCatch.rectangle, GetBottomYFromTime(fakeCatch.ActualTime));
                     Canvas.SetLeft(fakeCatch.rectangle, fakeCatch.Rail * notePanel.ActualWidth / 9);
                 }
                 else
@@ -705,9 +756,9 @@ public partial class TrackEditorPage : Page
     public void UpdateFunction()
     {
         //目前显示的时间范围
-        var minTime = window.playerTime;
-        var maxTime = minTime + functionPanel.ActualHeight / pixelPreBeat * secondsPreBeat;
-        for (var i = 0; i < window.track.Lines.Count; i++)
+        var minTime = Window.playerTime;
+        var maxTime = minTime + currDisplayLength;
+        for (var i = 0; i < Window.track.Lines.Count; i++)
             foreach (var function in CurrLine.Functions)
                 //在判定线上方
                 if (minTime <= function.Time)
@@ -716,8 +767,7 @@ public partial class TrackEditorPage : Page
                     if (function.Time <= maxTime)
                     {
                         function.rectangle.Visibility = Visibility.Visible;
-                        var qwq = function.Time - minTime;
-                        Canvas.SetBottom(function.rectangle, qwq / secondsPreBeat * pixelPreBeat);
+                        Canvas.SetBottom(function.rectangle, GetBottomYFromTime(function.Time));
                         Canvas.SetLeft(function.rectangle, function.Rail * functionPanel.ActualWidth / 9);
                     }
                     else
@@ -735,30 +785,27 @@ public partial class TrackEditorPage : Page
     public void UpdateEvent()
     {
         //目前显示的时间范围
-        var minTime = window.playerTime;
-        var maxTime = minTime + eventPanel.ActualHeight / pixelPreBeat * secondsPreBeat;
-        for (var i = 0; i < window.track.Lines.Count; i++)
-        for (var j = 0; j < window.track.Lines[i].EventLists.Count; j++)
-            foreach (var e in window.track.Lines[i].EventLists[j].Events)
-                if (minTime <= e.EndTime)
+        var minTime = Window.playerTime;
+        var maxTime = minTime + currDisplayLength;
+        foreach (var t in Window.track.Lines)
+        {
+            for (var j = 0; j < t.EventLists.Count; j++)
+            {
+                foreach (var e in t.EventLists[j].Events)
                 {
-                    //在可视区域内
-                    if (e.StartTime < maxTime)
+                    if (minTime <= e.EndTime && e.StartTime < maxTime)
                     {
-                        e.rectangle.Visibility = Visibility.Visible;
-                        Canvas.SetBottom(e.rectangle, GetYFromTime(e.StartTime));
-                        Canvas.SetLeft(e.rectangle, (j - page * 9) * notePanel.ActualWidth / 9);
+                        e.Rectangle.Visibility = Visibility.Visible;
+                        Canvas.SetBottom(e.Rectangle, GetBottomYFromTime(e.StartTime));
+                        Canvas.SetLeft(e.Rectangle, (j - page * 9) * notePanel.ActualWidth / 9);
                     }
                     else
                     {
-                        e.rectangle.Visibility = Visibility.Hidden;
+                        e.Rectangle.Visibility = Visibility.Hidden;
                     }
                 }
-                else
-                {
-                    e.rectangle.Visibility = Visibility.Hidden;
-                }
-
+            }
+        }
         UpdateFunctionCurve();
     }
 
@@ -766,7 +813,7 @@ public partial class TrackEditorPage : Page
     {
         for (var i = 0; i < 9; i++)
         {
-            var textBlock = (columnInfo.Children[i] as TextBlock)!;
+            var textBlock = (ColumnInfo.Children[i] as TextBlock)!;
             string text;
             if (editingMode != 1)
             {
@@ -790,38 +837,36 @@ public partial class TrackEditorPage : Page
 
     public void UpdateFunctionCurve()
     {
-        foreach (var line in window.track.Lines)
-        foreach (var el in line.EventLists)
-        foreach (var e in el.Events)
+        foreach (var line in Window.track.Lines)
         {
-            if (e.isHeaderEvent)
+            foreach (var e in line.EventLists.SelectMany(el => el.Events))
             {
-                List<EventRectangle> rs = new();
-                foreach (var item in e.EventGroup) rs.Add(item.rectangle);
-                EventRectangle.DrawFunction(rs);
-                rs.Clear();
-            }
+                if (e.IsHeaderEvent)
+                {
+                    var rs = e.EventGroup.Select(item => item.Rectangle).ToList();
+                    EventRectangle.DrawFunction(rs);
+                    rs.Clear();
+                }
 
-            e.rectangle.UpdateText();
+                e.Rectangle.UpdateText();
+            }
         }
     }
 
     //放置hold，或者拖动note
     private void notePanel_MouseMove(object sender, MouseEventArgs e)
     {
-        if (!window.isPlaying && !isSelecting)
+        //note将要放置，预览位置
+        var (_, measure, beat, endPos, _) = GetAlignedPoint(e.GetPosition(notePanel));
+        if (!Window.isPlaying && !isSelecting)
         {
-            var endPos = GetAlignedPoint(e.GetPosition(notePanel));
             if (startPos != new Point(-1, -1))
             {
                 //hold预览
                 if (endPos.Y > startPos.Y)
                 {
                     notePreview.Height = endPos.Y - startPos.Y;
-                    if (window.puttingTap)
-                        notePreview.Fill = tapBrush;
-                    else
-                        notePreview.Fill = catchBrush;
+                    notePreview.Fill = Window.puttingTap ? TapBrush : CatchBrush;
                     //绘制note矩形
                     notePreview.Visibility = Visibility.Visible;
                     Canvas.SetLeft(notePreview, startPos.X);
@@ -839,29 +884,19 @@ public partial class TrackEditorPage : Page
                 Canvas.SetLeft(notePreview, endPos.X);
                 Canvas.SetBottom(notePreview, endPos.Y);
             }
-
-            //计算拍数
-            var mouseTime = endPos.Y / pixelPreBeat * secondsPreBeat + window.playerTime;
-            var beat = (int)(mouseTime / secondsPreBeat);
-            var divBeat = (int)(mouseTime % secondsPreBeat / secondsPreDevideBeat);
-            beatDis.Content = $"beat {beat}:{divBeat}/{divideNum}";
+            BeatDis.Content = $"beat {measure}:{beat}/{divideNum}";
         }
         else
         {
-            if (isSelecting || isDraging)
+            if (isSelecting || isDragging)
             {
-                var endPos = GetAlignedPoint(e.GetPosition(notePanel));
-                //计算拍数
-                var mouseTime = endPos.Y / pixelPreBeat * secondsPreBeat + window.playerTime;
-                var beat = (int)(mouseTime / secondsPreBeat);
-                var divBeat = (int)(mouseTime % secondsPreBeat / secondsPreDevideBeat);
-                beatDis.Content = $"beat {beat}:{divBeat}/{divideNum}";
-                if (isDraging)
+                BeatDis.Content = $"beat {measure}:{beat}/{divideNum}";
+                if (isDragging)
                 {
                     if (selectedNotes[0].rectangle.IsResizing)
                     {
                         var n = selectedNotes[0];
-                        var y = Math.Abs(endPos.Y - GetYFromTime(n.ActualTime));
+                        var y = Math.Abs(endPos.Y - GetBottomYFromTime(n.ActualTime));
                         n.rectangle.Height = y;
                     }
                     else
@@ -887,11 +922,11 @@ public partial class TrackEditorPage : Page
     public void FlushNotePreview()
     {
         if (editingMode == 2)
-            notePreview.Fill = fakeCatchBrush;
-        else if (window.puttingTap)
-            notePreview.Fill = tapBrush;
+            notePreview.Fill = FakeCatchBrush;
+        else if (Window.puttingTap)
+            notePreview.Fill = TapBrush;
         else
-            notePreview.Fill = catchBrush;
+            notePreview.Fill = CatchBrush;
     }
 
     private void notePanel_MouseLeave(object sender, MouseEventArgs e)
@@ -902,15 +937,12 @@ public partial class TrackEditorPage : Page
     //放置note
     private void notePanel_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (window.isPlaying) return;
-        if (startPos == new Point(-1, -1))
+        if (Window.isPlaying) return;
+        if (startPos != new Point(-1, -1)) return;
+        (var time ,_ ,_ ,startPos, var rail) = GetAlignedPoint(e.GetPosition(notePanel));
+        if (editingMode == 0 && CurrLine.ClickOnNote(time, rail) || editingMode == 2 && CurrLine.ClickOnFakeCatch(time, rail))
         {
-            startPos = GetAlignedPoint(e.GetPosition(notePanel));
-            if ((editingMode == 0 && CurrLine.ClickOnNote(GetTimeFromY(startPos.Y),
-                    (int)Math.Round(startPos.X * 9 / notePanel.ActualWidth)))
-                || (editingMode == 2 && CurrLine.ClickOnFakeCatch(GetTimeFromY(startPos.Y),
-                    (int)Math.Round(startPos.X * 9 / notePanel.ActualWidth))))
-                startPos = new Point(-1, -1);
+            startPos = new Point(-1, -1);
         }
     }
 
@@ -918,31 +950,34 @@ public partial class TrackEditorPage : Page
     private void notePanel_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
         //获取鼠标位置
-        var endPos = GetAlignedPoint(e.GetPosition(notePanel));
+        var (time, _, _, endPos, _) = GetAlignedPoint(e.GetPosition(notePanel));
         //拖动note
-        if (isDraging)
+        if (isDragging)
         {
             if (selectedNotes[0].rectangle.IsResizing)
-                selectedNotes[0].ActualHoldTime = GetTimeFromY(endPos.Y) - selectedNotes[0].ActualTime;
+            {
+                selectedNotes[0].ActualHoldTime = time - selectedNotes[0].ActualTime;
+            }
             else
+            {
                 foreach (var note in selectedNotes)
                 {
                     var x = Canvas.GetLeft(note.rectangle);
                     var y = Canvas.GetBottom(note.rectangle);
                     Point point = new(x, notePanel.ActualHeight - y);
-                    point = GetAlignedPoint(point);
-                    note.Rail = (int)Math.Round(x * 9 / notePanel.ActualWidth);
+                    (var noteTime,_,_, point,var noteRail) = GetAlignedPoint(point);
+                    note.Rail = noteRail;
                     if (note.Rail < 0) note.Rail = 0;
-                    note.ActualTime = GetTimeFromY(point.Y);
+                    note.ActualTime = noteTime;
                     Canvas.SetBottom(note.rectangle, point.Y);
                 }
-
+            }
             UpdateSelectedNote(selectedNotes);
-            isDraging = false;
+            isDragging = false;
             return;
         }
 
-        if (window.isPlaying) return;
+        if (Window.isPlaying) return;
         if (startPos == new Point(-1, -1)) return;
         if (selectedNotes.Count != 0)
         {
@@ -953,8 +988,8 @@ public partial class TrackEditorPage : Page
         }
 
         //获取时间
-        var startTime = GetTimeFromY(startPos.Y);
-        var endTime = GetTimeFromY(endPos.Y);
+        var startTime = GetTimeFromBottomY(startPos.Y);
+        var endTime = GetTimeFromBottomY(endPos.Y);
         var rail = (int)Math.Round(startPos.X * 9 / notePanel.ActualWidth);
         if (CurrLine.ClickOnEvent(endTime, rail))
         {
@@ -970,12 +1005,12 @@ public partial class TrackEditorPage : Page
                 startTime,
                 catchHeight
             );
-            if (CurrLine == window.track.FreeLine) willPutNote.ExpressionString = "[t]";
+            if (CurrLine == Window.track.FreeLine) willPutNote.ExpressionString = "[t]";
             willPutNote.rectangle.Height = 10;
             willPutNote.rectangle.Width = notePreview.Width;
         }
         //放置note
-        else if (endTime - startTime >= secondsPreDevideBeat)
+        else if (endTime - startTime > 0)
         {
             willPutNote ??= new Note(
                 rail,
@@ -985,7 +1020,7 @@ public partial class TrackEditorPage : Page
                 startTime,
                 actualHoldTime: endTime - startTime,
                 isCurrentLineNote: true);
-            if (CurrLine == window.track.FreeLine) willPutNote.ExpressionString = "[t]";
+            if (CurrLine == Window.track.FreeLine) willPutNote.ExpressionString = "[t]";
             willPutNote.rectangle.Height = endPos.Y - startPos.Y;
             willPutNote.rectangle.Width = notePreview.Width;
         }
@@ -993,12 +1028,12 @@ public partial class TrackEditorPage : Page
         {
             willPutNote ??= new Note(
                 rail,
-                (int)(window.puttingTap ? NoteType.Tap : NoteType.Catch),
+                (int)(Window.puttingTap ? NoteType.Tap : NoteType.Catch),
                 0,
                 false,
                 startTime,
                 true);
-            if (CurrLine == window.track.FreeLine) willPutNote.ExpressionString = "[t]";
+            if (CurrLine == Window.track.FreeLine) willPutNote.ExpressionString = "[t]";
             willPutNote.rectangle.Height = 10;
             willPutNote.rectangle.Width = notePreview.Width;
         }
@@ -1031,9 +1066,9 @@ public partial class TrackEditorPage : Page
     private void notePanel_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         notePreview.Width = notePanel.ActualWidth / 9;
-        foreach (var line in window.track.AllLines)
+        foreach (var line in Window.track.AllLines)
         {
-            line.Notes.ForEach(e => { e.rectangle.Width = notePanel.ActualWidth / 9; });
+            line.Notes.ForEach(note => { note.rectangle.Width = notePanel.ActualWidth / 9; });
             line.FakeCatch.ForEach(f => { f.rectangle.Width = notePanel.ActualWidth / 9; });
         }
     }
@@ -1042,10 +1077,10 @@ public partial class TrackEditorPage : Page
     private void eventPanel_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         eventPreview.Width = eventPanel.ActualWidth / 9;
-        foreach (var line in window.track.Lines)
+        foreach (var line in Window.track.Lines)
             line.EventLists.ForEach(el =>
             {
-                el.Events.ForEach(e => { e.rectangle.Width = eventPanel.ActualWidth / 9; });
+                el.Events.ForEach(@event => { @event.Rectangle.Width = eventPanel.ActualWidth / 9; });
             });
     }
 
@@ -1063,19 +1098,19 @@ public partial class TrackEditorPage : Page
         }
 
         //速度设置
-        if (window != null && window.player != null) window.player.SpeedRatio = speed;
+        Window.player.SpeedRatio = speed;
     }
 
     //切换速度
     private void speedChooseBox_MouseEnter(object sender, MouseEventArgs e)
     {
-        speedChooseBox.Focusable = true;
+        SpeedChooseBox.Focusable = true;
     }
 
     //切换速度
     private void speedChooseBox_MouseLeave(object sender, MouseEventArgs e)
     {
-        speedChooseBox.Focusable = false;
+        SpeedChooseBox.Focusable = false;
     }
 
     //切换判定线
@@ -1086,7 +1121,7 @@ public partial class TrackEditorPage : Page
             isDeleting = false;
             return;
         }
-        if(lineListView.SelectedIndex == -1) return;
+        if(LineListView.SelectedIndex == -1) return;
 
         if (editingMode == 0)
         {
@@ -1097,7 +1132,7 @@ public partial class TrackEditorPage : Page
                     note.Color = EditorColors.holdColorButNotOnThisLine;
                 else
                     note.Color = EditorColors.catchColorButNotOnThisLine;
-            LineIndex = lineListView.SelectedIndex;
+            LineIndex = LineListView.SelectedIndex;
             selectingFreeLine = false;
             foreach (var note in CurrLine.Notes)
                 if (note.type == NoteType.Tap)
@@ -1110,17 +1145,17 @@ public partial class TrackEditorPage : Page
         else if (editingMode == 1)
         {
             foreach (var el in CurrLine.EventLists)
-                el.Events.ForEach(e => { e.rectangle.Visibility = Visibility.Hidden; });
-            LineIndex = lineListView.SelectedIndex;
+                el.Events.ForEach(e => { e.Rectangle.Visibility = Visibility.Hidden; });
+            LineIndex = LineListView.SelectedIndex;
             selectingFreeLine = false;
             foreach (var el in CurrLine.EventLists)
-                el.Events.ForEach(e => { e.rectangle.Visibility = Visibility.Visible; });
+                el.Events.ForEach(e => { e.Rectangle.Visibility = Visibility.Visible; });
             UpdateEventTypeList();
         }
         else
         {
             CurrLine.FakeCatch.ForEach(e => { e.rectangle.Visibility = Visibility.Hidden; });
-            LineIndex = lineListView.SelectedIndex;
+            LineIndex = LineListView.SelectedIndex;
             selectingFreeLine = false;
             CurrLine.FakeCatch.ForEach(e => { e.rectangle.Visibility = Visibility.Visible; });
         }
@@ -1132,10 +1167,10 @@ public partial class TrackEditorPage : Page
         isDeleting = true;
         var i = LineIndex - 1;
         if (i < 0) i = 0;
-        if (window.track.Lines.Count == 1) window.track.Lines.Add(new Line(0));
-        lineListView.SelectedIndex = i;
+        if (Window.track.Lines.Count == 1) Window.track.Lines.Add(new Line(0));
+        LineListView.SelectedIndex = i;
         OperationManager.AddOperation(new RemoveLineOperation(CurrLine));
-        window.track.Lines.RemoveAt(LineIndex);
+        Window.track.Lines.RemoveAt(LineIndex);
         LineIndex = i;
     }
 
@@ -1160,9 +1195,9 @@ public partial class TrackEditorPage : Page
     private void Button_Click(object sender, RoutedEventArgs e)
     {
         Line qwq = new(0);
-        window.track.Lines.Add(qwq);
-        LineIndex = window.track.Lines.Count - 1;
-        lineListView.SelectedIndex = LineIndex;
+        Window.track.Lines.Add(qwq);
+        LineIndex = Window.track.Lines.Count - 1;
+        LineListView.SelectedIndex = LineIndex;
     }
 
     //判定线重命名
@@ -1197,12 +1232,12 @@ public partial class TrackEditorPage : Page
     //放置事件
     private void eventPanel_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
-        if (window.isPlaying) return;
-        if (startPos == new Point(-1, -1))
+        if (Window.isPlaying) return;
+        if (startPos != new Point(-1, -1)) return;
+        (var time, _, _, startPos, var rail) = GetAlignedPoint(e.GetPosition(eventPanel));
+        if (CurrLine.ClickOnEvent(time, rail))
         {
-            startPos = GetAlignedPoint(e.GetPosition(eventPanel));
-            if (CurrLine.ClickOnEvent(GetTimeFromY(startPos.Y),
-                    (int)Math.Round(startPos.X * 9 / notePanel.ActualWidth))) startPos = new Point(-1, -1);
+            startPos = new Point(-1, -1);
         }
     }
 
@@ -1210,40 +1245,40 @@ public partial class TrackEditorPage : Page
     private void eventPanel_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
         //获取鼠标位置
-        var endPos = GetAlignedPoint(e.GetPosition(eventPanel));
+        var (time, _, _, endPos, _) = GetAlignedPoint(e.GetPosition(eventPanel));
         //拖动事件
-        if (isDraging)
+        if (isDragging)
         {
-            if (selectedEvents[0].rectangle.IsResizing == 1)
+            if (selectedEvents[0].Rectangle.IsResizing == 1)
             {
                 var ev = selectedEvents[0];
                 //调整结束时间
-                ev.EndTime = GetTimeFromY(endPos.Y);
+                ev.EndTime = time;
             }
-            else if (selectedEvents[0].rectangle.IsResizing == -1)
+            else if (selectedEvents[0].Rectangle.IsResizing == -1)
             {
                 var ev = selectedEvents[0];
                 //调整开始时间
-                ev.StartTime = GetTimeFromY(endPos.Y);
+                ev.StartTime = time;
             }
             else
             {
                 foreach (var @event in selectedEvents)
                 {
-                    var y = Canvas.GetBottom(@event.rectangle);
+                    var y = Canvas.GetBottom(@event.Rectangle);
                     var i = @event.StartTime;
-                    @event.StartTime = GetTimeFromY(y);
+                    @event.StartTime = GetTimeFromBottomY(y);
                     @event.EndTime += @event.StartTime - i;
                 }
 
                 UpdateSelectedEvent(selectedEvents);
             }
 
-            isDraging = false;
+            isDragging = false;
             return;
         }
 
-        if (window.isPlaying) return;
+        if (Window.isPlaying) return;
         if (startPos == new Point(-1, -1)) return;
         if (selectedEvents.Count != 0)
         {
@@ -1254,8 +1289,8 @@ public partial class TrackEditorPage : Page
         }
 
         //获取时间
-        var startTime = GetTimeFromY(startPos.Y);
-        var endTime = GetTimeFromY(endPos.Y);
+        var startTime = GetTimeFromBottomY(startPos.Y);
+        var endTime = GetTimeFromBottomY(endPos.Y);
         //计算轨道
         var rail = (int)Math.Round(startPos.X * 9 / eventPanel.ActualWidth) + page * 9;
         if (CurrLine.ClickOnEvent(endTime, rail))
@@ -1265,7 +1300,7 @@ public partial class TrackEditorPage : Page
         }
 
         //最小时间
-        if (endTime - startTime <= secondsPreDevideBeat)
+        if (Math.Abs(endTime - startTime) < 0.0001)
         {
             startPos = new Point(-1, -1);
             return;
@@ -1295,15 +1330,15 @@ public partial class TrackEditorPage : Page
             v,
             v
         );
-        willPutEvent.rectangle.Height = endPos.Y - startPos.Y;
-        willPutEvent.rectangle.Width = eventPreview.Width;
+        willPutEvent.Rectangle.Height = endPos.Y - startPos.Y;
+        willPutEvent.Rectangle.Width = eventPreview.Width;
         if (!CurrLine.EventLists[rail].Events.Contains(willPutEvent))
         {
-            eventPanel.Children.Add(willPutEvent.rectangle);
-            Canvas.SetLeft(willPutEvent.rectangle, rail * eventPanel.ActualWidth / 9);
-            Canvas.SetBottom(willPutEvent.rectangle, startPos.Y);
+            eventPanel.Children.Add(willPutEvent.Rectangle);
+            Canvas.SetLeft(willPutEvent.Rectangle, rail * eventPanel.ActualWidth / 9);
+            Canvas.SetBottom(willPutEvent.Rectangle, startPos.Y);
             CurrLine.EventLists[rail].Events.Add(willPutEvent);
-            willPutEvent.parentList = CurrLine.EventLists[rail];
+            willPutEvent.ParentList = CurrLine.EventLists[rail];
             eventChange = true;
             OperationManager.AddOperation(new PutEventOperation(willPutEvent, CurrLine.EventLists[rail]));
             //更新这个轨道的事件组
@@ -1319,10 +1354,11 @@ public partial class TrackEditorPage : Page
     //拖动事件或者放置事件，改变事件的时间
     private void eventPanel_MouseMove(object sender, MouseEventArgs e)
     {
-        if (!window.isPlaying && !isSelecting)
+        if (!Window.isPlaying && !isSelecting)
         {
-            var endPos = GetAlignedPoint(e.GetPosition(eventPanel));
+            var (_, measure, beat ,endPos, _) = GetAlignedPoint(e.GetPosition(eventPanel));
             if (startPos != new Point(-1, -1))
+            {
                 if (endPos.Y > startPos.Y)
                 {
                     eventPreview.Height = endPos.Y - startPos.Y;
@@ -1331,41 +1367,31 @@ public partial class TrackEditorPage : Page
                     Canvas.SetBottom(eventPreview, startPos.Y);
                     eventPreview.Visibility = Visibility.Visible;
                 }
-
-            //计算拍数
-            var mouseTime = endPos.Y / pixelPreBeat * secondsPreBeat + window.playerTime;
-            var beat = (int)(mouseTime / secondsPreBeat);
-            var divBeat = (int)(mouseTime % secondsPreBeat / secondsPreDevideBeat);
-            beatDis.Content = $"beat {beat}:{divBeat}/{divideNum}";
+            }
+            BeatDis.Content = $"beat {measure}:{beat}/{divideNum}";
         }
         else
         {
-            if (isSelecting || isDraging)
+            if (isSelecting || isDragging)
             {
-                var endPos = GetAlignedPoint(e.GetPosition(eventPanel));
-                //计算拍数
-                var mouseTime = endPos.Y / pixelPreBeat * secondsPreBeat + window.playerTime;
-                var beat = (int)(mouseTime / secondsPreBeat);
-                var divBeat = (int)(mouseTime % secondsPreBeat / secondsPreDevideBeat);
-                beatDis.Content = $"beat {beat}:{divBeat}/{divideNum}";
-                if (isDraging)
+                var (_, measure, beat ,endPos, _) = GetAlignedPoint(e.GetPosition(eventPanel));
+                BeatDis.Content = $"beat {measure}:{beat}/{divideNum}";
+                if (isDragging)
                 {
-                    if (selectedEvents[0].rectangle.IsResizing == 1)
+                    if (selectedEvents[0].Rectangle.IsResizing == 1)
                     {
                         var ev = selectedEvents[0];
                         //改结束时间
-                        var t = GetTimeFromY(endPos.Y);
-                        var y = Math.Abs(GetYFromTime(t) - GetYFromTime(ev.StartTime));
-                        ev.rectangle.Height = y;
+                        var y = Math.Abs(endPos.Y - GetBottomYFromTime(ev.StartTime));
+                        ev.Rectangle.Height = y;
                     }
-                    else if (selectedEvents[0].rectangle.IsResizing == -1)
+                    else if (selectedEvents[0].Rectangle.IsResizing == -1)
                     {
                         var ev = selectedEvents[0];
                         //改开始时间
-                        var t = GetTimeFromY(endPos.Y);
-                        var y = Math.Abs(GetYFromTime(ev.EndTime) - GetYFromTime(t));
-                        ev.rectangle.Height = y;
-                        Canvas.SetBottom(ev.rectangle, GetYFromTime(t));
+                        var y = Math.Abs(GetBottomYFromTime(ev.EndTime) - endPos.Y);
+                        ev.Rectangle.Height = y;
+                        Canvas.SetBottom(ev.Rectangle, endPos.Y);
                     }
                     else
                     {
@@ -1373,15 +1399,16 @@ public partial class TrackEditorPage : Page
                         //获取鼠标移动的位置
                         var delta = endPos - dragStartPoint;
                         dragStartPoint = endPos;
-                        foreach (var @event in selectedEvents)
-                            if (Canvas.GetBottom(@event.rectangle) + delta.Y < 0)
-                                return;
+                        if (selectedEvents.Any(@event => Canvas.GetBottom(@event.Rectangle) + delta.Y < 0))
+                        {
+                            return;
+                        }
                         //拖动事件
                         foreach (var @event in selectedEvents)
                         {
                             //移动事件
-                            Canvas.SetLeft(@event.rectangle, Canvas.GetLeft(@event.rectangle) + delta.X);
-                            Canvas.SetBottom(@event.rectangle, Canvas.GetBottom(@event.rectangle) + delta.Y);
+                            Canvas.SetLeft(@event.Rectangle, Canvas.GetLeft(@event.Rectangle) + delta.X);
+                            Canvas.SetBottom(@event.Rectangle, Canvas.GetBottom(@event.Rectangle) + delta.Y);
                         }
                     }
                 }
@@ -1397,9 +1424,9 @@ public partial class TrackEditorPage : Page
 
     private void functionPanel_MouseMove(object sender, MouseEventArgs e)
     {
-        if (!window.isPlaying && !isSelecting)
+        if (!Window.isPlaying && !isSelecting)
         {
-            var endPos = GetAlignedPoint(e.GetPosition(notePanel));
+            var (_, measure, beat ,endPos, _) = GetAlignedPoint(e.GetPosition(functionPanel));
             //tap预览
             functionPreview.Height = 10;
             //获取鼠标位置，生成函数位置预览
@@ -1407,22 +1434,16 @@ public partial class TrackEditorPage : Page
             Canvas.SetLeft(functionPreview, endPos.X);
             Canvas.SetBottom(functionPreview, endPos.Y);
             //计算拍数
-            var mouseTime = endPos.Y / pixelPreBeat * secondsPreBeat + window.playerTime;
-            var beat = (int)(mouseTime / secondsPreBeat);
-            var divBeat = (int)(mouseTime % secondsPreBeat / secondsPreDevideBeat);
-            beatDis.Content = $"beat {beat}:{divBeat}/{divideNum}";
+            BeatDis.Content = $"beat {measure}:{beat}/{divideNum}";
         }
         else
         {
-            if (isSelecting || isDraging)
+            if (isSelecting || isDragging)
             {
-                var endPos = GetAlignedPoint(e.GetPosition(notePanel));
-                //计算拍数
-                var mouseTime = endPos.Y / pixelPreBeat * secondsPreBeat + window.playerTime;
-                var beat = (int)(mouseTime / secondsPreBeat);
-                var divBeat = (int)(mouseTime % secondsPreBeat / secondsPreDevideBeat);
-                beatDis.Content = $"beat {beat}:{divBeat}/{divideNum}";
-                if (isDraging)
+                var (_, measure, beat ,endPos, _) = GetAlignedPoint(e.GetPosition(functionPanel));
+                BeatDis.Content = $"beat {measure}:{beat}/{divideNum}";
+                if (isDragging)
+                {
                     //拖动note
                     foreach (var function in selectedFunctions)
                     {
@@ -1433,6 +1454,7 @@ public partial class TrackEditorPage : Page
                         Canvas.SetLeft(function.rectangle, Canvas.GetLeft(function.rectangle) + delta.X);
                         Canvas.SetBottom(function.rectangle, Canvas.GetBottom(function.rectangle) + delta.Y);
                     }
+                }
             }
 
             functionPreview.Visibility = Visibility.Collapsed;
@@ -1447,44 +1469,42 @@ public partial class TrackEditorPage : Page
     private void functionPanel_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
         //获取鼠标位置
-        var pos = GetAlignedPoint(e.GetPosition(functionPanel));
+        var (time, _, _, pos, _) = GetAlignedPoint(e.GetPosition(functionPanel));
         //拖动function
-        if (isDraging)
+        if (isDragging)
         {
             foreach (var @event in selectedEvents)
             {
-                var y = Canvas.GetBottom(@event.rectangle);
+                var y = Canvas.GetBottom(@event.Rectangle);
                 var i = @event.StartTime;
-                @event.StartTime = GetTimeFromY(y);
+                @event.StartTime = GetTimeFromBottomY(y);
                 @event.EndTime += @event.StartTime - i;
             }
 
             UpdateSelectedEvent(selectedEvents);
-            isDraging = false;
+            isDragging = false;
             return;
         }
 
-        if (window.isPlaying) return;
+        if (Window.isPlaying) return;
         if (selectedEvents.Count != 0)
         {
             UpdateSelectedFunction(new List<Function>());
             infoFrame.Content = null;
             return;
         }
-
-        //获取时间
-        var time = GetTimeFromY(pos.Y);
         //计算轨道
         var rail = (int)Math.Round(pos.X * 9 / eventPanel.ActualWidth) + page * 9;
         if (CurrLine.ClickOnFunction(time, rail)) return;
         //放置
-        willPutFunction = new Function(
-            time,
-            rail,
-            Guid.NewGuid().ToString()
-        );
-        willPutFunction.rectangle.Height = 10;
-        willPutFunction.rectangle.Width = eventPreview.Width;
+        willPutFunction = new Function(time, rail, Guid.NewGuid().ToString())
+        {
+            rectangle =
+            {
+                Height = 10,
+                Width = eventPreview.Width
+            }
+        };
         if (!CurrLine.Functions.Contains(willPutFunction))
         {
             functionPanel.Children.Add(willPutFunction.rectangle);
@@ -1504,82 +1524,82 @@ public partial class TrackEditorPage : Page
     private void functionPanel_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         functionPreview.Width = functionPanel.ActualWidth / 9;
-        foreach (var line in window.track.Lines)
+        foreach (var line in Window.track.Lines)
             line.Functions.ForEach(f => { f.rectangle.Width = eventPanel.ActualWidth / 9; });
     }
 
     public void UpdateSelectedNote(List<Note> note)
     {
         if (note.Count == 1) UpdateSelectedNote(note[0]);
-        selectedNotes.ForEach(note => { note.rectangle.HighLight = false; });
+        selectedNotes.ForEach(note1 => { note1.rectangle.HighLight = false; });
         selectedNotes = note;
-        selectedNotes.ForEach(note => { note.rectangle.HighLight = true; });
-        isDraging = isSelecting = selectedNotes.Count != 0;
-        dragStartPoint = GetAlignedPoint(Mouse.GetPosition(notePanel));
+        selectedNotes.ForEach(note1 => { note1.rectangle.HighLight = true; });
+        isDragging = isSelecting = selectedNotes.Count != 0;
+        dragStartPoint = GetAlignedPoint(Mouse.GetPosition(notePanel)).mousePos;
     }
 
     public void UpdateSelectedNote(Note note, bool multiSelect = false)
     {
         if (!multiSelect)
         {
-            selectedNotes.ForEach(note => { note.rectangle.HighLight = false; });
+            selectedNotes.ForEach(note1 => { note1.rectangle.HighLight = false; });
             selectedNotes.Clear();
         }
 
         selectedNotes.Add(note);
         note.rectangle.HighLight = true;
-        isSelecting = isDraging = true;
-        dragStartPoint = GetAlignedPoint(Mouse.GetPosition(notePanel));
+        isSelecting = isDragging = true;
+        dragStartPoint = GetAlignedPoint(Mouse.GetPosition(notePanel)).mousePos;
     }
 
-    public void UpdateSelectedEvent(List<Event> Events)
+    public void UpdateSelectedEvent(List<Event> events)
     {
-        if (Events.Count == 1) UpdateSelectedEvent(Events[0]);
-        selectedEvents.ForEach(@event => { @event.rectangle.HighLight = false; });
-        selectedEvents = Events;
-        selectedEvents.ForEach(@event => { @event.rectangle.HighLight = true; });
+        if (events.Count == 1) UpdateSelectedEvent(events[0]);
+        selectedEvents.ForEach(@event => { @event.Rectangle.HighLight = false; });
+        selectedEvents = events;
+        selectedEvents.ForEach(@event => { @event.Rectangle.HighLight = true; });
         isSelecting = selectedEvents.Count != 0;
-        isDraging = isSelecting;
-        dragStartPoint = GetAlignedPoint(Mouse.GetPosition(eventPanel));
+        isDragging = isSelecting;
+        dragStartPoint = GetAlignedPoint(Mouse.GetPosition(eventPanel)).mousePos;
     }
 
-    public void UpdateSelectedEvent(Event Events, bool multiSelect = false)
+    public void UpdateSelectedEvent(Event events, bool multiSelect = false)
     {
         if (!multiSelect)
         {
-            selectedEvents.ForEach(@event => { @event.rectangle.HighLight = false; });
+            selectedEvents.ForEach(@event => { @event.Rectangle.HighLight = false; });
             selectedEvents.Clear();
         }
 
-        selectedEvents.Add(Events);
-        Events.rectangle.HighLight = true;
+        selectedEvents.Add(events);
+        events.Rectangle.HighLight = true;
         isSelecting = selectedEvents.Count != 0;
-        isDraging = isSelecting;
-        dragStartPoint = GetAlignedPoint(Mouse.GetPosition(eventPanel));
+        isDragging = isSelecting;
+        dragStartPoint = GetAlignedPoint(Mouse.GetPosition(eventPanel)).mousePos;
     }
 
     public void UpdateSelectedFunction(List<Function> function)
     {
         if (function.Count == 1) UpdateSelectedFunction(function[0]);
-        selectedFunctions.ForEach(function => { function.rectangle.HighLight = false; });
+        selectedFunctions.ForEach(function1 => { function1.rectangle.HighLight = false; });
         selectedFunctions = function;
-        selectedFunctions.ForEach(function => { function.rectangle.HighLight = true; });
-        isDraging = isSelecting = selectedFunctions.Count != 0;
-        dragStartPoint = GetAlignedPoint(Mouse.GetPosition(functionPanel));
+        selectedFunctions.ForEach(function1 => { function1.rectangle.HighLight = true; });
+        isDragging = isSelecting = selectedFunctions.Count != 0;
+        dragStartPoint = GetAlignedPoint(Mouse.GetPosition(functionPanel)).mousePos;
     }
 
     public void UpdateSelectedFunction(Function function, bool multiSelect = false)
     {
         if (!multiSelect)
         {
-            selectedFunctions.ForEach(function => { function.rectangle.HighLight = false; });
+            selectedFunctions.ForEach(function1 => { function1.rectangle.HighLight = false; });
             selectedFunctions.Clear();
         }
 
         selectedFunctions.Add(function);
         function.rectangle.HighLight = true;
-        isSelecting = isDraging = true;
-        dragStartPoint = GetAlignedPoint(Mouse.GetPosition(functionPanel));
+        isSelecting = isDragging = true;
+        dragStartPoint = GetAlignedPoint(Mouse.GetPosition(functionPanel)).mousePos;
     }
 
 
@@ -1589,24 +1609,24 @@ public partial class TrackEditorPage : Page
         if (Keyboard.IsKeyDown(Key.LeftCtrl))
         {
             previewRange = Math.Min(previewRange + 0.1 * e.Delta / 60.0, 1.0);
-            previewRange = Math.Max(10 / window.track.Length, previewRange);
+            previewRange = Math.Max(10 / Window.track.Length, previewRange);
         }
         else
         {
             Update();
             noteChange = true;
-            window.player.Pause();
-            window.isPlaying = false;
-            var t = window.playerTime + e.Delta / 120.0 * window.track.Length * previewRange / 10.0;
+            Window.player.Pause();
+            Window.isPlaying = false;
+            var t = Window.playerTime + e.Delta / 120.0 * Window.track.Length * previewRange / 10.0;
             t = Math.Max(0, t);
-            t = Math.Min(window.track.Length * previewRange + previewStartTime, t);
+            t = Math.Min(Window.track.Length * previewRange + previewStartTime, t);
             //调整预览窗格
-            if (t - previewStartTime > window.track.Length * previewRange)
-                previewStartTime = t - window.track.Length * previewRange;
+            if (t - previewStartTime > Window.track.Length * previewRange)
+                previewStartTime = t - Window.track.Length * previewRange;
             else if (t < previewStartTime) previewStartTime = t;
-            window.playerTime = t;
-            window.player.Position = TimeSpan.FromSeconds(window.playerTime);
-            timeDis.Content = window.playerTime.ToString("0.00") + " / " + window.track.Length.ToString("0.00");
+            Window.playerTime = t;
+            Window.player.Position = TimeSpan.FromSeconds(Window.playerTime);
+            TimeDis.Content = Window.playerTime.ToString("0.00") + " / " + Window.track.Length.ToString("0.00");
         }
     }
 
@@ -1615,15 +1635,15 @@ public partial class TrackEditorPage : Page
         //获取鼠标位置
         var pos = Mouse.GetPosition(trackPreview);
         var time =
-            (trackPreview.ActualHeight - pos.Y) / trackPreview.ActualHeight * window.track.Length * previewRange +
+            (trackPreview.ActualHeight - pos.Y) / trackPreview.ActualHeight * Window.track.Length * previewRange +
             previewStartTime;
-        window.player.Position = TimeSpan.FromSeconds(time);
-        window.playerTime = time;
+        Window.player.Position = TimeSpan.FromSeconds(time);
+        Window.playerTime = time;
         //暂停播放器
-        window.player.Pause();
-        window.isPlaying = false;
+        Window.player.Pause();
+        Window.isPlaying = false;
         //更新时间
-        timeDis.Content = window.playerTime.ToString("0.00") + " / " + window.track.Length.ToString("0.00");
+        TimeDis.Content = Window.playerTime.ToString("0.00") + " / " + Window.track.Length.ToString("0.00");
         noteChange = true;
         eventChange = true;
         fakeCatchChange = true;
@@ -1639,12 +1659,12 @@ public partial class TrackEditorPage : Page
         //获取鼠标位置
         var pos = Mouse.GetPosition(trackPreview);
         var time =
-            (trackPreview.ActualHeight - pos.Y) / trackPreview.ActualHeight * window.track.Length * previewRange +
+            (trackPreview.ActualHeight - pos.Y) / trackPreview.ActualHeight * Window.track.Length * previewRange +
             previewStartTime;
-        window.player.Position = TimeSpan.FromSeconds(time);
-        window.playerTime = time;
+        Window.player.Position = TimeSpan.FromSeconds(time);
+        Window.playerTime = time;
         //更新时间
-        timeDis.Content = window.playerTime.ToString("0.00") + " / " + window.track.Length.ToString("0.00");
+        TimeDis.Content = Window.playerTime.ToString("0.00") + " / " + Window.track.Length.ToString("0.00");
         noteChange = true;
         eventChange = true;
         fakeCatchChange = true;
@@ -1686,7 +1706,7 @@ public partial class TrackEditorPage : Page
         {
             //切换至预览
             //刷新NBT
-            nbtTrack = NBTTrack.FromTrack(window.track);
+            nbtTrack = NBTTrack.FromTrack(Window.track);
             previewing = true;
             notePanel.Visibility = Visibility.Hidden;
             eventPanel.Visibility = Visibility.Hidden;
@@ -1730,7 +1750,7 @@ public partial class TrackEditorPage : Page
     {
         eventPanel.Visibility = Visibility.Hidden;
         functionPanel.Visibility = Visibility.Hidden;
-        foreach (var line in window.track.Lines)
+        foreach (var line in Window.track.Lines)
         {
             line.FakeCatch.ForEach(e => { e.rectangle.Visibility = Visibility.Hidden; });
             line.Notes.ForEach(note =>
@@ -1765,7 +1785,7 @@ public partial class TrackEditorPage : Page
 
     private void ModeToFakeCatch()
     {
-        foreach (var line in window.track.Lines)
+        foreach (var line in Window.track.Lines)
             line.FakeCatch.ForEach(e => { e.rectangle.Visibility = Visibility.Hidden; });
         CurrLine.FakeCatch.ForEach(e => { e.rectangle.Visibility = Visibility.Visible; });
         UpdateFakeCatch();
@@ -1791,7 +1811,7 @@ public partial class TrackEditorPage : Page
                 else
                     note.Color = EditorColors.catchColorButNotOnThisLine;
             selectingFreeLine = true;
-            lineListView.SelectedIndex = -1;
+            LineListView.SelectedIndex = -1;
             foreach (var note in CurrLine.Notes)
                 if (note.type == NoteType.Tap)
                     note.Color = EditorColors.tapColor;
@@ -1803,18 +1823,18 @@ public partial class TrackEditorPage : Page
         else if (editingMode == 1)
         {
             foreach (var el in CurrLine.EventLists)
-                el.Events.ForEach(e => { e.rectangle.Visibility = Visibility.Hidden; });
+                el.Events.ForEach(e => { e.Rectangle.Visibility = Visibility.Hidden; });
             selectingFreeLine = true;
-            lineListView.SelectedIndex = -1;
+            LineListView.SelectedIndex = -1;
             foreach (var el in CurrLine.EventLists)
-                el.Events.ForEach(e => { e.rectangle.Visibility = Visibility.Visible; });
+                el.Events.ForEach(e => { e.Rectangle.Visibility = Visibility.Visible; });
             UpdateEventTypeList();
         }
         else
         {
             CurrLine.FakeCatch.ForEach(e => { e.rectangle.Visibility = Visibility.Hidden; });
             selectingFreeLine = true;
-            lineListView.SelectedIndex = -1;
+            LineListView.SelectedIndex = -1;
             CurrLine.FakeCatch.ForEach(e => { e.rectangle.Visibility = Visibility.Visible; });
         }
     }
