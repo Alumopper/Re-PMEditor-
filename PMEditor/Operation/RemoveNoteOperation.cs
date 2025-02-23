@@ -24,7 +24,7 @@ namespace PMEditor.Operation
             {
                 line.Notes.Add(note);
             }
-            TrackEditorPage.Instance.notePanel.Children.Add(note.rectangle);
+            TrackEditorPage.Instance.NotePanel.Children.Add(note.rectangle);
             TrackEditorPage.Instance.UpdateNote();
         }
 
@@ -38,7 +38,7 @@ namespace PMEditor.Operation
             {
                 line.Notes.Remove(note);
             }
-            TrackEditorPage.Instance.notePanel.Children.Remove(note.rectangle);
+            TrackEditorPage.Instance.NotePanel.Children.Remove(note.rectangle);
             note.rectangle.Visibility = System.Windows.Visibility.Hidden;
             TrackEditorPage.Instance.UpdateNote();
         }

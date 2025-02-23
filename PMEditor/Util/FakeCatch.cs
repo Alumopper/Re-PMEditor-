@@ -61,7 +61,7 @@ namespace PMEditor.Util
         {
             FakeCatch note = ((sender as NoteRectangle)!.note as FakeCatch)!;
             note.parentLine.FakeCatch.Remove(note);
-            TrackEditorPage.Instance.notePanel.Children.Remove(sender as NoteRectangle);
+            TrackEditorPage.Instance.NotePanel.Children.Remove(sender as NoteRectangle);
             OperationManager.AddOperation(new RemoveNoteOperation(note, note.parentLine));
         }
 

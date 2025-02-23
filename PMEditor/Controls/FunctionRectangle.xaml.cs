@@ -54,14 +54,14 @@ namespace PMEditor.Controls
         private void Rectangle_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
             function.parentLine.Functions.Remove(function);
-            TrackEditorPage.Instance.functionPanel.Children.Remove(this);
+            TrackEditorPage.Instance.FunctionPanel.Children.Remove(this);
             OperationManager.AddOperation(new RemoveFunctionOperation(function, function.parentLine));
         }
 
         //左键选中此note
         private void Rectangle_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            TrackEditorPage.Instance.infoFrame.Content = new FunctionPropertyPanel(function);
+            TrackEditorPage.Instance.InfoFrame.Content = new FunctionPropertyPanel(function);
             TrackEditorPage.Instance.UpdateSelectedFunction(function);
         }
     }

@@ -21,7 +21,7 @@
         public override void Undo()
         {
             line.Notes.Remove(note);
-            TrackEditorPage.Instance.notePanel.Children.Remove(note.rectangle);
+            TrackEditorPage.Instance.NotePanel.Children.Remove(note.rectangle);
             note.rectangle.Visibility = System.Windows.Visibility.Hidden;
             TrackEditorPage.Instance.UpdateNote();
         }

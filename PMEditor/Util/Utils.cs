@@ -7,6 +7,7 @@ namespace PMEditor
 {
     public partial class TrackEditorPage
     {
+        
         /// <summary>
         /// 坐标对齐转换。返回的x坐标是对齐的，y坐标是相对于底部的长度
         /// </summary>
@@ -20,7 +21,7 @@ namespace PMEditor
             //获取时间
             //获取鼠标位置，生成note位置预览
             var mousePos = p;
-            var width = notePanel.ActualWidth / 9;
+            var width = NotePanel.ActualWidth / 9;
             //x坐标对齐
             var rail = (int)(mousePos.X / width);
             //如果是Tap，额外需要对齐主线
@@ -35,7 +36,7 @@ namespace PMEditor
             mousePos.X = rail * width;
             //获取当前小节数
             var (measure, deltime) = Window.track.GetMeasureFromTime(
-                (notePanel.ActualHeight - mousePos.Y) / notePanel.ActualHeight * currDisplayLength + Window.playerTime
+                (NotePanel.ActualHeight - mousePos.Y) / NotePanel.ActualHeight * currDisplayLength + Window.playerTime
                 );
             //获取当前bpm
             var bpm = Window.track.GetBPM(measure);
@@ -54,12 +55,12 @@ namespace PMEditor
         /// <returns></returns>
         public double GetTimeFromBottomY(double y)
         {
-            return y / notePanel.ActualHeight * currDisplayLength + Window.player.Position.TotalSeconds;
+            return y / NotePanel.ActualHeight * currDisplayLength + Window.player.Position.TotalSeconds;
         }
 
         public double GetBottomYFromTime(double time)
         {
-            return (time - Window.playerTime) / currDisplayLength * notePanel.ActualHeight;
+            return (time - Window.playerTime) / currDisplayLength * NotePanel.ActualHeight;
         }
     }
 

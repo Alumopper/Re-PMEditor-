@@ -16,7 +16,7 @@
         {
             @event.ParentList.GroupEvent();
             list.Events.Add(@event);
-            TrackEditorPage.Instance.eventPanel.Children.Add(@event.Rectangle);
+            TrackEditorPage.Instance.EventPanel.Children.Add(@event.Rectangle);
             TrackEditorPage.Instance.UpdateEvent();
         }
 
@@ -24,7 +24,7 @@
         {
             @event.ParentList.GroupEvent();
             list.Events.Remove(@event);
-            TrackEditorPage.Instance.eventPanel.Children.Remove(@event.Rectangle);
+            TrackEditorPage.Instance.EventPanel.Children.Remove(@event.Rectangle);
             @event.Rectangle.Visibility = System.Windows.Visibility.Hidden;
             TrackEditorPage.Instance.UpdateEvent();
         }

@@ -17,7 +17,7 @@ public partial class BpmConfigWindow : Window
         InitializeComponent();
         bpmInfos = new ObservableCollection<BpmInfo>(EditorWindow.Instance.track.BpmInfo.Select(info => info.Clone()));
         DataGrid.ItemsSource = bpmInfos;
-        DefaultBpm.Content = EditorWindow.Instance.track.BaseBpm;
+        DefaultBpm.Content = "基础BPM: " + EditorWindow.Instance.track.BaseBpm;
     }
 
     private void InsertBefore(object sender, RoutedEventArgs e)
@@ -62,6 +62,7 @@ public partial class BpmConfigWindow : Window
         }
         //更新判定线
         EditorWindow.Instance.track.UpdateLineTimes();
+        (EditorWindow.Instance.Page.Content as TrackEditorPage)!.DrawLineAndBeat();
         Close();
     }
 

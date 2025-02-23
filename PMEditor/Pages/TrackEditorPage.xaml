@@ -113,7 +113,7 @@
                     <!--判定线和辅助格-->
                     <Canvas>
                         <TextBlock Foreground="White" Text="FPS: " Name="Fps"></TextBlock>
-                        <Grid Width="{Binding ElementName=notePanel, Path=ActualWidth}" Height="{Binding ElementName=notePanel, Path=ActualHeight}">
+                        <Grid Width="{Binding ElementName=NotePanel, Path=ActualWidth}" Height="{Binding ElementName=NotePanel, Path=ActualHeight}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
@@ -133,7 +133,7 @@
                     </Canvas>
                     <!--序号列表-->
                     <Canvas>
-                        <Grid x:Name="ColumnInfo" Width="{Binding ElementName=notePanel, Path=ActualWidth}" Height="{Binding ElementName=notePanel, Path=ActualHeight}">
+                        <Grid x:Name="ColumnInfo" Width="{Binding ElementName=NotePanel, Path=ActualWidth}" Height="{Binding ElementName=NotePanel, Path=ActualHeight}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
@@ -157,49 +157,51 @@
                         </Grid>
                     </Canvas>
                     <!--note放置区域-->
-                    <Canvas Name="notePanel" Background="Transparent" ClipToBounds="True" MouseMove="notePanel_MouseMove" MouseLeave="notePanel_MouseLeave" MouseLeftButtonUp="notePanel_MouseLeftButtonUp" MouseLeftButtonDown="notePanel_MouseLeftButtonDown" SizeChanged="notePanel_SizeChanged">
-                        <Rectangle Name="notePreview"
+                    <Canvas Name="NotePanel" Background="Transparent" ClipToBounds="True" MouseMove="notePanel_MouseMove" MouseLeave="notePanel_MouseLeave" MouseLeftButtonUp="notePanel_MouseLeftButtonUp" MouseLeftButtonDown="notePanel_MouseLeftButtonDown" SizeChanged="notePanel_SizeChanged">
+                        <Rectangle Name="NotePreview"
                             Width="{Binding ActualWidth, ElementName=rectangle, Mode=OneWay}"
                             Height="10"/>
-                        <Rectangle x:Name="noteMovePreview"
+                        <Rectangle x:Name="NoteMovePreview"
                             Width="{Binding ActualWidth, ElementName=rectangle, Mode=OneWay}"
                             Height="10"/>
                     </Canvas>
                     <!--事件放置区域-->
-                    <Canvas x:Name="eventPanel" Background="Transparent" ClipToBounds="True" Visibility="Hidden"
+                    <Canvas x:Name="EventPanel" Background="Transparent" ClipToBounds="True" Visibility="Hidden"
                             MouseLeftButtonDown="eventPanel_MouseLeftButtonDown" MouseLeftButtonUp="eventPanel_MouseLeftButtonUp" MouseMove="eventPanel_MouseMove"
                             SizeChanged="eventPanel_SizeChanged">
-                        <Rectangle Name="eventPreview"
+                        <Rectangle Name="EventPreview"
                                Width="{Binding ActualWidth, ElementName=rectangle, Mode=OneWay}"
                                Fill="#8055FF9E" Visibility="Collapsed"
                                Height="10"/>
-                        <Rectangle x:Name="eventMovePreview"
+                        <Rectangle x:Name="EventMovePreview"
                             Width="{Binding ActualWidth, ElementName=rectangle, Mode=OneWay}"
                             Height="10"/>
                     </Canvas>
                     <!--函数放置区域-->
-                    <Canvas Name="functionPanel" Background="Transparent" ClipToBounds="True" Visibility="Hidden" MouseMove="functionPanel_MouseMove"  MouseLeave="functionPanel_MouseLeave"  MouseLeftButtonUp="functionPanel_MouseLeftButtonUp" SizeChanged="functionPanel_SizeChanged">
-                        <Rectangle Name="functionPreview"
+                    <Canvas Name="FunctionPanel" Background="Transparent" ClipToBounds="True" Visibility="Hidden" MouseMove="functionPanel_MouseMove"  MouseLeave="functionPanel_MouseLeave"  MouseLeftButtonUp="functionPanel_MouseLeftButtonUp" SizeChanged="functionPanel_SizeChanged">
+                        <Rectangle Name="FunctionPreview"
                                Width="{Binding ActualWidth, ElementName=rectangle, Mode=OneWay}"
                                Fill="#807771DB" Visibility="Collapsed"
                                Height="10"/>
-                        <Rectangle x:Name="functionMovePreview"
+                        <Rectangle x:Name="FunctionMovePreview"
                             Width="{Binding ActualWidth, ElementName=rectangle, Mode=OneWay}"
                             Height="10"/>
                     </Canvas>
                     <!--谱面预览区（有事件）-->
-                    <Canvas x:Name="trackPreviewWithEvent" Background="Transparent" ClipToBounds="True" Visibility="Hidden"
+                    <Canvas x:Name="TrackPreviewWithEvent" Background="Transparent" ClipToBounds="True" Visibility="Hidden"
                             SizeChanged="trackPreviewWithEvent_SizeChanged">
                     </Canvas>
                 </Grid>
             </Border>
             <!--谱面预览（无事件，纯配置）-->
             <Border BorderBrush="#FF61207B" Grid.Row="1" Grid.Column="2" BorderThickness="1,1,1,1" Margin="5,5,10,10" Grid.ColumnSpan="2">
-                <Canvas Name="trackPreview" Background="Black" ClipToBounds="True"
+                <Canvas Name="TrackPreviewCanvas" ClipToBounds="True" Background="Black">
+                    <Image Name="TrackPreview"
                         MouseWheel="trackPreview_MouseWheel" PreviewMouseLeftButtonDown="trackPreview_PreviewMouseLeftButtonDown" MouseMove="trackPreview_MouseMove" PreviewMouseLeftButtonUp="trackPreview_MouseUp"  MouseLeave="trackPreview_MouseLeave"/>
+                </Canvas>
             </Border>
             <!--切换编辑模式-->
-            <t:RotatingButton x:Name="Note_Event_Catch" Height="16" Width="50"
+            <t:RotatingButton x:Name="NoteEventCatch" Height="16" Width="50"
                            Grid.Row="2" Grid.Column="1"
                            Margin="0,0,10,0"
                            ContentChanged="Note_Event_Catch_Function_ContentChanged"
@@ -221,7 +223,7 @@
         </Grid>
         <!-- 音符/判定线信息编辑区 -->
         <Grid Grid.Column="2">
-            <Frame x:Name="infoFrame" BorderThickness="1,1,1,1" Background="Transparent" BorderBrush="#FF341D50" Margin="20"/>
+            <Frame x:Name="InfoFrame" BorderThickness="1,1,1,1" Background="Transparent" BorderBrush="#FF341D50" Margin="20"/>
         </Grid>
     </Grid>
 </Page>

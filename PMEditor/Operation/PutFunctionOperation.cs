@@ -21,7 +21,7 @@
         public override void Undo()
         {
             line.Functions.Remove(function);
-            TrackEditorPage.Instance.functionPanel.Children.Remove(function.rectangle);
+            TrackEditorPage.Instance.FunctionPanel.Children.Remove(function.rectangle);
             function.rectangle.Visibility = System.Windows.Visibility.Hidden;
             TrackEditorPage.Instance.UpdateNote();
         }

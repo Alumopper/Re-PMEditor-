@@ -1,4 +1,5 @@
-﻿using PMEditor.Util;
+﻿using System.Globalization;
+using PMEditor.Util;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -16,11 +17,11 @@ namespace PMEditor.Pages
             MapName.Text = EditorWindow.Instance.track.TrackName;
             MapAuthor.Text = EditorWindow.Instance.track.TrackAuthor;
             MusicAuthor.Text = EditorWindow.Instance.track.MusicAuthor;
-            BPM.Text = EditorWindow.Instance.track.BaseBpm.ToString();
+            BPM.Text = EditorWindow.Instance.track.BaseBpm.ToString(CultureInfo.InvariantCulture);
             MapLevel.Text = EditorWindow.Instance.track.Difficulty;
-            MapLength.Text = Settings.currSetting.MapLength.ToString();
+            MapLength.Text = Settings.currSetting.MapLength.ToString(CultureInfo.InvariantCulture);
             
-            TickValue.Text = Settings.currSetting.Tick.ToString();
+            TickValue.Text = Settings.currSetting.Tick.ToString(CultureInfo.InvariantCulture);
 
             WarnMultiEventType.IsChecked = Settings.currSetting.WarnEventTypeChange;
         }
@@ -31,6 +32,7 @@ namespace PMEditor.Pages
             EditorWindow.Instance.track.TrackAuthor = MapAuthor.Text;
             EditorWindow.Instance.track.MusicAuthor = MusicAuthor.Text;
             EditorWindow.Instance.track.BaseBpm = double.Parse(BPM.Text);
+            EditorWindow.Instance.track.UpdateLineTimes();
             EditorWindow.Instance.track.Difficulty = MapLevel.Text;
             Settings.currSetting.MapLength = double.Parse(MapLength.Text);
             Settings.currSetting.Tick = double.Parse(TickValue.Text);

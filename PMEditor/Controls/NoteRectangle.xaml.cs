@@ -41,24 +41,17 @@ namespace PMEditor
             {
                 highLight = value;
                 //高亮
-                if (highLight)
-                {
-                    highLightBorder.BorderThickness = new(2);
-                }
-                else
-                {
-                    highLightBorder.BorderThickness = new(0);
-                }
+                highLightBorder.BorderThickness = highLight ? new Thickness(2) : new Thickness(0);
             }
         }
 
-        public bool IsResizing { get; set; } = false;
+        public bool IsResizing { get; set; }
 
         //右键删除此note
         private void Rectangle_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
             note.parentLine.Notes.Remove(note);
-            TrackEditorPage.Instance.notePanel.Children.Remove(this);
+            TrackEditorPage.Instance!.NotePanel.Children.Remove(this);
             OperationManager.AddOperation(new RemoveNoteOperation(note, note.parentLine));
         }
 
@@ -66,11 +59,11 @@ namespace PMEditor
         private void Rectangle_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             
-            TrackEditorPage.Instance.infoFrame.Content = new NotePropertyPanel(note);
+            TrackEditorPage.Instance!.InfoFrame.Content = new NotePropertyPanel(note);
             TrackEditorPage.Instance.UpdateSelectedNote(note); 
             if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
             {
-                Point currentPosition = e.GetPosition(rect);
+                var currentPosition = e.GetPosition(rect);
                 if (currentPosition.Y < 20)
                 {
                     IsResizing = true;
@@ -84,7 +77,7 @@ namespace PMEditor
         {
             if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
             {
-                Point currentPosition = e.GetPosition(rect);
+                var currentPosition = e.GetPosition(rect);
                 if (currentPosition.Y < 20)
                 {
                     rect.Cursor = Cursors.SizeNS;

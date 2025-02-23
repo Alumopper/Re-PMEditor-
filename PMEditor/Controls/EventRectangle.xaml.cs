@@ -119,14 +119,14 @@ namespace PMEditor
         {
             Event.ParentList.GroupEvent();
             Event.ParentList.Events.Remove(Event);
-            TrackEditorPage.Instance!.eventPanel.Children.Remove(this);
+            TrackEditorPage.Instance!.EventPanel.Children.Remove(this);
             OperationManager.AddOperation(new RemoveEventOperation(Event, Event.ParentList));
         }
 
         //选中此事件
         private void Rectangle_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            TrackEditorPage.Instance.infoFrame.Content = new EventPropertyPanel(Event);
+            TrackEditorPage.Instance.InfoFrame.Content = new EventPropertyPanel(Event);
             TrackEditorPage.Instance.UpdateSelectedEvent(Event); 
             if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
             {
