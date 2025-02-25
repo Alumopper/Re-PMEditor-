@@ -1,4 +1,5 @@
-﻿using PMEditor.Controls;
+﻿using System.Collections.Generic;
+using PMEditor.Controls;
 using PMEditor.Operation;
 using System.Windows;
 using System.Windows.Controls;
@@ -47,14 +48,6 @@ namespace PMEditor
 
         public bool IsResizing { get; set; }
 
-        //右键删除此note
-        private void Rectangle_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            note.parentLine.Notes.Remove(note);
-            TrackEditorPage.Instance!.NotePanel.Children.Remove(this);
-            OperationManager.AddOperation(new RemoveNoteOperation(note, note.parentLine));
-        }
-
         //左键选中此note
         private void Rectangle_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
@@ -87,5 +80,27 @@ namespace PMEditor
             rect.Cursor = Cursors.Arrow;
         }
 
+        private void UIElement_OnKeyDown(object sender, KeyEventArgs e)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        private void CopyClick(object sender, RoutedEventArgs e)
+        {
+            TrackEditorPage.Instance!.UpdateSelectedNote(note);
+            TrackEditorPage.Instance.CopyNote(new List<Note>{note});
+        }
+
+        private void CutClick(object sender, RoutedEventArgs e)
+        {
+            TrackEditorPage.Instance!.UpdateSelectedNote(new List<Note>()); 
+            TrackEditorPage.Instance.CutNote(new List<Note>{note});
+        }
+
+        private void DeleteClick(object sender, RoutedEventArgs e)
+        {
+            TrackEditorPage.Instance!.UpdateSelectedNote(new List<Note>()); 
+            TrackEditorPage.Instance.DeleteNote(new List<Note>{note});
+        }
     }
 }

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace PMEditor
 {
@@ -10,7 +12,7 @@ namespace PMEditor
     public partial class DebugWindow : Window
     {
         public static DebugWindow? Instance { get; private set; }
-
+        
         public DebugWindow()
         {
             InitializeComponent();
@@ -23,6 +25,22 @@ namespace PMEditor
         {
             var logMessage = $"{DateTime.Now:HH:mm:ss} - {message}";
             Instance?.logListBox.Items.Add(logMessage);
+        }
+
+        public static void SetDebugContext(string value, int index)
+        {
+            if(Instance == null) return;
+            while (index >= Instance.Panel.Children.Count)
+            {
+                Instance.Panel.Children.Add(new TextBlock
+                {
+                    FontSize = 12,
+                    Foreground = Brushes.White,
+                    TextWrapping = TextWrapping.Wrap,
+                    MaxWidth = Instance.Panel.ActualWidth,
+                });
+            }
+            (Instance.Panel.Children[index] as TextBlock)!.Text = value;
         }
     }
 }

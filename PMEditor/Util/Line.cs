@@ -152,11 +152,11 @@ namespace PMEditor
         {
             foreach (var note in notes)
             {
-                note.parentLine = this;
+                note.ParentLine = this;
             }
             foreach (var item in fakeCatch)
             {
-                item.parentLine = this;
+                item.ParentLine = this;
             }
             for (int i = 0; i < eventLists.Count; i++)
             {

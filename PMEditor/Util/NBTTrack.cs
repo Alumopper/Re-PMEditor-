@@ -280,7 +280,7 @@ public class NBTTrack
                 var judgeTick = (int)(note.ActualTime * Settings.currSetting.Tick);
                 for (var i = judgeTick; i > -readyTime; i--)
                 {
-                    position += note.parentLine.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
+                    position += note.ParentLine.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
                     if (end == -100000 && IsInScreen(position)) end = i;
                     if (end != -100000 && start == -100000 && !IsInScreen(position))
                     {
@@ -333,14 +333,14 @@ public class NBTTrack
                 var holdTick = (int)(note.ActualHoldTime * Settings.currSetting.Tick);
                 //算出当判定结束的时候，判定起始点的位置，同时获取hold长度
                 for (var i = judgeTick; i < judgeTick + holdTick; i++)
-                    startPosition -= note.parentLine.GetSpeed(i / Settings.currSetting.Tick) /
+                    startPosition -= note.ParentLine.GetSpeed(i / Settings.currSetting.Tick) /
                                      Settings.currSetting.Tick;
                 var length = -startPosition;
                 //迭代开始，划分range
                 for (var i = judgeTick + holdTick; i > -readyTime; i--)
                 {
-                    endPosition += note.parentLine.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
-                    startPosition += note.parentLine.GetSpeed(i / Settings.currSetting.Tick) /
+                    endPosition += note.ParentLine.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
+                    startPosition += note.ParentLine.GetSpeed(i / Settings.currSetting.Tick) /
                                      Settings.currSetting.Tick;
                     //如果起始点或者结束点在屏幕里面，也就是长条离开谱面的时候
                     if (end == -100000 && IsHoldInScreen(startPosition, endPosition)) end = i;

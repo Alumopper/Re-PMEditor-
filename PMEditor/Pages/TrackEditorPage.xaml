@@ -109,7 +109,12 @@
             </Canvas>
             <!--谱面编辑-->
             <Border BorderBrush="#FF61207B" Grid.Row="1" Grid.Column="1" BorderThickness="1,1,1,1" Margin="9,5,5,10">
-                <Grid MouseWheel="notePanel_MouseWheel" Background="Black">
+                <Grid MouseWheel="notePanel_MouseWheel" Background="Black" ClipToBounds="True">
+                    <Canvas Panel.ZIndex="1">
+                        <Border BorderBrush="#23B1C7" BorderThickness="2" IsHitTestVisible="False" Visibility="Hidden" Name="SelectBorder">
+                            <Rectangle Fill="#3223B1C7" IsHitTestVisible="False"/>
+                        </Border>
+                    </Canvas>
                     <!--判定线和辅助格-->
                     <Canvas>
                         <TextBlock Foreground="White" Text="FPS: " Name="Fps"></TextBlock>
@@ -125,7 +130,7 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Rectangle x:Name="rectangle" Grid.Column="1" Fill="#FF2D2D2D"/>
+                            <Rectangle x:Name="Rectangle" Grid.Column="1" Fill="#FF2D2D2D"/>
                             <Rectangle Grid.Column="3" Fill="#FF2D2D2D"/>
                             <Rectangle Grid.Column="5" Fill="#FF2D2D2D"/>
                             <Rectangle Grid.Column="7" Fill="#FF2D2D2D"/>
@@ -159,32 +164,40 @@
                     <!--note放置区域-->
                     <Canvas Name="NotePanel" Background="Transparent" ClipToBounds="True" MouseMove="notePanel_MouseMove" MouseLeave="notePanel_MouseLeave" MouseLeftButtonUp="notePanel_MouseLeftButtonUp" MouseLeftButtonDown="notePanel_MouseLeftButtonDown" SizeChanged="notePanel_SizeChanged">
                         <Rectangle Name="NotePreview"
-                            Width="{Binding ActualWidth, ElementName=rectangle, Mode=OneWay}"
+                            Width="{Binding ActualWidth, ElementName=Rectangle, Mode=OneWay}"
                             Height="10"/>
                         <Rectangle x:Name="NoteMovePreview"
-                            Width="{Binding ActualWidth, ElementName=rectangle, Mode=OneWay}"
+                            Width="{Binding ActualWidth, ElementName=Rectangle, Mode=OneWay}"
                             Height="10"/>
+                        <Canvas.ContextMenu>
+                            <ContextMenu Opened="ContextMenu_OnOpened">
+                                <MenuItem Header="复制" InputGestureText="Ctrl + C" Click="CopyClick"/>
+                                <MenuItem Header="剪切" InputGestureText="Ctrl + X" Click="CutClick"/>
+                                <MenuItem Header="粘贴" InputGestureText="Ctrl + V" Click="PasteClick"/>
+                                <MenuItem Header="删除" InputGestureText="Delete" Click="DeleteClick"/>
+                            </ContextMenu>
+                        </Canvas.ContextMenu>
                     </Canvas>
                     <!--事件放置区域-->
                     <Canvas x:Name="EventPanel" Background="Transparent" ClipToBounds="True" Visibility="Hidden"
                             MouseLeftButtonDown="eventPanel_MouseLeftButtonDown" MouseLeftButtonUp="eventPanel_MouseLeftButtonUp" MouseMove="eventPanel_MouseMove"
                             SizeChanged="eventPanel_SizeChanged">
                         <Rectangle Name="EventPreview"
-                               Width="{Binding ActualWidth, ElementName=rectangle, Mode=OneWay}"
+                               Width="{Binding ActualWidth, ElementName=Rectangle, Mode=OneWay}"
                                Fill="#8055FF9E" Visibility="Collapsed"
                                Height="10"/>
                         <Rectangle x:Name="EventMovePreview"
-                            Width="{Binding ActualWidth, ElementName=rectangle, Mode=OneWay}"
+                            Width="{Binding ActualWidth, ElementName=Rectangle, Mode=OneWay}"
                             Height="10"/>
                     </Canvas>
                     <!--函数放置区域-->
                     <Canvas Name="FunctionPanel" Background="Transparent" ClipToBounds="True" Visibility="Hidden" MouseMove="functionPanel_MouseMove"  MouseLeave="functionPanel_MouseLeave"  MouseLeftButtonUp="functionPanel_MouseLeftButtonUp" SizeChanged="functionPanel_SizeChanged">
                         <Rectangle Name="FunctionPreview"
-                               Width="{Binding ActualWidth, ElementName=rectangle, Mode=OneWay}"
+                               Width="{Binding ActualWidth, ElementName=Rectangle, Mode=OneWay}"
                                Fill="#807771DB" Visibility="Collapsed"
                                Height="10"/>
                         <Rectangle x:Name="FunctionMovePreview"
-                            Width="{Binding ActualWidth, ElementName=rectangle, Mode=OneWay}"
+                            Width="{Binding ActualWidth, ElementName=Rectangle, Mode=OneWay}"
                             Height="10"/>
                     </Canvas>
                     <!--谱面预览区（有事件）-->

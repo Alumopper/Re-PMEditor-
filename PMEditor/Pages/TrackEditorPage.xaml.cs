@@ -103,6 +103,9 @@ public partial class TrackEditorPage : Page
 
     private bool selectingFreeLine;
 
+    /// <summary>
+    /// 鼠标按下的时候起点的位置。x为距离左边，y为距离下侧
+    /// </summary>
     private Point startPos = new(-1, -1);
     private Event? willPutEvent;
     private Function? willPutFunction;
@@ -141,6 +144,12 @@ public partial class TrackEditorPage : Page
     private bool isRunning = true;
 
     private FastDrawing? fastDrawing;
+
+    private bool isSelectingMulti = false;
+    
+    public readonly List<Note> Clipboard = new();
+
+    public double ClipBoardStartTime = 0.0;
     
 #pragma warning disable CS8618
     public TrackEditorPage()
@@ -246,6 +255,22 @@ public partial class TrackEditorPage : Page
             Window.player.Pause();
             Window.isPlaying = false;
             Window.playerTime += num * WheelSpeed;
+            //更改起点
+            if (startPos != new Point(-1, -1))
+            {
+                startPos.Y -= num * WheelSpeed / currDisplayLength * NotePanel.ActualHeight;
+                var (_, _, _, endPos, _) = GetAlignedPoint(e.GetPosition(NotePanel));
+                //hold预览
+                if (endPos.Y > startPos.Y)
+                {
+                    NotePreview.Height = endPos.Y - startPos.Y;
+                    NotePreview.Fill = Window.puttingTap ? TapBrush : CatchBrush;
+                    //绘制note矩形
+                    NotePreview.Visibility = Visibility.Visible;
+                    Canvas.SetLeft(NotePreview, startPos.X);
+                    Canvas.SetBottom(NotePreview, double.Max(startPos.Y, 0));
+                }
+            }
         }
         CheckCurrTime();
         //Label设置
@@ -529,15 +554,15 @@ public partial class TrackEditorPage : Page
                         //在判定线上方
                         if (minTime <= note.ActualTime)
                         {
-                            if (note.hasJudged) note.hasJudged = false;
+                            if (note.HasJudged) note.HasJudged = false;
                         }
                         else
                         {
                             //如果未被判定过且谱面正在被播放
-                            if (!note.hasJudged && Window.isPlaying)
+                            if (!note.HasJudged && Window.isPlaying)
                             {
                                 Window.tapSoundManager.AppendSoundRequest();
-                                note.hasJudged = true;
+                                note.HasJudged = true;
                             }
                         }
                     }
@@ -548,12 +573,12 @@ public partial class TrackEditorPage : Page
                 //在判定线上方
                 if (minTime <= note.ActualTime)
                 {
-                    if (note.hasJudged) note.hasJudged = false;
+                    if (note.HasJudged) note.HasJudged = false;
                 }
                 //在判定线下方
                 else
                 {
-                    if (note.hasJudged || !Window.isPlaying) continue;
+                    if (note.HasJudged || !Window.isPlaying) continue;
                     //如果未被判定过且谱面正在被播放
                     if (note.type == NoteType.Tap)
                     {
@@ -563,7 +588,7 @@ public partial class TrackEditorPage : Page
                     {
                         Window.catchSoundManager.AppendSoundRequest();
                     }
-                    note.hasJudged = true;
+                    note.HasJudged = true;
                 }
             }
         }
@@ -634,15 +659,15 @@ public partial class TrackEditorPage : Page
                     //在判定线上方
                     if (minTime <= note.ActualTime)
                     {
-                        if (note.hasJudged) note.hasJudged = false;
+                        if (note.HasJudged) note.HasJudged = false;
                     }
                     else
                     {
                         //如果未被判定过且谱面正在被播放
-                        if (!note.hasJudged && Window.isPlaying)
+                        if (!note.HasJudged && Window.isPlaying)
                         {
                             Window.tapSoundManager.AppendSoundRequest();
-                            note.hasJudged = true;
+                            note.HasJudged = true;
                         }
                     }
 
@@ -672,7 +697,7 @@ public partial class TrackEditorPage : Page
             //在判定线上方
             if (minTime <= note.ActualTime)
             {
-                if (note.hasJudged) note.hasJudged = false;
+                if (note.HasJudged) note.HasJudged = false;
                 //在可视区域内
                 if (note.ActualTime <= maxTime)
                 {
@@ -689,13 +714,13 @@ public partial class TrackEditorPage : Page
             else
             {
                 //如果未被判定过且谱面正在被播放
-                if (!note.hasJudged && Window.isPlaying)
+                if (!note.HasJudged && Window.isPlaying)
                 {
                     if (note.type == NoteType.Tap)
                         Window.tapSoundManager.AppendSoundRequest();
                     else
                         Window.catchSoundManager.AppendSoundRequest();
-                    note.hasJudged = true;
+                    note.HasJudged = true;
                 }
 
                 note.rectangle.Visibility = Visibility.Hidden;
@@ -839,7 +864,24 @@ public partial class TrackEditorPage : Page
     {
         //note将要放置，预览位置
         var (_, measure, beat, endPos, _) = GetAlignedPoint(e.GetPosition(NotePanel));
-        if (!Window.isPlaying && !isSelecting)
+        DebugWindow.SetDebugContext(e.GetPosition(NotePanel) + " -=- " + Mouse.GetPosition(NotePanel), 0);
+        if (isSelectingMulti && !Window.isPlaying)
+        {
+            endPos = e.GetPosition(NotePanel);
+            endPos.Y = NotePanel.ActualHeight - endPos.Y;
+            //更新选择框预览
+            var left = Math.Min(startPos.X, endPos.X);
+            var right = Math.Max(startPos.X, endPos.X);
+            var bottom = Math.Min(startPos.Y, endPos.Y);
+            var top = Math.Max(startPos.Y, endPos.Y);
+            SelectBorder.Width = right - left;
+            SelectBorder.Height = top - bottom;
+            Canvas.SetLeft(SelectBorder, left);
+            Canvas.SetBottom(SelectBorder, bottom);
+            SelectBorder.Visibility = Visibility.Visible;
+            NotePreview.Visibility = Visibility.Hidden;
+        } 
+        else if (!Window.isPlaying && !isSelecting)
         {
             if (startPos != new Point(-1, -1))
             {
@@ -851,7 +893,7 @@ public partial class TrackEditorPage : Page
                     //绘制note矩形
                     NotePreview.Visibility = Visibility.Visible;
                     Canvas.SetLeft(NotePreview, startPos.X);
-                    Canvas.SetBottom(NotePreview, startPos.Y);
+                    Canvas.SetBottom(NotePreview, double.Max(startPos.Y, 0));
                 }
             }
             else
@@ -925,6 +967,13 @@ public partial class TrackEditorPage : Page
         {
             startPos = new Point(-1, -1);
         }
+
+        if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+        {
+            startPos = e.GetPosition(NotePanel);
+            startPos.Y = NotePanel.ActualHeight - startPos.Y;
+            isSelectingMulti = true;
+        }
     }
 
     //放置note，完成拖动
@@ -932,9 +981,30 @@ public partial class TrackEditorPage : Page
     {
         //获取鼠标位置
         var (time, _, _, endPos, _) = GetAlignedPoint(e.GetPosition(NotePanel));
-        //拖动note
+        //框选note
+        if (isSelectingMulti)
+        {
+            endPos = e.GetPosition(NotePanel);
+            endPos.Y = NotePanel.ActualHeight - endPos.Y;
+            var width = NotePanel.ActualWidth / 9;
+            var startRail = (int)(double.Min(startPos.X, endPos.X) / width);
+            var endRail = (int)(double.Max(startPos.X, endPos.X) / width);
+            var startT = GetTimeFromBottomY(Math.Min(startPos.Y, endPos.Y));
+            var endT = GetTimeFromBottomY(Math.Max(startPos.Y, endPos.Y));
+            //框选note
+            var notes = CurrLine.Notes.Where(note =>
+                note.Rail >= startRail && note.Rail <= endRail && note.ActualTime >= startT &&
+                note.ActualTime <= endT).ToList();
+            UpdateSelectedNote(notes);
+            isDragging = false;
+            isSelectingMulti = false;
+            SelectBorder.Visibility = Visibility.Collapsed;
+            startPos = new Point(-1, -1);
+            return;
+        }
         if (isDragging)
         {
+            //拖动note
             if (selectedNotes[0].rectangle.IsResizing)
             {
                 selectedNotes[0].ActualHoldTime = time - selectedNotes[0].ActualTime;
@@ -968,6 +1038,15 @@ public partial class TrackEditorPage : Page
             return;
         }
 
+
+        if (contextMenuOpenPoint != new Point(-1, -1))
+        {
+            startPos = new Point(-1, -1);
+            contextMenuOpenPoint = new Point(-1, -1);
+            return;
+        }
+
+        //放置note
         //获取时间
         var startTime = GetTimeFromBottomY(startPos.Y);
         var endTime = GetTimeFromBottomY(endPos.Y);
@@ -1019,7 +1098,7 @@ public partial class TrackEditorPage : Page
             willPutNote.rectangle.Width = NotePreview.Width;
         }
 
-        willPutNote.parentLine = CurrLine;
+        willPutNote.ParentLine = CurrLine;
         if (!CurrLine.IsNoteOverLap(willPutNote))
         {
             if (willPutNote is FakeCatch f)
@@ -1107,21 +1186,15 @@ public partial class TrackEditorPage : Page
         if (editingMode == 0)
         {
             foreach (var note in CurrLine.Notes)
-                if (note.type == NoteType.Tap)
-                    note.Color = EditorColors.tapColorButNotOnThisLine;
-                else if (note.type == NoteType.Hold)
-                    note.Color = EditorColors.holdColorButNotOnThisLine;
-                else
-                    note.Color = EditorColors.catchColorButNotOnThisLine;
+            {
+                note.SetIsOnThisLine(false);
+            }
             LineIndex = LineListView.SelectedIndex;
             selectingFreeLine = false;
             foreach (var note in CurrLine.Notes)
-                if (note.type == NoteType.Tap)
-                    note.Color = EditorColors.tapColor;
-                else if (note.type == NoteType.Hold)
-                    note.Color = EditorColors.holdColor;
-                else
-                    note.Color = EditorColors.catchColor;
+            {
+                note.SetIsOnThisLine(true);
+            }
         }
         else if (editingMode == 1)
         {
@@ -1512,9 +1585,9 @@ public partial class TrackEditorPage : Page
     public void UpdateSelectedNote(List<Note> note)
     {
         if (note.Count == 1) UpdateSelectedNote(note[0]);
-        selectedNotes.ForEach(note1 => { note1.rectangle.HighLight = false; });
+        selectedNotes.ForEach(n => { n.rectangle.HighLight = false; });
         selectedNotes = note;
-        selectedNotes.ForEach(note1 => { note1.rectangle.HighLight = true; });
+        selectedNotes.ForEach(n => { n.rectangle.HighLight = true; });
         isDragging = isSelecting = selectedNotes.Count != 0;
         dragStartPoint = GetAlignedPoint(Mouse.GetPosition(NotePanel)).mousePos;
     }
@@ -1523,7 +1596,7 @@ public partial class TrackEditorPage : Page
     {
         if (!multiSelect)
         {
-            selectedNotes.ForEach(note1 => { note1.rectangle.HighLight = false; });
+            selectedNotes.ForEach(n => { n.rectangle.HighLight = false; });
             selectedNotes.Clear();
         }
 
@@ -1818,5 +1891,78 @@ public partial class TrackEditorPage : Page
             LineListView.SelectedIndex = -1;
             CurrLine.FakeCatch.ForEach(e => { e.rectangle.Visibility = Visibility.Visible; });
         }
+    }
+
+    public void DeleteNote(List<Note> notes)
+    {
+        foreach (var note in notes)
+        {
+            note.ParentLine.Notes.Remove(note);
+            NotePanel.Children.Remove(note.rectangle);
+            OperationManager.AddOperation(new RemoveNoteOperation(note, note.ParentLine));
+        }
+        selectedNotes.Clear();
+        isSelecting = false;
+        isDragging = false;
+    }
+    
+    public void CopyNote(List<Note> notes)
+    {
+        Clipboard.Clear();
+        if (notes.Count == 0) return;
+        Clipboard.AddRange(notes.Select(note => note.Clone()));
+        ClipBoardStartTime = notes.Min(note => note.ActualTime);
+    }
+
+    public void CutNote(List<Note> notes)
+    {
+        Clipboard.Clear();
+        if (notes.Count == 0) return;
+        Clipboard.AddRange(notes);
+        ClipBoardStartTime = notes.Min(note => note.ActualTime);
+        DeleteNote(notes);
+    }
+
+    public void PasteNote(List<Note> notes, double startTime)
+    {
+        foreach (var newNote in notes.Select(note => note.Clone()))
+        {
+            newNote.ActualTime += startTime - ClipBoardStartTime;
+            CurrLine.Notes.Add(newNote);
+            newNote.rectangle.Height = 10;
+            newNote.rectangle.Width = NotePreview.Width;
+            newNote.SetIsOnThisLine(true);
+            NotePanel.Children.Add(newNote.rectangle);
+            newNote.ParentLine = CurrLine;
+        }
+        if(notes.Count != 0) UpdateNote();
+        UpdateSelectedNote(notes);
+    }
+
+    private void CopyClick(object sender, RoutedEventArgs e)
+    {
+        CopyNote(selectedNotes);
+    }
+
+    private void CutClick(object sender, RoutedEventArgs e)
+    {
+        CutNote(selectedNotes);
+    }
+
+    private void DeleteClick(object sender, RoutedEventArgs e)
+    {
+        DeleteNote(selectedNotes);
+    }
+
+    private void PasteClick(object sender, RoutedEventArgs e)
+    {
+        double time = GetTimeFromBottomY(GetAlignedPoint(contextMenuOpenPoint).mousePos.Y);
+        PasteNote(Clipboard, time);
+    }
+
+    private Point contextMenuOpenPoint;
+    private void ContextMenu_OnOpened(object sender, RoutedEventArgs e)
+    {
+        contextMenuOpenPoint = Mouse.GetPosition(NotePanel);
     }
 }

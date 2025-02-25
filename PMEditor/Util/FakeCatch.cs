@@ -60,9 +60,9 @@ namespace PMEditor.Util
         protected void Rectangle_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
         {
             FakeCatch note = ((sender as NoteRectangle)!.note as FakeCatch)!;
-            note.parentLine.FakeCatch.Remove(note);
+            note.ParentLine.FakeCatch.Remove(note);
             TrackEditorPage.Instance.NotePanel.Children.Remove(sender as NoteRectangle);
-            OperationManager.AddOperation(new RemoveNoteOperation(note, note.parentLine));
+            OperationManager.AddOperation(new RemoveNoteOperation(note, note.ParentLine));
         }
 
 

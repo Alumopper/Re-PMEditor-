@@ -6,9 +6,16 @@
              xmlns:local="clr-namespace:PMEditor"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid MouseRightButtonUp="Rectangle_MouseRightButtonUp" MouseLeftButtonDown="Rectangle_MouseLeftButtonDown" MouseMove="Grid_MouseMove">
+    <Grid MouseLeftButtonDown="Rectangle_MouseLeftButtonDown" MouseMove="Grid_MouseMove" KeyDown="UIElement_OnKeyDown">
         <Border x:Name="highLightBorder" BorderThickness="0">
             <Rectangle Name="rect"/>
         </Border>
+        <Grid.ContextMenu>
+            <ContextMenu>
+                <MenuItem Header="复制" InputGestureText="Ctrl + C" Click="CopyClick"/>
+                <MenuItem Header="剪切" InputGestureText="Ctrl + X" Click="CutClick"/>
+                <MenuItem Header="删除" InputGestureText="Delete" Click="DeleteClick"/>
+            </ContextMenu>
+        </Grid.ContextMenu>
     </Grid>
 </UserControl>

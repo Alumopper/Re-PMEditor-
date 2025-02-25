@@ -10,14 +10,19 @@ namespace PMEditor
     /// </summary>
     public partial class Note
     {
+        [JsonIgnore]
         public NoteRectangle rectangle;
 
-        public NoteType type;
+        [JsonIgnore]
+        public readonly NoteType type;
 
-        public bool hasJudged = false;
+        [JsonIgnore]
+        public bool HasJudged = false;
 
-        public Line parentLine;
+        [JsonIgnore]
+        public Line ParentLine;
 
+        [JsonIgnore]
         public Expression? Expression;
 
         public int GetCount()
@@ -39,12 +44,6 @@ namespace PMEditor
             return count;
         }
 
-        public void SetNoteType(NoteType noteType)
-        {
-            this.type = noteType;
-            this.noteType = (int)noteType;
-        }
-
         public override bool Equals(object? obj)
         {
             if (obj != null && obj is Note note)
@@ -63,37 +62,55 @@ namespace PMEditor
         {
             return type switch
             {
-                PMEditor.NoteType.Tap => $"Tap[line={parentLine.Notes.IndexOf(this)},rail={rail},time={actualTime}]",
-                PMEditor.NoteType.Catch => $"Catch[line={parentLine.Notes.IndexOf(this)},rail={rail},time={actualTime}]",
-                PMEditor.NoteType.Hold => $"Hold[line={parentLine.Notes.IndexOf(this)},rail={rail},time={actualTime}]",
+                PMEditor.NoteType.Tap => $"Tap[line={ParentLine.Notes.IndexOf(this)},rail={rail},time={actualTime}]",
+                PMEditor.NoteType.Catch => $"Catch[line={ParentLine.Notes.IndexOf(this)},rail={rail},time={actualTime}]",
+                PMEditor.NoteType.Hold => $"Hold[line={ParentLine.Notes.IndexOf(this)},rail={rail},time={actualTime}]",
                 _ => "Unknown",
             };
         }
 
         public bool IsOverlap(Note note)
         {
-            if(!(note.rail == rail && note.parentLine == parentLine)) return false;
+            if(!(note.rail == rail && note.ParentLine == ParentLine)) return false;
             if(type == PMEditor.NoteType.Hold)
             {
                 if(note.type == PMEditor.NoteType.Hold)
                 {
                     return actualTime <= note.actualTime && note.actualTime <= actualTime + actualHoldTime || actualTime <= note.actualTime + note.actualHoldTime && note.actualTime + note.actualHoldTime <= actualTime + actualHoldTime;
                 }
-                else
+                return actualTime <= note.actualTime && note.actualTime <= actualTime + actualHoldTime;
+            }
+            if(note.type == PMEditor.NoteType.Hold)
+            {
+                return note.IsOverlap(this);
+            }
+            return note.actualTime == actualTime;
+        }
+
+        public Note Clone()
+        {
+            return new Note(rail, noteType, fallType, isFake, actualTime, actualHoldTime, ExpressionString);
+        }
+
+        public void SetIsOnThisLine(bool isOnThisLine)
+        {
+            if (isOnThisLine)
+            {
+                Color = type switch
                 {
-                    return actualTime <= note.actualTime && note.actualTime <= actualTime + actualHoldTime;
-                }
+                    PMEditor.NoteType.Tap => EditorColors.tapColor,
+                    PMEditor.NoteType.Hold => EditorColors.holdColor,
+                    _ => EditorColors.catchColor
+                };
             }
             else
             {
-                if(note.type == PMEditor.NoteType.Hold)
+                Color = type switch
                 {
-                    return note.IsOverlap(this);
-                }
-                else
-                {
-                    return note.actualTime == actualTime;
-                }
+                    PMEditor.NoteType.Tap => EditorColors.tapColorButNotOnThisLine,
+                    PMEditor.NoteType.Hold => EditorColors.holdColorButNotOnThisLine,
+                    _ => EditorColors.catchColorButNotOnThisLine
+                };
             }
         }
     }

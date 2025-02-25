@@ -248,7 +248,7 @@ namespace PMEditor
         
         public string? ExpressionString
         {
-            get => Expression?.ExpressionString; set => Expression = value == null || value == "null" ? null : new Expression(value);
+            get => Expression?.ExpressionString; set => Expression = value is null or "null" ? null : new Expression(value);
         }
 
         #endregion

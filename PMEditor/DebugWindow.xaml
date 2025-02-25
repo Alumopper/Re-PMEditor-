@@ -6,7 +6,12 @@
         xmlns:local="clr-namespace:PMEditor"
         mc:Ignorable="d"
         Title="DebugWindow" Height="450" Width="800">
-    <Grid>
-        <ListBox Name="logListBox" />
+    <Grid Background="#FF0B0314">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <ListBox Name="logListBox" Grid.Column="0"/>
+        <StackPanel Grid.Column="1" Margin="10" Name="Panel"/>
     </Grid>
 </Window>
