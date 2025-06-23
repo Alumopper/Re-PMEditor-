@@ -4,8 +4,8 @@ namespace PMEditor.Operation
 {
     public class RemoveNoteOperation : BaseOperation
     {
-        Line line;
-        Note note;
+        private readonly Line line;
+        private readonly Note note;
 
 
         public RemoveNoteOperation(Note note, Line line)
@@ -22,9 +22,9 @@ namespace PMEditor.Operation
             }
             else
             {
-                line.Notes.Add(note);
+                line.AddNote(note);
             }
-            TrackEditorPage.Instance.NotePanel.Children.Add(note.rectangle);
+            TrackEditorPage.Instance!.NotePanel.Children.Add(note.rectangle);
             TrackEditorPage.Instance.UpdateNote();
         }
 
@@ -36,9 +36,9 @@ namespace PMEditor.Operation
             }
             else
             {
-                line.Notes.Remove(note);
+                line.RemoveNote(note);
             }
-            TrackEditorPage.Instance.NotePanel.Children.Remove(note.rectangle);
+            TrackEditorPage.Instance!.NotePanel.Children.Remove(note.rectangle);
             note.rectangle.Visibility = System.Windows.Visibility.Hidden;
             TrackEditorPage.Instance.UpdateNote();
         }

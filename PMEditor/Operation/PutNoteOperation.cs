@@ -2,8 +2,8 @@
 {
     public class PutNoteOperation : BaseOperation
     {
-        Line line;
-        Note note;
+        private readonly Line line;
+        private readonly Note note;
 
 
         public PutNoteOperation(Note note, Line line)
@@ -14,21 +14,21 @@
 
         public override void Redo()
         {
-            line.Notes.Add(note);
-            TrackEditorPage.Instance.UpdateNote();
+            line.AddNote(note);
+            TrackEditorPage.Instance!.UpdateNote();
         }
 
         public override void Undo()
         {
-            line.Notes.Remove(note);
-            TrackEditorPage.Instance.NotePanel.Children.Remove(note.rectangle);
+            line.RemoveNote(note);
+            TrackEditorPage.Instance!.NotePanel.Children.Remove(note.rectangle);
             note.rectangle.Visibility = System.Windows.Visibility.Hidden;
             TrackEditorPage.Instance.UpdateNote();
         }
 
         public override string GetInfo()
         {
-            return "放置" + note.ToString();
+            return "放置" + note;
         }
     }
 }

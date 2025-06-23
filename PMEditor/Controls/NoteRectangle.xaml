@@ -7,14 +7,14 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid MouseLeftButtonDown="Rectangle_MouseLeftButtonDown" MouseMove="Grid_MouseMove" KeyDown="UIElement_OnKeyDown">
-        <Border x:Name="highLightBorder" BorderThickness="0">
-            <Rectangle Name="rect"/>
+        <Border x:Name="HighLightBorder" BorderThickness="0">
+            <Rectangle Name="Rect"/>
         </Border>
         <Grid.ContextMenu>
             <ContextMenu>
-                <MenuItem Header="复制" InputGestureText="Ctrl + C" Click="CopyClick"/>
-                <MenuItem Header="剪切" InputGestureText="Ctrl + X" Click="CutClick"/>
-                <MenuItem Header="删除" InputGestureText="Delete" Click="DeleteClick"/>
+                <MenuItem Header="复制" InputGestureText="Ctrl + C" Command="local:Commands.Copy"/>
+                <MenuItem Header="剪切" InputGestureText="Ctrl + X" Command="local:Commands.Cut"/>
+                <MenuItem Header="删除" InputGestureText="Delete" Command="local:Commands.Delete"/>
             </ContextMenu>
         </Grid.ContextMenu>
     </Grid>

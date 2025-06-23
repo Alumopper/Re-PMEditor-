@@ -35,12 +35,8 @@ namespace PMEditor
             {
                 return 1;
             }
-            double t = actualHoldTime + 0.25;
-            int count = (int)(t / 0.5);
-            if (t % 0.5 >= 0.25)
-            {
-                count++;
-            }
+            double t = actualHoldTime;
+            int count = (int)(t * Settings.currSetting.Tick) / 10 + 1;
             return count;
         }
 

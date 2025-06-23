@@ -7,8 +7,7 @@
       xmlns:t="clr-namespace:PMEditor.Controls"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
-      Title="TrackEditorPage">
-
+      Title="TrackEditorPage" Unloaded="TrackEditorPage_OnUnloaded">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="8*"/>
@@ -162,7 +161,9 @@
                         </Grid>
                     </Canvas>
                     <!--note放置区域-->
-                    <Canvas Name="NotePanel" Background="Transparent" ClipToBounds="True" MouseMove="notePanel_MouseMove" MouseLeave="notePanel_MouseLeave" MouseLeftButtonUp="notePanel_MouseLeftButtonUp" MouseLeftButtonDown="notePanel_MouseLeftButtonDown" SizeChanged="notePanel_SizeChanged">
+                    <Canvas Name="NotePanel" Background="Transparent" ClipToBounds="True" 
+                            MouseMove="notePanel_MouseMove" MouseLeave="notePanel_MouseLeave" MouseLeftButtonUp="notePanel_MouseLeftButtonUp" MouseLeftButtonDown="notePanel_MouseLeftButtonDown" 
+                            SizeChanged="notePanel_SizeChanged">
                         <Rectangle Name="NotePreview"
                             Width="{Binding ActualWidth, ElementName=Rectangle, Mode=OneWay}"
                             Height="10"/>
@@ -171,10 +172,16 @@
                             Height="10"/>
                         <Canvas.ContextMenu>
                             <ContextMenu Opened="ContextMenu_OnOpened">
-                                <MenuItem Header="复制" InputGestureText="Ctrl + C" Click="CopyClick"/>
-                                <MenuItem Header="剪切" InputGestureText="Ctrl + X" Click="CutClick"/>
-                                <MenuItem Header="粘贴" InputGestureText="Ctrl + V" Click="PasteClick"/>
-                                <MenuItem Header="删除" InputGestureText="Delete" Click="DeleteClick"/>
+                                <ContextMenu.CommandBindings>
+                                    <CommandBinding Command="local:Commands.Copy" CanExecute="CopyCanExecute" Executed="CopyExecuted"/>
+                                    <CommandBinding Command="local:Commands.Cut" CanExecute="CutCanExecute" Executed="CutExecuted"/>
+                                    <CommandBinding Command="local:Commands.Paste" CanExecute="PasteCanExecute" Executed="PasteExecuted"/>
+                                    <CommandBinding Command="local:Commands.Delete" CanExecute="DeleteCanExecute" Executed="DeleteExecuted"/>
+                                </ContextMenu.CommandBindings>
+                                <MenuItem Header="复制" InputGestureText="Ctrl + C" Command="local:Commands.Copy"/>
+                                <MenuItem Header="剪切" InputGestureText="Ctrl + X" Command="local:Commands.Cut"/>
+                                <MenuItem Header="粘贴" InputGestureText="Ctrl + V" Command="local:Commands.Paste"/>
+                                <MenuItem Header="删除" InputGestureText="Delete" Command="local:Commands.Delete"/>
                             </ContextMenu>
                         </Canvas.ContextMenu>
                     </Canvas>

@@ -14,13 +14,18 @@ namespace PMEditor
     {
         public DatapackGenerator Datapack;
         public DirectoryInfo Target;
-
+        
+        public bool IsCountChanged;
+        private int countCache = -1;
         [JsonIgnore]
         public int Count
         {
             get
             {
-                return AllLines.SelectMany(line => line.Notes).Sum(note => note.GetCount());
+                if(!IsCountChanged && countCache != -1) return countCache;
+                countCache = AllLines.SelectMany(line => line.Notes).Sum(note => note.GetCount());
+                IsCountChanged = false;
+                return countCache;
             }
         }
         
@@ -83,10 +88,7 @@ namespace PMEditor
 
         public void Build()
         {
-            if (!Target.Exists)
-            {
-                Target.Create();
-            }
+            Datapack.Create();
             var nbt = NBTTrack.FromTrack(this);
             nbt.ToFrameFunctions(Target);
         }

@@ -293,18 +293,21 @@ namespace PMEditor
             SetCurrPage(3);
         }
 
+        public bool isExporting;
         //生成
-        private void MenuItem_Click_6(object sender, RoutedEventArgs e)
+        public void MenuItem_Click_6(object? sender, RoutedEventArgs? e)
+        {
+            if(isExporting) return;
+            Export();
+        }
+
+        public async Task Export()
         {
             OperationInfo.Text = "正在生成谱面 " + track.TrackName;
-
-            Task.Run(track.Build).ContinueWith(_ =>
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    OperationInfo.Text = "成功生成谱面 " + track.TrackName;
-                });
-            });
+            isExporting = true;
+            await Task.Run(track.Build);
+            OperationInfo.Text = "成功生成谱面 " + track.TrackName;
+            isExporting = false;
         }
         
         //清理
@@ -371,6 +374,12 @@ namespace PMEditor
         {
             var bpmWindow = new BpmConfigWindow();
             bpmWindow.ShowDialog();
+        }
+
+        private void MenuItem_Export(object sender, RoutedEventArgs e)
+        {
+            var exportWindow = new ExportWindows();
+            exportWindow.ShowDialog();
         }
     }
 

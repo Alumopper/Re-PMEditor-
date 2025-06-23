@@ -28,6 +28,7 @@ namespace PMEditor
         protected ObservableCollection<Line> lines;    //判定线
         protected Line freeLine = new();   //自由判定线
         protected ObservableCollection<BpmInfo> bpmInfo;
+        protected string exportPath;
 
         #region getter and setter
         public string TrackName
@@ -83,6 +84,12 @@ namespace PMEditor
             get { return bpmInfo; }
             set { bpmInfo = value; }
         }
+        
+        public string ExportPath
+        {
+            get { return exportPath; }
+            set { exportPath = value; }
+        }
         #endregion
 
         public Track(string trackName, string musicAuthor, string trackAuthor, double baseBpm, double length, string difficulty)
@@ -96,8 +103,9 @@ namespace PMEditor
             this.lines = new ObservableCollection<Line>();
             lines.Add(new Line());
             this.bpmInfo = new ObservableCollection<BpmInfo>();
+            this.exportPath = "./tracks/" + trackName + "/out/" + trackName;
 
-            Target = new DirectoryInfo("./tracks/" + trackName + "/out/" + trackName);
+            Target = new DirectoryInfo(ExportPath);
             Datapack = new DatapackGenerator(Target, trackName);
         }
 
@@ -196,10 +204,10 @@ namespace PMEditor
         {
             this.y = y;
             this.id = id;
-            this.notes = new();
-            this.eventLists = new();
-            this.fakeCatch = new();
-            this.functions = new();
+            this.notes = new List<Note>();
+            this.eventLists = new List<EventList>();
+            this.fakeCatch = new List<FakeCatch>();
+            this.functions = new List<Function>();
         }
 
         public Line() : this(0) { }

@@ -1,5 +1,7 @@
-﻿using PMEditor.Operation;
+﻿using System;
+using PMEditor.Operation;
 using System.IO;
+using System.Windows;
 using System.Windows.Input;
 
 namespace PMEditor
@@ -36,6 +38,34 @@ namespace PMEditor
             {
                 new KeyGesture (Key.S,ModifierKeys.Control)
             });
+
+        public static readonly RoutedUICommand Copy = new(
+            "复制", "Copy", typeof(Commands), new InputGestureCollection()
+            {
+                new KeyGesture(Key.C, ModifierKeys.Control)
+            }
+        );
+
+        public static readonly RoutedUICommand Paste = new(
+            "粘贴", "Paste", typeof(Commands), new InputGestureCollection()
+            {
+                new KeyGesture(Key.V, ModifierKeys.Control)
+            }
+        );
+        
+        public static readonly RoutedUICommand Cut = new(
+            "剪切", "Cut", typeof(Commands), new InputGestureCollection()
+            {
+                new KeyGesture(Key.X, ModifierKeys.Control)
+            }
+        );
+
+        public static readonly RoutedUICommand Delete = new(
+            "删除", "Delete", typeof(Commands), new InputGestureCollection()
+            {
+                new KeyGesture(Key.Delete)
+            }
+        );
     }
 
     public partial class EditorWindow
@@ -125,8 +155,140 @@ namespace PMEditor
             OperationManager.savedOperationIndex = OperationManager.Index;
             this.Title = "Re:PMEditor - " + info.TrackName;
             string text = track.ToJsonString();
-            File.WriteAllText("./tracks/" + track.TrackName + "/track.json", text);
+            try
+            {
+                File.WriteAllText("./tracks/" + track.TrackName + "/track.json", text);
+            }
+            catch (Exception e1)
+            {
+                MessageBox.Show("保存谱面的时候遇到了问题QAQ\n" + e1, "错误", MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                return;
+            }
             this.OperationInfo.Text = "谱面文件已保存";
+        }
+        
+        private void CopyCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            switch (currPageIndex)
+            {
+                case 0:
+                    ((TrackEditorPage)pages[0]).CopyCanExecute(sender, e);
+                    break;
+            }
+        }
+
+        private void CopyExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            switch (currPageIndex)
+            {
+                case 0:
+                    ((TrackEditorPage)pages[0]).CopyExecuted(sender, e);
+                    break;
+            }
+        }
+
+        private void PasteCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            switch (currPageIndex)
+            {
+                case 0:
+                    ((TrackEditorPage)pages[0]).PasteCanExecute(sender, e);
+                    break;
+            }
+        }
+
+        private void PasteExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            switch (currPageIndex)
+            {
+                case 0:
+                    ((TrackEditorPage)pages[0]).PasteExecuted(sender, e);
+                    break;
+            }
+        }
+
+        private void CutCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            switch (currPageIndex)
+            {
+                case 0:
+                    ((TrackEditorPage)pages[0]).CutCanExecute(sender, e);
+                    break;
+            }
+        }
+
+        private void CutExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            switch (currPageIndex)
+            {
+                case 0:
+                    ((TrackEditorPage)pages[0]).CutExecuted(sender, e);
+                    break;
+            }
+        }
+
+        private void DeleteCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            switch (currPageIndex)
+            {
+                case 0:
+                    ((TrackEditorPage)pages[0]).DeleteCanExecute(sender, e);
+                    break;
+            }
+        }
+
+        private void DeleteExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            switch (currPageIndex)
+            {
+                case 0:
+                    ((TrackEditorPage)pages[0]).DeleteExecuted(sender, e);
+                    break;
+            }
+        }
+    }
+
+    partial class TrackEditorPage
+    {
+        internal void CopyCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = selectedNotes.Count > 0;
+        }
+
+        internal void CopyExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            CopyNote(selectedNotes);
+        }
+
+        internal void PasteCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = Clipboard.Count > 0;
+        }
+
+        internal void PasteExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            PasteNote(Clipboard, GetTimeFromBottomY(GetAlignedPoint(contextMenuOpenPoint).mousePos.Y));
+        }
+
+        internal void CutCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = selectedNotes.Count > 0;
+        }
+
+        internal void CutExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            CutNote(selectedNotes);
+        }
+
+        internal void DeleteCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = selectedNotes.Count > 0;
+        }
+
+        internal void DeleteExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            DeleteNote(selectedNotes);
         }
     }
 }

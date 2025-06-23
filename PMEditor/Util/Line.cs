@@ -173,5 +173,19 @@ namespace PMEditor
                 function.TryLink(track);
             }
         }
+
+        public void AddNote(Note note)
+        {
+            notes.Add(note);
+            EditorWindow.Instance.track.IsCountChanged = true;
+            EditorWindow.Instance.UpdateStatusBar();
+        }
+
+        public void RemoveNote(Note note)
+        {
+            notes.Remove(note);
+            EditorWindow.Instance.track.IsCountChanged = true;
+            EditorWindow.Instance.UpdateStatusBar();
+        }
     }
 }

@@ -66,16 +66,24 @@ namespace PMEditor
 
         private void ExceptionHandler(Exception e)
         {
-            EditorWindow window = EditorWindow.Instance;
+            var window = EditorWindow.Instance;
             switch (e)
             {
                 default:
                     {
-                        var re = MessageBox.Show("啊呀，制谱器坏掉了，不过我们仍然会尝试保存你的项目ヽ(*。>Д<)o゜\n" + e.ToString(), "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                        var re = MessageBox.Show("啊呀，制谱器坏掉了，不过我们仍然会尝试保存你的项目ヽ(*。>Д<)o゜\n" + e, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                         if(re == MessageBoxResult.OK)
                         {
                             string text = window.track.ToJsonString();
-                            File.WriteAllText("./tracks/" + window.track.TrackName + "/track.json", text);
+                            try
+                            {
+                                File.WriteAllText("./tracks/" + window.track.TrackName + "/track.json", text);
+                            }
+                            catch (Exception e1)
+                            {
+                                MessageBox.Show("保存谱面的时候遇到了问题QAQ\n" + e1, "错误", MessageBoxButton.OK,
+                                    MessageBoxImage.Error);
+                            }
                         }
                         this.Shutdown();
                         break;

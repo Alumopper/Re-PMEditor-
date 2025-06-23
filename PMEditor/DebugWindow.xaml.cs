@@ -24,7 +24,16 @@ namespace PMEditor
         public static void Log(string message)
         {
             var logMessage = $"{DateTime.Now:HH:mm:ss} - {message}";
-            Instance?.logListBox.Items.Add(logMessage);
+            //如果不在主线程中调用，使用Dispatcher.InvokeAsync方法将日志输出到主线程中
+            if (Application.Current.Dispatcher.CheckAccess())
+            {
+                Instance?.logListBox.Items.Add(logMessage);
+            }else {
+                Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    Instance?.logListBox.Items.Add(logMessage);
+                });
+            }
         }
 
         public static void SetDebugContext(string value, int index)

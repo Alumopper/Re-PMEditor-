@@ -26,12 +26,12 @@ namespace PMEditor
 
         public Brush Fill
         {
-            get => rect.Fill; set => rect.Fill = value;
+            get => Rect.Fill; set => Rect.Fill = value;
         }
 
         public Brush HighLightBorderBrush
         {
-            get => highLightBorder.BorderBrush; set => highLightBorder.BorderBrush = value;
+            get => HighLightBorder.BorderBrush; set => HighLightBorder.BorderBrush = value;
         }
 
         private bool highLight;
@@ -42,7 +42,7 @@ namespace PMEditor
             {
                 highLight = value;
                 //高亮
-                highLightBorder.BorderThickness = highLight ? new Thickness(2) : new Thickness(0);
+                HighLightBorder.BorderThickness = highLight ? new Thickness(2) : new Thickness(0);
             }
         }
 
@@ -56,7 +56,7 @@ namespace PMEditor
             TrackEditorPage.Instance.UpdateSelectedNote(note); 
             if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
             {
-                var currentPosition = e.GetPosition(rect);
+                var currentPosition = e.GetPosition(Rect);
                 if (currentPosition.Y < 20)
                 {
                     IsResizing = true;
@@ -70,14 +70,14 @@ namespace PMEditor
         {
             if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
             {
-                var currentPosition = e.GetPosition(rect);
+                var currentPosition = e.GetPosition(Rect);
                 if (currentPosition.Y < 20)
                 {
-                    rect.Cursor = Cursors.SizeNS;
+                    Rect.Cursor = Cursors.SizeNS;
                     return;
                 }
             }
-            rect.Cursor = Cursors.Arrow;
+            Rect.Cursor = Cursors.Arrow;
         }
 
         private void UIElement_OnKeyDown(object sender, KeyEventArgs e)

@@ -18,7 +18,7 @@
             <TextBlock x:Name="title" FontSize="26" FontWeight="Bold" Margin="-40,20,0,20" Text="设置" Foreground="White"/>
         </StackPanel>
         <ScrollViewer Grid.Row="1">
-            <StackPanel x:Name="properties" MaxWidth="700" Margin="40,20,40,20">
+            <StackPanel x:Name="Properties" MaxWidth="700" Margin="40,20,40,20">
                 <StackPanel.Resources>
                     <Style TargetType="TextBlock" x:Key="PropertyLable">
                         <Setter Property="Margin" Value="20,5,0,0"/>

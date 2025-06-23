@@ -93,6 +93,7 @@ public class NBTTrack
 
     public static NBTTrack FromTrack(Track track)
     {
+        DebugWindow.Log("正在转换至NBT格式...");
         NBTTrack nbtTrack = new()
         {
             //基本信息
@@ -241,6 +242,7 @@ public class NBTTrack
         }
 
         nbtTrack.lines = lines.ToArray();
+        DebugWindow.Log("转换完成!");
         return nbtTrack;
     }
 
@@ -376,6 +378,7 @@ public class NBTTrack
 
     public void ToFrameFunctions(DirectoryInfo directory)
     {
+        DebugWindow.Log("开始导出谱面至" + directory.FullName + "，帧数" + Settings.currSetting.Tick);
         var readyTick = (int)(3 * Settings.currSetting.Tick);
         //生成并初始化函数帧序列
         var frames = new List<string>[(int)(length * Settings.currSetting.Tick) + readyTick + 1];
@@ -392,20 +395,20 @@ public class NBTTrack
                 frames[startTick + readyTick].Add(
                     "summon item_display ~ ~ ~ " +
                     "{" +
-                    "UUID:" + Utils.ToNBTUUID(note.uuid) + "," +
-                    "transformation:{" +
-                    "right_rotation:[1f,0f,0f,0f]," +
-                    "scale:[0f,0f,0f]," +
-                    "left_rotation:[1f,0f,0f,0f]," +
-                    $"translation:[{4 - note.Rail}f, {f.height * 2.0}f, 0f]" +
-                    "}," +
-                    "item:{" +
-                    "id:\"minecraft:leather_boots\"," +
-                    "Count:1b," +
-                    "components:{custom_model_data:226000}" +
-                    "}," +
-                    "Tags:[catch,Note,Fake]," +
-                    "interpolation_duration:0" +
+                        "UUID:" + Utils.ToNBTUUID(note.uuid) + "," +
+                        "transformation:{" +
+                            "right_rotation:[1f,0f,0f,0f]," +
+                            "scale:[0f,0f,0f]," +
+                            "left_rotation:[1f,0f,0f,0f]," +
+                            $"translation:[{4 - note.Rail}f, {f.height * 2.0}f, 0f]" +
+                        "}," +
+                        "item:{" +
+                            "id:\"minecraft:leather_boots\"," +
+                            "count:1b," +
+                            "components:{item_model:\"pr:fcatch\", custom_model_data: {strings:[\"default\"],flags:[],floats:[],colors:[]}}" +
+                        "}," +
+                        "Tags:[catch,Note,Fake]," +
+                        "interpolation_duration:0" +
                     "}");
             }
             else if (note is NBTHold)
@@ -413,20 +416,20 @@ public class NBTTrack
                 frames[startTick + readyTick].Add(
                     "summon item_display ~ ~ ~ " +
                     "{" +
-                    "UUID:" + Utils.ToNBTUUID(note.uuid) + "," +
-                    "transformation:{" +
-                    "right_rotation:[1f,0f,0f,0f]," +
-                    "scale:[0f,0f,0f]," +
-                    "left_rotation:[1f,0f,0f,0f]," +
-                    "translation:[" + (4 - note.Rail) + "f, 0f, 0f]" +
-                    "}," +
-                    "item:{" +
-                    "id:\"minecraft:leather_leggings\"," +
-                    "Count:1b," +
-                    "components:{custom_model_data:227001}" +
-                    "}," +
-                    $"Tags:[hold,Note,{note.Key}]," +
-                    "interpolation_duration:0" +
+                        "UUID:" + Utils.ToNBTUUID(note.uuid) + "," +
+                        "transformation:{" +
+                            "right_rotation:[1f,0f,0f,0f]," +
+                            "scale:[0f,0f,0f]," +
+                            "left_rotation:[1f,0f,0f,0f]," +
+                            "translation:[" + (4 - note.Rail) + "f, 0f, 0f]" +
+                        "}," +
+                        "item:{" +
+                            "id:\"minecraft:leather_leggings\"," +
+                            "count:1b," +
+                            "components:{item_model:\"pr:hold\", custom_model_data: {strings:[\"default\"],flags:[],floats:[],colors:[]}}" +
+                        "}," +
+                        $"Tags:[hold,Note,{note.Key}]," +
+                        "interpolation_duration:0" +
                     "}");
             }
             else if (note.type == (int)NoteType.Catch)
@@ -434,20 +437,20 @@ public class NBTTrack
                 frames[startTick + readyTick].Add(
                     "summon item_display ~ ~ ~ " +
                     "{" +
-                    "UUID:" + Utils.ToNBTUUID(note.uuid) + "," +
-                    "transformation:{" +
-                    "right_rotation:[1f,0f,0f,0f]," +
-                    "scale:[0f,0f,0f]," +
-                    "left_rotation:[1f,0f,0f,0f]," +
-                    "translation:[" + (4 - note.Rail) + "f, 2f, 0f]" +
-                    "}," +
-                    "item:{" +
-                    "id:\"minecraft:leather_boots\"," +
-                    "Count:1b," +
-                    "components:{custom_model_data:226001}" +
-                    "}," +
-                    "Tags:[catch,Note]," +
-                    "interpolation_duration:0" +
+                        "UUID:" + Utils.ToNBTUUID(note.uuid) + "," +
+                        "transformation:{" +
+                            "right_rotation:[1f,0f,0f,0f]," +
+                            "scale:[0f,0f,0f]," +
+                            "left_rotation:[1f,0f,0f,0f]," +
+                            "translation:[" + (4 - note.Rail) + "f, 2f, 0f]" +
+                        "}," +
+                        "item:{" +
+                            "id:\"minecraft:leather_boots\"," +
+                            "count:1b," +
+                            "components:{item_model:\"pr:catch\", custom_model_data: {strings:[\"default\"],flags:[],floats:[],colors:[]}}" +
+                        "}," +
+                        "Tags:[catch,Note]," +
+                        "interpolation_duration:0" +
                     "}");
                 frames[startTick + readyTick].Add($"scoreboard players set {note.uuid} PR_slot {note.Rail}");
             }
@@ -456,20 +459,20 @@ public class NBTTrack
                 frames[startTick + readyTick].Add(
                     "summon item_display ~ ~ ~ " +
                     "{" +
-                    "UUID:" + Utils.ToNBTUUID(note.uuid) + "," +
-                    "transformation:{" +
-                    "right_rotation:[1f,0f,0f,0f]," +
-                    "scale:[0f,0f,0f]," +
-                    "left_rotation:[1f,0f,0f,0f]," +
-                    "translation:[" + (4 - note.Rail) + "f, 0f, 0f]" +
-                    "}," +
-                    "item:{" +
-                    "id:\"minecraft:leather_chestplate\"," +
-                    "Count:1b," +
-                    "components:{custom_model_data:225001}" +
-                    "}," +
-                    $"Tags:[tap,Note,{note.Key}]," +
-                    "interpolation_duration:0" +
+                        "UUID:" + Utils.ToNBTUUID(note.uuid) + "," +
+                        "transformation:{" +
+                            "right_rotation:[1f,0f,0f,0f]," +
+                            "scale:[0f,0f,0f]," +
+                            "left_rotation:[1f,0f,0f,0f]," +
+                            "translation:[" + (4 - note.Rail) + "f, 0f, 0f]" +
+                        "}," +
+                        "item:{" +
+                            "id:\"minecraft:leather_chestplate\"," +
+                            "count:1b," +
+                            "components:{item_model:\"pr:tap\", custom_model_data: {strings:[\"default\"],flags:[],floats:[],colors:[]}}" +
+                        "}," +
+                        $"Tags:[tap,Note,{note.Key}]," +
+                        "interpolation_duration:0" +
                     "}");
             }
 
@@ -486,7 +489,7 @@ public class NBTTrack
             double distance = 0;
             if (note is NBTHold hold)
             {
-                var length = hold.holdLength;
+                var holdLength = hold.holdLength;
                 if (hold.Expression != null)
                 {
                     for (var i = endTick; i > startTick; i--)
@@ -497,7 +500,7 @@ public class NBTTrack
                         frames[i + readyTick - 1]
                             .Add($"scoreboard players set {note.uuid} PR_cpos {(int)(distance * 100)}");
                         frames[i + readyTick - 1]
-                            .Add($"scoreboard players set {note.uuid} PR_cpos_h {(int)((length + distance) * 100)}");
+                            .Add($"scoreboard players set {note.uuid} PR_cpos_h {(int)((holdLength + distance) * 100)}");
                     }
 
                     for (var i = endTick + 1; i < endTick + (int)(hold.holdTime * Settings.currSetting.Tick); i++)
@@ -506,7 +509,7 @@ public class NBTTrack
                         hold.Expression.Parameters["l"] = Settings.currSetting.MapLength;
                         distance = Convert.ToDouble(hold.Expression.Evaluate() ?? 0);
                         frames[i + readyTick - 1]
-                            .Add($"scoreboard players set {note.uuid} PR_cpos_h {(int)((length + distance) * 100)}");
+                            .Add($"scoreboard players set {note.uuid} PR_cpos_h {(int)((holdLength + distance) * 100)}");
                     }
                 }
                 else
@@ -516,16 +519,16 @@ public class NBTTrack
                         frames[i + readyTick - 1]
                             .Add($"scoreboard players set {note.uuid} PR_cpos {(int)(distance * 100)}");
                         frames[i + readyTick - 1]
-                            .Add($"scoreboard players set {note.uuid} PR_cpos_h {(int)((length + distance) * 100)}");
+                            .Add($"scoreboard players set {note.uuid} PR_cpos_h {(int)((holdLength + distance) * 100)}");
 
                         distance += line.line.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
                     }
 
                     for (var i = endTick + 1; i < endTick + (int)(hold.holdTime * Settings.currSetting.Tick); i++)
                     {
-                        length -= line.line.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
+                        holdLength -= line.line.GetSpeed(i / Settings.currSetting.Tick) / Settings.currSetting.Tick;
                         frames[i + readyTick - 1]
-                            .Add($"scoreboard players set {note.uuid} PR_cpos_h {(int)(length * 100)}");
+                            .Add($"scoreboard players set {note.uuid} PR_cpos_h {(int)(holdLength * 100)}");
                     }
                 }
             }
@@ -571,10 +574,19 @@ public class NBTTrack
             }
         }
 
+        DebugWindow.Log("开始清理");
+        
+        originalTrack.Datapack.target = directory;
+        
         originalTrack.Datapack.Clear();
 
+        DebugWindow.Log("开始写入函数");
+        
         for (var i = 0; i < frames.Length; i++)
+        {
             originalTrack.Datapack.WriteFunction((int)Settings.currSetting.Tick, i, frames[i]);
+        }
+        DebugWindow.Log("开始生成init函数");
         //初始化函数
         originalTrack.Datapack.WriteInitFunction((int)Settings.currSetting.Tick, new[]
         {
@@ -584,6 +596,9 @@ public class NBTTrack
             "#判定线的UUID储存",
             $"data modify storage pr:pr_line main.UUID set value {Utils.ToNBTUUID(NBTLine.uuid)}"
         });
+        DebugWindow.Log("开始生成trackinfo");
+        originalTrack.Datapack.WriteTrackInfo(originalTrack);
+        DebugWindow.Log("导出完成");
     }
 }
 

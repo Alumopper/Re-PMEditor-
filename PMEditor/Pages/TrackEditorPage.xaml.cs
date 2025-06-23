@@ -150,6 +150,8 @@ public partial class TrackEditorPage : Page
     public readonly List<Note> Clipboard = new();
 
     public double ClipBoardStartTime = 0.0;
+
+    private WatchDog watchDog;
     
 #pragma warning disable CS8618
     public TrackEditorPage()
@@ -201,11 +203,13 @@ public partial class TrackEditorPage : Page
         LineListView.SelectedIndex = 0;
         init = true;
         previewRange = 30.0 / Window.track.Length;
+        watchDog = new WatchDog(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(10));
     }
     
     private void Tick(object? sender, EventArgs e)
     {
         if (!double.IsNaN(FPS) && (DateTime.Now - lastRenderTime).TotalMilliseconds < 1000.0 / FPS) return;
+        watchDog.ReportActivity();
         Fps.Text = $"FPS: {(int)(1000.0 / (DateTime.Now - lastRenderTime).TotalMilliseconds)}";
         lastRenderTime = DateTime.Now;
         if (Window.isPlaying) Update();
@@ -400,7 +404,7 @@ public partial class TrackEditorPage : Page
             previewStartTime = Window.playerTime - previewRange * Window.track.Length;
         }
         //绘制谱面
-        foreach (var note in Window.track.AllLines.SelectMany(line => line.Notes))
+        foreach (var note in Window.track.AllLines.SelectMany(line => line.Notes).Where(note => note.ActualTime >= previewStartTime && note.ActualTime < previewStartTime + previewRange * Window.track.Length))
         {
             if (note.type == NoteType.Hold)
             {
@@ -863,7 +867,7 @@ public partial class TrackEditorPage : Page
     private void notePanel_MouseMove(object sender, MouseEventArgs e)
     {
         //note将要放置，预览位置
-        var (_, measure, beat, endPos, _) = GetAlignedPoint(e.GetPosition(NotePanel));
+        var (time, measure, beat, endPos, rail) = GetAlignedPoint(e.GetPosition(NotePanel));
         DebugWindow.SetDebugContext(e.GetPosition(NotePanel) + " -=- " + Mouse.GetPosition(NotePanel), 0);
         if (isSelectingMulti && !Window.isPlaying)
         {
@@ -927,9 +931,29 @@ public partial class TrackEditorPage : Page
                         //拖动note
                         foreach (var note in selectedNotes)
                         {
-                            //获取鼠标移动的位置
                             var delta = endPos - dragStartPoint;
+                            var deltaTime = time - GetTimeFromBottomY(dragStartPoint.Y);
+                            note.ActualTime += deltaTime;
+                            
+                            var width = NotePanel.ActualWidth / 9;
+                            //x坐标对齐
+                            var startRail = (int)(dragStartPoint.X / width);
+                            note.Rail += rail - startRail;
+                            if (note.Rail < 0)
+                            {
+                                note.Rail = 0;
+                            }
+                            if (note.type == NoteType.Tap)
+                            {
+                                if (rail == 0) { rail = 1; }
+                                if (rail == 2) { rail = 3; }
+                                if (rail == 4) { rail = 5; }
+                                if (rail == 6) { rail = 7; }
+                                if (rail == 8) { rail = 7; }
+                            }
+                            
                             dragStartPoint = endPos;
+                            
                             //移动note
                             Canvas.SetLeft(note.rectangle, Canvas.GetLeft(note.rectangle) + delta.X);
                             Canvas.SetBottom(note.rectangle, Canvas.GetBottom(note.rectangle) + delta.Y);
@@ -1004,24 +1028,10 @@ public partial class TrackEditorPage : Page
         }
         if (isDragging)
         {
-            //拖动note
+            //重置note大小
             if (selectedNotes[0].rectangle.IsResizing)
             {
                 selectedNotes[0].ActualHoldTime = time - selectedNotes[0].ActualTime;
-            }
-            else
-            {
-                foreach (var note in selectedNotes)
-                {
-                    var x = Canvas.GetLeft(note.rectangle);
-                    var y = Canvas.GetBottom(note.rectangle);
-                    Point point = new(x, NotePanel.ActualHeight - y);
-                    (var noteTime,_,_, point,var noteRail) = GetAlignedPoint(point);
-                    note.Rail = noteRail;
-                    if (note.Rail < 0) note.Rail = 0;
-                    note.ActualTime = noteTime;
-                    Canvas.SetBottom(note.rectangle, point.Y);
-                }
             }
             UpdateSelectedNote(selectedNotes);
             isDragging = false;
@@ -1108,7 +1118,7 @@ public partial class TrackEditorPage : Page
             }
             else
             {
-                CurrLine.Notes.Add(willPutNote);
+                CurrLine.AddNote(willPutNote);
                 noteChange = true;
             }
 
@@ -1664,6 +1674,7 @@ public partial class TrackEditorPage : Page
         {
             previewRange = Math.Min(previewRange + 0.1 * e.Delta / 60.0, 1.0);
             previewRange = Math.Max(10 / Window.track.Length, previewRange);
+            DrawPreview();
         }
         else
         {
@@ -1897,7 +1908,8 @@ public partial class TrackEditorPage : Page
     {
         foreach (var note in notes)
         {
-            note.ParentLine.Notes.Remove(note);
+            note.ParentLine.RemoveNote(note);
+            note.rectangle.HighLight = false;
             NotePanel.Children.Remove(note.rectangle);
             OperationManager.AddOperation(new RemoveNoteOperation(note, note.ParentLine));
         }
@@ -1928,7 +1940,7 @@ public partial class TrackEditorPage : Page
         foreach (var newNote in notes.Select(note => note.Clone()))
         {
             newNote.ActualTime += startTime - ClipBoardStartTime;
-            CurrLine.Notes.Add(newNote);
+            CurrLine.AddNote(newNote);
             newNote.rectangle.Height = 10;
             newNote.rectangle.Width = NotePreview.Width;
             newNote.SetIsOnThisLine(true);
@@ -1964,5 +1976,11 @@ public partial class TrackEditorPage : Page
     private void ContextMenu_OnOpened(object sender, RoutedEventArgs e)
     {
         contextMenuOpenPoint = Mouse.GetPosition(NotePanel);
+        CommandManager.InvalidateRequerySuggested();
+    }
+
+    private void TrackEditorPage_OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        watchDog.Dispose();
     }
 }

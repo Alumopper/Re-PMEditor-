@@ -1,0 +1,21 @@
+<Window x:Class="PMEditor.ExportWindows"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="clr-namespace:PMEditor"
+        mc:Ignorable="d"
+        Title="导出..." Height="450" Width="400">
+    <Grid>
+        <StackPanel Background="#FF0C0211">
+            <Label Content="导出谱面" HorizontalAlignment="Left" Margin="23,24,0,0" VerticalAlignment="Top" Foreground="White" FontSize="36"/>
+            <Label Content="导出帧数" HorizontalAlignment="Left" Margin="33,24,0,0" VerticalAlignment="Top" Foreground="White" Height="37" Width="108" FontSize="18"/>
+            <CheckBox Name="CheckBox20" Content="20 FPS" HorizontalAlignment="Left" Margin="50,10,0,0" VerticalAlignment="Top" Foreground="White"/>
+            <CheckBox Name="CheckBox60" Content="60 FPS" HorizontalAlignment="Left" Margin="50,10,0,0" VerticalAlignment="Top" Foreground="White"/>
+            <Label Content="目标路径" HorizontalAlignment="Left" Margin="33,24,0,0" VerticalAlignment="Top" Foreground="White" Height="37" Width="108" FontSize="18"/>
+            <TextBlock  x:Name="Path" Text="未选择" MaxWidth="300" TextWrapping="NoWrap" HorizontalAlignment="Left" Margin="50,10,0,0" VerticalAlignment="Top" Foreground="White"/>
+            <Button Name="Button1" Content="选择" Width="40" Height="25" HorizontalAlignment="Left" Margin="50,10,0,0" VerticalAlignment="Top" Click="SelectExportPath"/>
+        </StackPanel>    
+        <Button Name="Button2" Content="导出" Width="80" Height="30" HorizontalAlignment="Right" Margin="0,10,50,30" VerticalAlignment="Bottom" Click="Export"/>
+    </Grid>
+</Window>

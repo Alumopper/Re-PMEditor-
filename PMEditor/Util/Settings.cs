@@ -14,10 +14,12 @@ namespace PMEditor.Util
         public double MapLength { get; set; } = 32;
 
         public bool WarnEventTypeChange { get; set; } = true;
+        
+        public string ExportPath { get; set; } = @".\out\";
 
         public Settings(List<string>? canSelectedSpeedList = null)
         {
-            this.canSelectedSpeedList = canSelectedSpeedList ?? new List<string>() { "1.0", "0.25", "0.5", "0.75", "1.0", "1.25", "1.5", "1.75", "2.0" };
+            this.canSelectedSpeedList = canSelectedSpeedList ?? new List<string> { "1.0", "0.25", "0.5", "0.75", "1.0", "1.25", "1.5", "1.75", "2.0" };
         }
 
         [JsonConstructor]

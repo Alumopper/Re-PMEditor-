@@ -10,16 +10,16 @@ public class FastDrawing
     public int Width { get; }
     public int Height { get; }
     
-    private int _stride;
-    private IntPtr _backBuffer;
+    private readonly int stride;
+    private readonly IntPtr backBuffer;
 
     public FastDrawing(int width, int height)
     {
         Width = width;
         Height = height;
         Bitmap = new WriteableBitmap(width, height, 96, 96, PixelFormats.Bgr32, null);
-        _stride = Bitmap.BackBufferStride;
-        _backBuffer = Bitmap.BackBuffer;
+        stride = Bitmap.BackBufferStride;
+        backBuffer = Bitmap.BackBuffer;
     }
 
     public WriteableBitmap Bitmap { get; }
@@ -30,7 +30,7 @@ public class FastDrawing
         unsafe
         {
             int colorData = (color.A << 24) | (color.R << 16) | (color.G << 8) | color.B;
-            int* pBackBuffer = (int*)_backBuffer;
+            int* pBackBuffer = (int*)backBuffer;
             int pixels = Bitmap.PixelWidth * Bitmap.PixelHeight;
             for (int i = 0; i < pixels; i++)
             {
@@ -48,7 +48,7 @@ public class FastDrawing
         unsafe
         {
             int colorData = (color.A << 24) | (color.R << 16) | (color.G << 8) | color.B;
-            int* pBackBuffer = (int*)_backBuffer;
+            int* pBackBuffer = (int*)backBuffer;
 
             int dx = Math.Abs(x2 - x1);
             int dy = Math.Abs(y2 - y1);
@@ -66,7 +66,7 @@ public class FastDrawing
                         int py = y1 + ty;
                         if (px >= 0 && px < Bitmap.PixelWidth && py >= 0 && py < Bitmap.PixelHeight)
                         {
-                            *(pBackBuffer + py * _stride / 4 + px) = colorData;
+                            *(pBackBuffer + py * stride / 4 + px) = colorData;
                         }
                     }
                 }
@@ -103,7 +103,7 @@ public class FastDrawing
         unsafe
         {
             int colorData = (color.A << 24) | (color.R << 16) | (color.G << 8) | color.B;
-            int* pBackBuffer = (int*)_backBuffer;
+            int* pBackBuffer = (int*)backBuffer;
 
             // 绘制填充
             if (fill)
@@ -114,7 +114,7 @@ public class FastDrawing
                     {
                         if (px >= 0 && px < Bitmap.PixelWidth && py >= 0 && py < Bitmap.PixelHeight)
                         {
-                            *(pBackBuffer + py * _stride / 4 + px) = colorData;
+                            *(pBackBuffer + py * stride / 4 + px) = colorData;
                         }
                     }
                 }
@@ -129,7 +129,7 @@ public class FastDrawing
                     int py = y + i;
                     if (px >= 0 && px < Bitmap.PixelWidth && py >= 0 && py < Bitmap.PixelHeight)
                     {
-                        *(pBackBuffer + py * _stride / 4 + px) = colorData;
+                        *(pBackBuffer + py * stride / 4 + px) = colorData;
                     }
                 }
 
@@ -139,7 +139,7 @@ public class FastDrawing
                     int py = y + height - 1 - i;
                     if (px >= 0 && px < Bitmap.PixelWidth && py >= 0 && py < Bitmap.PixelHeight)
                     {
-                        *(pBackBuffer + py * _stride / 4 + px) = colorData;
+                        *(pBackBuffer + py * stride / 4 + px) = colorData;
                     }
                 }
 
@@ -149,7 +149,7 @@ public class FastDrawing
                     int px = x + i;
                     if (px >= 0 && px < Bitmap.PixelWidth && py >= 0 && py < Bitmap.PixelHeight)
                     {
-                        *(pBackBuffer + py * _stride / 4 + px) = colorData;
+                        *(pBackBuffer + py * stride / 4 + px) = colorData;
                     }
                 }
 
@@ -159,12 +159,21 @@ public class FastDrawing
                     int px = x + width - 1 - i;
                     if (px >= 0 && px < Bitmap.PixelWidth && py >= 0 && py < Bitmap.PixelHeight)
                     {
-                        *(pBackBuffer + py * _stride / 4 + px) = colorData;
+                        *(pBackBuffer + py * stride / 4 + px) = colorData;
                     }
                 }
             }
         }
-        Bitmap.AddDirtyRect(new Int32Rect(x, y, width, height));
+
+        if(y < 0) y = 0;
+        try
+        {
+            Bitmap.AddDirtyRect(new Int32Rect(x, y, width, height));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
         Bitmap.Unlock();
     }
 }
