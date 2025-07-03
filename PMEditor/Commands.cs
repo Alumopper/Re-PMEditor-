@@ -26,7 +26,6 @@ namespace PMEditor
                 new KeyGesture(Key.Z,ModifierKeys.Control)
             });
 
-
         public static readonly RoutedUICommand Redo = new(
             "重做", "Redo", typeof(Commands), new InputGestureCollection()
             {
@@ -71,12 +70,12 @@ namespace PMEditor
     public partial class EditorWindow
     {
         //SPACE - 播放/暂停
-        private void CommandBinding_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        private void PlayOrPauseCanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = player.HasAudio;
         }
 
-        private void CommandBinding_Executed(object sender, ExecutedRoutedEventArgs e)
+        private void PlayOrPauseExecuted(object sender, ExecutedRoutedEventArgs e)
         {
             if (isPlaying)
             {
@@ -91,24 +90,24 @@ namespace PMEditor
         }
 
         //Shift - 改变note种类
-        private void CommandBinding_CanExecute_1(object sender, CanExecuteRoutedEventArgs e)
+        private void ChangeNoteTypeCanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = currPageIndex == 0;
         }
 
-        private void CommandBinding_Executed_1(object sender, ExecutedRoutedEventArgs e)
+        private void ChangeNoteTypeExecuted(object sender, ExecutedRoutedEventArgs e)
         {
             puttingTap = !puttingTap;
-            (pages[0] as TrackEditorPage)!.FlushNotePreview();
+            //TrackEditorPage.Instance!.CurrPanel.FlushNotePreview();
         }
 
         //撤销
-        private void CommandBinding_CanExecute_2(object sender, CanExecuteRoutedEventArgs e)
+        private void UndoCanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = OperationManager.CanUndo;
         }
 
-        private void CommandBinding_Executed_2(object sender, ExecutedRoutedEventArgs e)
+        private void UndoExecuted(object sender, ExecutedRoutedEventArgs e)
         {
             var op = OperationManager.Undo();
             //更改标题
@@ -124,12 +123,12 @@ namespace PMEditor
         }
 
         //重做
-        private void CommandBinding_CanExecute_3(object sender, CanExecuteRoutedEventArgs e)
+        private void RedoCanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = OperationManager.CanRedo;
         }
 
-        private void CommandBinding_Executed_3(object sender, ExecutedRoutedEventArgs e)
+        private void RedoExecuted(object sender, ExecutedRoutedEventArgs e)
         {
             var op = OperationManager.Redo();
             //更改标题
@@ -145,12 +144,12 @@ namespace PMEditor
         }
 
         //保存
-        private void CommandBinding_CanExecute_4(object sender, CanExecuteRoutedEventArgs e)
+        private void SaveCanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = currPageIndex == 0;
         }
 
-        private void CommandBinding_Executed_4(object sender, ExecutedRoutedEventArgs e)
+        private void SaveExecuted(object sender, ExecutedRoutedEventArgs e)
         {
             OperationManager.savedOperationIndex = OperationManager.Index;
             this.Title = "Re:PMEditor - " + info.TrackName;
@@ -173,7 +172,7 @@ namespace PMEditor
             switch (currPageIndex)
             {
                 case 0:
-                    ((TrackEditorPage)pages[0]).CopyCanExecute(sender, e);
+                    TrackEditorPage.Instance!.CurrPanel.CopyCanExecute(sender, e);
                     break;
             }
         }
@@ -183,7 +182,7 @@ namespace PMEditor
             switch (currPageIndex)
             {
                 case 0:
-                    ((TrackEditorPage)pages[0]).CopyExecuted(sender, e);
+                    TrackEditorPage.Instance!.CurrPanel.CopyExecuted(sender, e);
                     break;
             }
         }
@@ -193,7 +192,7 @@ namespace PMEditor
             switch (currPageIndex)
             {
                 case 0:
-                    ((TrackEditorPage)pages[0]).PasteCanExecute(sender, e);
+                    TrackEditorPage.Instance!.CurrPanel.PasteCanExecute(sender, e);
                     break;
             }
         }
@@ -203,7 +202,7 @@ namespace PMEditor
             switch (currPageIndex)
             {
                 case 0:
-                    ((TrackEditorPage)pages[0]).PasteExecuted(sender, e);
+                    TrackEditorPage.Instance!.CurrPanel.PasteExecuted(sender, e);
                     break;
             }
         }
@@ -213,7 +212,7 @@ namespace PMEditor
             switch (currPageIndex)
             {
                 case 0:
-                    ((TrackEditorPage)pages[0]).CutCanExecute(sender, e);
+                    TrackEditorPage.Instance!.CurrPanel.CutCanExecute(sender, e);
                     break;
             }
         }
@@ -223,7 +222,7 @@ namespace PMEditor
             switch (currPageIndex)
             {
                 case 0:
-                    ((TrackEditorPage)pages[0]).CutExecuted(sender, e);
+                    TrackEditorPage.Instance!.CurrPanel.CutExecuted(sender, e);
                     break;
             }
         }
@@ -233,7 +232,7 @@ namespace PMEditor
             switch (currPageIndex)
             {
                 case 0:
-                    ((TrackEditorPage)pages[0]).DeleteCanExecute(sender, e);
+                    TrackEditorPage.Instance!.CurrPanel.DeleteCanExecute(sender, e);
                     break;
             }
         }
@@ -243,7 +242,7 @@ namespace PMEditor
             switch (currPageIndex)
             {
                 case 0:
-                    ((TrackEditorPage)pages[0]).DeleteExecuted(sender, e);
+                    TrackEditorPage.Instance!.CurrPanel.DeleteExecuted(sender, e);
                     break;
             }
         }
@@ -251,44 +250,5 @@ namespace PMEditor
 
     partial class TrackEditorPage
     {
-        internal void CopyCanExecute(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = selectedNotes.Count > 0;
-        }
-
-        internal void CopyExecuted(object sender, ExecutedRoutedEventArgs e)
-        {
-            CopyNote(selectedNotes);
-        }
-
-        internal void PasteCanExecute(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = Clipboard.Count > 0;
-        }
-
-        internal void PasteExecuted(object sender, ExecutedRoutedEventArgs e)
-        {
-            PasteNote(Clipboard, GetTimeFromBottomY(GetAlignedPoint(contextMenuOpenPoint).mousePos.Y));
-        }
-
-        internal void CutCanExecute(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = selectedNotes.Count > 0;
-        }
-
-        internal void CutExecuted(object sender, ExecutedRoutedEventArgs e)
-        {
-            CutNote(selectedNotes);
-        }
-
-        internal void DeleteCanExecute(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = selectedNotes.Count > 0;
-        }
-
-        internal void DeleteExecuted(object sender, ExecutedRoutedEventArgs e)
-        {
-            DeleteNote(selectedNotes);
-        }
     }
 }

@@ -8,11 +8,11 @@
         Title="EditorWindow" Height="700" Width="1200" WindowStartupLocation="CenterScreen"
         WindowState="Maximized" Closing="Window_Closing">
     <Window.CommandBindings>
-        <CommandBinding Command="local:Commands.PlayOrPause" CanExecute="CommandBinding_CanExecute" Executed="CommandBinding_Executed" />
-        <CommandBinding Command="local:Commands.ChangeNoteType" CanExecute="CommandBinding_CanExecute_1" Executed="CommandBinding_Executed_1"/>
-        <CommandBinding Command="local:Commands.Undo" CanExecute="CommandBinding_CanExecute_2" Executed="CommandBinding_Executed_2"/>
-        <CommandBinding Command="local:Commands.Redo" CanExecute="CommandBinding_CanExecute_3" Executed="CommandBinding_Executed_3"/>
-        <CommandBinding Command="local:Commands.Save" CanExecute="CommandBinding_CanExecute_4" Executed="CommandBinding_Executed_4"/>
+        <CommandBinding Command="local:Commands.PlayOrPause" CanExecute="PlayOrPauseCanExecute" Executed="PlayOrPauseExecuted" />
+        <CommandBinding Command="local:Commands.ChangeNoteType" CanExecute="ChangeNoteTypeCanExecute" Executed="ChangeNoteTypeExecuted"/>
+        <CommandBinding Command="local:Commands.Undo" CanExecute="UndoCanExecute" Executed="UndoExecuted"/>
+        <CommandBinding Command="local:Commands.Redo" CanExecute="RedoCanExecute" Executed="RedoExecuted"/>
+        <CommandBinding Command="local:Commands.Save" CanExecute="SaveCanExecute" Executed="SaveExecuted"/>
         <CommandBinding Command="local:Commands.Copy" CanExecute="CopyCanExecute" Executed="CopyExecuted"/>
         <CommandBinding Command="local:Commands.Cut" CanExecute="CutCanExecute" Executed="CutExecuted"/>
         <CommandBinding Command="local:Commands.Paste" CanExecute="PasteCanExecute" Executed="PasteExecuted"/>

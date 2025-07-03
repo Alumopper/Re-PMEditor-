@@ -25,18 +25,9 @@
                 <Label Content="判定线管理" FontSize="14" Foreground="White" Margin="10,10,0,3" HorizontalAlignment="Left" VerticalAlignment="Center" Height="26" Width="80"/>
                 <Button Click="Button_Click" BorderThickness="0" Background="Transparent" Foreground="White" HorizontalAlignment="Right"
                         Cursor="Hand">
-                    <!--<Button.Style>
-                            <Style TargetType="Button">
-                                <Style.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="#2D134D"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>-->
                     <Label Content="+" FontSize="16" Foreground="White"/>
                 </Button>
-                <Border BorderThickness="0,0,1,1" BorderBrush="#FF341D50" Height="{Binding ActualHeight, ElementName=grid, Mode=OneWay}"/>
+                <Border BorderThickness="0,0,1,1" BorderBrush="#FF341D50"/>
             </Grid>
             <Grid Grid.Row="1">
                 <Grid.ColumnDefinitions>
@@ -72,7 +63,7 @@
                 </ScrollViewer>
             </Grid>
             <Grid Grid.Row="2" Background="#FF0B0314">
-                <Border BorderThickness="0,1,1,0" BorderBrush="#FF341D50" Height="{Binding ActualHeight, ElementName=grid, Mode=OneWay}"/>
+                <Border BorderThickness="0,1,1,0" BorderBrush="#FF341D50" />
                 <Label MouseLeftButtonDown="Label_MouseLeftButtonDown"  BorderThickness="0" 
                         Background="Transparent" Foreground="White" 
                         HorizontalAlignment="Center" Cursor="Hand">
@@ -85,6 +76,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="18" MinWidth="18"/>
                 <ColumnDefinition Width="273*"/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="92*"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
@@ -108,7 +100,7 @@
             </Canvas>
             <!--谱面编辑-->
             <Border BorderBrush="#FF61207B" Grid.Row="1" Grid.Column="1" BorderThickness="1,1,1,1" Margin="9,5,5,10">
-                <Grid MouseWheel="notePanel_MouseWheel" Background="Black" ClipToBounds="True">
+                <Grid MouseWheel="ObjPanelMouseWheel" Background="Black" ClipToBounds="True">
                     <Canvas Panel.ZIndex="1">
                         <Border BorderBrush="#23B1C7" BorderThickness="2" IsHitTestVisible="False" Visibility="Hidden" Name="SelectBorder">
                             <Rectangle Fill="#3223B1C7" IsHitTestVisible="False"/>
@@ -117,7 +109,7 @@
                     <!--判定线和辅助格-->
                     <Canvas>
                         <TextBlock Foreground="White" Text="FPS: " Name="Fps"></TextBlock>
-                        <Grid Width="{Binding ElementName=NotePanel, Path=ActualWidth}" Height="{Binding ElementName=NotePanel, Path=ActualHeight}">
+                        <Grid Width="{Binding ElementName=ObjectPanels, Path=ActualWidth}" Height="{Binding ElementName=ObjectPanels, Path=ActualHeight}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
@@ -129,7 +121,7 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Rectangle x:Name="Rectangle" Grid.Column="1" Fill="#FF2D2D2D"/>
+                            <Rectangle Grid.Column="1" Fill="#FF2D2D2D"/>
                             <Rectangle Grid.Column="3" Fill="#FF2D2D2D"/>
                             <Rectangle Grid.Column="5" Fill="#FF2D2D2D"/>
                             <Rectangle Grid.Column="7" Fill="#FF2D2D2D"/>
@@ -137,7 +129,7 @@
                     </Canvas>
                     <!--序号列表-->
                     <Canvas>
-                        <Grid x:Name="ColumnInfo" Width="{Binding ElementName=NotePanel, Path=ActualWidth}" Height="{Binding ElementName=NotePanel, Path=ActualHeight}">
+                        <Grid x:Name="ColumnInfo" Width="{Binding ElementName=ObjectPanels, Path=ActualWidth}" Height="{Binding ElementName=ObjectPanels, Path=ActualHeight}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
@@ -160,61 +152,62 @@
                             <TextBlock Grid.Column="8" Text="8" HorizontalAlignment="Center" VerticalAlignment="Bottom" FontSize="10" Foreground="White" Margin="0,0,0,5"/>
                         </Grid>
                     </Canvas>
-                    <!--note放置区域-->
-                    <Canvas Name="NotePanel" Background="Transparent" ClipToBounds="True" 
-                            MouseMove="notePanel_MouseMove" MouseLeave="notePanel_MouseLeave" MouseLeftButtonUp="notePanel_MouseLeftButtonUp" MouseLeftButtonDown="notePanel_MouseLeftButtonDown" 
-                            SizeChanged="notePanel_SizeChanged">
-                        <Rectangle Name="NotePreview"
-                            Width="{Binding ActualWidth, ElementName=Rectangle, Mode=OneWay}"
-                            Height="10"/>
-                        <Rectangle x:Name="NoteMovePreview"
-                            Width="{Binding ActualWidth, ElementName=Rectangle, Mode=OneWay}"
-                            Height="10"/>
-                        <Canvas.ContextMenu>
-                            <ContextMenu Opened="ContextMenu_OnOpened">
-                                <ContextMenu.CommandBindings>
-                                    <CommandBinding Command="local:Commands.Copy" CanExecute="CopyCanExecute" Executed="CopyExecuted"/>
-                                    <CommandBinding Command="local:Commands.Cut" CanExecute="CutCanExecute" Executed="CutExecuted"/>
-                                    <CommandBinding Command="local:Commands.Paste" CanExecute="PasteCanExecute" Executed="PasteExecuted"/>
-                                    <CommandBinding Command="local:Commands.Delete" CanExecute="DeleteCanExecute" Executed="DeleteExecuted"/>
-                                </ContextMenu.CommandBindings>
-                                <MenuItem Header="复制" InputGestureText="Ctrl + C" Command="local:Commands.Copy"/>
-                                <MenuItem Header="剪切" InputGestureText="Ctrl + X" Command="local:Commands.Cut"/>
-                                <MenuItem Header="粘贴" InputGestureText="Ctrl + V" Command="local:Commands.Paste"/>
-                                <MenuItem Header="删除" InputGestureText="Delete" Command="local:Commands.Delete"/>
-                            </ContextMenu>
-                        </Canvas.ContextMenu>
-                    </Canvas>
-                    <!--事件放置区域-->
-                    <Canvas x:Name="EventPanel" Background="Transparent" ClipToBounds="True" Visibility="Hidden"
-                            MouseLeftButtonDown="eventPanel_MouseLeftButtonDown" MouseLeftButtonUp="eventPanel_MouseLeftButtonUp" MouseMove="eventPanel_MouseMove"
-                            SizeChanged="eventPanel_SizeChanged">
-                        <Rectangle Name="EventPreview"
-                               Width="{Binding ActualWidth, ElementName=Rectangle, Mode=OneWay}"
-                               Fill="#8055FF9E" Visibility="Collapsed"
-                               Height="10"/>
-                        <Rectangle x:Name="EventMovePreview"
-                            Width="{Binding ActualWidth, ElementName=Rectangle, Mode=OneWay}"
-                            Height="10"/>
-                    </Canvas>
-                    <!--函数放置区域-->
-                    <Canvas Name="FunctionPanel" Background="Transparent" ClipToBounds="True" Visibility="Hidden" MouseMove="functionPanel_MouseMove"  MouseLeave="functionPanel_MouseLeave"  MouseLeftButtonUp="functionPanel_MouseLeftButtonUp" SizeChanged="functionPanel_SizeChanged">
-                        <Rectangle Name="FunctionPreview"
-                               Width="{Binding ActualWidth, ElementName=Rectangle, Mode=OneWay}"
-                               Fill="#807771DB" Visibility="Collapsed"
-                               Height="10"/>
-                        <Rectangle x:Name="FunctionMovePreview"
-                            Width="{Binding ActualWidth, ElementName=Rectangle, Mode=OneWay}"
-                            Height="10"/>
-                    </Canvas>
+                    <Grid x:Name="ObjectPanels"/>
                     <!--谱面预览区（有事件）-->
                     <Canvas x:Name="TrackPreviewWithEvent" Background="Transparent" ClipToBounds="True" Visibility="Hidden"
                             SizeChanged="trackPreviewWithEvent_SizeChanged">
                     </Canvas>
                 </Grid>
             </Border>
+            <!--工具栏-->
+            <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,5,0,10" HorizontalAlignment="Center" VerticalAlignment="Top" Orientation="Vertical">
+                <!--按钮样式-->
+                <StackPanel.Resources>
+                    <Style TargetType="Button">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="BorderBrush" Value="Transparent"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="Margin" Value="0,0,0,5"/>
+                        <Setter Property="Width" Value="24"/>
+                        <Setter Property="Height" Value="24"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="Border"
+                                            CornerRadius="4"
+                                            Background="{TemplateBinding Background}"
+                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="0">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#20FFFFFF"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </StackPanel.Resources>
+                <Button x:Name="ArrowButton" ToolTip="选择工具" Click="ToolButton_Click">
+                    <TextBlock FontFamily="Segoe Fluent Icons" Text="&#xE962;"/>
+                </Button>
+                <Button x:Name="ResizeButton" ToolTip="缩放工具" Click="ToolButton_Click">
+                    <TextBlock FontFamily="Segoe Fluent Icons" Text="&#xE740;"/>
+                </Button>
+                <Button x:Name="MoveButton" ToolTip="移动工具" Click="ToolButton_Click">
+                    <TextBlock FontFamily="Segoe Fluent Icons" Text="&#xE7C2;"/>
+                </Button>
+                <Button x:Name="PutButton" ToolTip="放置工具" Click="ToolButton_Click">
+                    <TextBlock FontFamily="Segoe Fluent Icons" Text="&#xE70F;"/>
+                </Button>
+                <Button x:Name="EraserButton" ToolTip="橡皮擦工具" Click="ToolButton_Click">
+                    <TextBlock FontFamily="Segoe Fluent Icons" Text="&#xE75C;"/>
+                </Button>
+            </StackPanel>
             <!--谱面预览（无事件，纯配置）-->
-            <Border BorderBrush="#FF61207B" Grid.Row="1" Grid.Column="2" BorderThickness="1,1,1,1" Margin="5,5,10,10" Grid.ColumnSpan="2">
+            <Border BorderBrush="#FF61207B" Grid.Row="1" Grid.Column="3" BorderThickness="1,1,1,1" Margin="5,5,10,10" Grid.ColumnSpan="2">
                 <Canvas Name="TrackPreviewCanvas" ClipToBounds="True" Background="Black">
                     <Image Name="TrackPreview"
                         MouseWheel="trackPreview_MouseWheel" PreviewMouseLeftButtonDown="trackPreview_PreviewMouseLeftButtonDown" MouseMove="trackPreview_MouseMove" PreviewMouseLeftButtonUp="trackPreview_MouseUp"  MouseLeave="trackPreview_MouseLeave"/>

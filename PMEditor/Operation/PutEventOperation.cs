@@ -1,36 +1,34 @@
-﻿namespace PMEditor.Operation
+﻿namespace PMEditor.Operation;
+
+public class PutEventOperation : BaseOperation
 {
-    public class PutEventOperation : BaseOperation
+    EventList list;
+    Event @event;
+
+
+    public PutEventOperation(Event @event, EventList list)
     {
-        EventList list;
-        Event @event;
+        this.@event = @event;
+        this.list = list;
+    }
 
+    public override void Redo()
+    {
+        @event.ParentList.GroupEvent();
+        list.Events.Add(@event);
+        TrackEditorPage.Instance.UpdateEvent();
+    }
 
-        public PutEventOperation(Event @event, EventList list)
-        {
-            this.@event = @event;
-            this.list = list;
-        }
+    public override void Undo()
+    {
+        @event.ParentList.GroupEvent();
+        list.Events.Remove(@event);
+        //TrackEditorPage.Instance.EventPanel.Children.Remove(@event.Rectangle);
+        TrackEditorPage.Instance.UpdateEvent();
+    }
 
-        public override void Redo()
-        {
-            @event.ParentList.GroupEvent();
-            list.Events.Add(@event);
-            TrackEditorPage.Instance.UpdateEvent();
-        }
-
-        public override void Undo()
-        {
-            @event.ParentList.GroupEvent();
-            list.Events.Remove(@event);
-            TrackEditorPage.Instance.EventPanel.Children.Remove(@event.Rectangle);
-            @event.Rectangle.Visibility = System.Windows.Visibility.Hidden;
-            TrackEditorPage.Instance.UpdateEvent();
-        }
-
-        public override string GetInfo()
-        {
-            return "放置" + @event.ToString();
-        }
+    public override string GetInfo()
+    {
+        return "放置" + @event.ToString();
     }
 }

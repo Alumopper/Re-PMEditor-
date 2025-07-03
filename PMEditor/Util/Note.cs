@@ -2,117 +2,96 @@
 using PMEditor.Util;
 using System.Text.Json.Serialization;
 using NCalc;
+using PMEditor.Controls;
 
-namespace PMEditor
+namespace PMEditor;
+
+/// <summary>
+/// 一个note
+/// </summary>
+public partial class Note
 {
-    /// <summary>
-    /// 一个note
-    /// </summary>
-    public partial class Note
+    [JsonIgnore]
+    public readonly NoteType type;
+
+    [JsonIgnore]
+    public bool HasJudged = false;
+
+    [JsonIgnore]
+    public Line ParentLine;
+
+    [JsonIgnore]
+    public Expression? Expression;
+    
+    [JsonIgnore]
+    public ObjectRectangle? ObjectRectangle;
+
+    public int GetCount()
     {
-        [JsonIgnore]
-        public NoteRectangle rectangle;
-
-        [JsonIgnore]
-        public readonly NoteType type;
-
-        [JsonIgnore]
-        public bool HasJudged = false;
-
-        [JsonIgnore]
-        public Line ParentLine;
-
-        [JsonIgnore]
-        public Expression? Expression;
-
-        public int GetCount()
+        if(isFake)
         {
-            if(isFake)
-            {
-                return 0;
-            }
-            if(type != PMEditor.NoteType.Hold)
-            {
-                return 1;
-            }
-            double t = actualHoldTime;
-            int count = (int)(t * Settings.currSetting.Tick) / 10 + 1;
-            return count;
+            return 0;
         }
-
-        public override bool Equals(object? obj)
+        if(type != PMEditor.NoteType.Hold)
         {
-            if (obj != null && obj is Note note)
-            {
-                return this.actualTime == note.actualTime && this.rail == note.rail;
-            }
-            return false;
+            return 1;
         }
+        double t = actualHoldTime;
+        int count = (int)(t * Settings.currSetting.Tick) / 10 + 1;
+        return count;
+    }
 
-        public override int GetHashCode()
+    public override bool Equals(object? obj)
+    {
+        if (obj is Note note)
         {
-            return actualTime.GetHashCode() + rail.GetHashCode() + noteType.GetHashCode() + IsFake.GetHashCode();
+            return this.actualTime == note.actualTime && this.rail == note.rail;
         }
+        return false;
+    }
 
-        public override string ToString()
-        {
-            return type switch
-            {
-                PMEditor.NoteType.Tap => $"Tap[line={ParentLine.Notes.IndexOf(this)},rail={rail},time={actualTime}]",
-                PMEditor.NoteType.Catch => $"Catch[line={ParentLine.Notes.IndexOf(this)},rail={rail},time={actualTime}]",
-                PMEditor.NoteType.Hold => $"Hold[line={ParentLine.Notes.IndexOf(this)},rail={rail},time={actualTime}]",
-                _ => "Unknown",
-            };
-        }
+    public override int GetHashCode()
+    {
+        return actualTime.GetHashCode() + rail.GetHashCode() + noteType.GetHashCode() + IsFake.GetHashCode();
+    }
 
-        public bool IsOverlap(Note note)
+    public override string ToString()
+    {
+        return type switch
         {
-            if(!(note.rail == rail && note.ParentLine == ParentLine)) return false;
-            if(type == PMEditor.NoteType.Hold)
-            {
-                if(note.type == PMEditor.NoteType.Hold)
-                {
-                    return actualTime <= note.actualTime && note.actualTime <= actualTime + actualHoldTime || actualTime <= note.actualTime + note.actualHoldTime && note.actualTime + note.actualHoldTime <= actualTime + actualHoldTime;
-                }
-                return actualTime <= note.actualTime && note.actualTime <= actualTime + actualHoldTime;
-            }
+            PMEditor.NoteType.Tap => $"Tap[line={ParentLine.Notes.IndexOf(this)},rail={rail},time={actualTime}]",
+            PMEditor.NoteType.Catch => $"Catch[line={ParentLine.Notes.IndexOf(this)},rail={rail},time={actualTime}]",
+            PMEditor.NoteType.Hold => $"Hold[line={ParentLine.Notes.IndexOf(this)},rail={rail},time={actualTime}]",
+            _ => "Unknown",
+        };
+    }
+
+    public bool IsOverlap(Note note)
+    {
+        if(!(note.rail == rail && note.ParentLine == ParentLine)) return false;
+        if(type == PMEditor.NoteType.Hold)
+        {
             if(note.type == PMEditor.NoteType.Hold)
             {
-                return note.IsOverlap(this);
+                return actualTime <= note.actualTime && note.actualTime <= actualTime + actualHoldTime || actualTime <= note.actualTime + note.actualHoldTime && note.actualTime + note.actualHoldTime <= actualTime + actualHoldTime;
             }
-            return note.actualTime == actualTime;
+            return actualTime <= note.actualTime && note.actualTime <= actualTime + actualHoldTime;
         }
-
-        public Note Clone()
+        if(note.type == PMEditor.NoteType.Hold)
         {
-            return new Note(rail, noteType, fallType, isFake, actualTime, actualHoldTime, ExpressionString);
+            return note.IsOverlap(this);
         }
-
-        public void SetIsOnThisLine(bool isOnThisLine)
-        {
-            if (isOnThisLine)
-            {
-                Color = type switch
-                {
-                    PMEditor.NoteType.Tap => EditorColors.tapColor,
-                    PMEditor.NoteType.Hold => EditorColors.holdColor,
-                    _ => EditorColors.catchColor
-                };
-            }
-            else
-            {
-                Color = type switch
-                {
-                    PMEditor.NoteType.Tap => EditorColors.tapColorButNotOnThisLine,
-                    PMEditor.NoteType.Hold => EditorColors.holdColorButNotOnThisLine,
-                    _ => EditorColors.catchColorButNotOnThisLine
-                };
-            }
-        }
+        return note.actualTime == actualTime;
     }
 
-    public enum NoteType
+    public Note Clone()
     {
-        Tap, Catch, Hold
+        return new Note(rail, noteType, fallType, isFake, actualTime, actualHoldTime, ExpressionString);
     }
+
+}
+
+public enum NoteType
+{
+    Tap, Catch, Hold
 }

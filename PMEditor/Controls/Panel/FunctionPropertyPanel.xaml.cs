@@ -51,7 +51,7 @@ namespace PMEditor.Controls
         {
             var value = (double)((PropertyChangeEventArgs)e).PropertyValue;
             function.Time = value;
-            (EditorWindow.Instance.Page.Content as TrackEditorPage)?.UpdateFunction();
+            //(EditorWindow.Instance.Page.Content as TrackEditorPage)?.UpdateFunction();
         }
     }
 }

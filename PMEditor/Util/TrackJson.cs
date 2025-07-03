@@ -200,12 +200,23 @@ namespace PMEditor
         
         #endregion
 
+        [JsonConstructor]
+        public Line(double y, string id, List<Note> notes, List<FakeCatch> fakeCatch, List<EventList> eventLists, List<Function> functions)
+        {
+            this.y = y;
+            this.id = id;
+            this.notes = notes;
+            this.fakeCatch = fakeCatch;
+            this.eventLists = eventLists;
+            this.functions = functions;
+        }
+        
         public Line(double y, string id = "newLine")
         {
             this.y = y;
             this.id = id;
             this.notes = new List<Note>();
-            this.eventLists = new List<EventList>();
+            InitEventList();
             this.fakeCatch = new List<FakeCatch>();
             this.functions = new List<Function>();
         }
@@ -261,20 +272,9 @@ namespace PMEditor
 
         #endregion
 
-        public Color Color
-        {
-            set
-            {
-                rectangle.Fill = new SolidColorBrush(value);
-            }
-        }
-
         [JsonConstructor]
-        public Note(int rail, int noteType, int fallType, bool isFake, double actualTime, double actualHoldTime = 0, string? expressionString = null)
-            : this(rail, noteType, fallType, isFake, actualTime, false, actualHoldTime, expressionString) { }
-
-        
-        public Note(int rail, int noteType, int fallType, bool isFake, double actualTime, bool isCurrentLineNote, double actualHoldTime = 0, string? expressionString = null)
+        public Note(int rail, int noteType, int fallType, bool isFake, double actualTime, double actualHoldTime = 0,
+            string? expressionString = null)
         {
             this.rail = rail;
             this.noteType = noteType;
@@ -284,24 +284,6 @@ namespace PMEditor
             this.actualHoldTime = actualHoldTime;
 
             this.type = (NoteType)Enum.Parse(typeof(NoteType), noteType.ToString());
-
-            rectangle = new NoteRectangle(this);
-
-            if (noteType == (int)PMEditor.NoteType.Tap)
-            {
-                rectangle.Fill = isCurrentLineNote ? new SolidColorBrush(EditorColors.tapColor) : new SolidColorBrush(EditorColors.tapColorButNotOnThisLine);
-                rectangle.HighLightBorderBrush = new SolidColorBrush(EditorColors.tapHighlightColor);
-            }
-            else if (noteType == (int)PMEditor.NoteType.Hold)
-            {
-                rectangle.Fill = isCurrentLineNote ? new SolidColorBrush(EditorColors.holdColor) : new SolidColorBrush(EditorColors.holdHighlightColor);
-                rectangle.HighLightBorderBrush = new SolidColorBrush(EditorColors.holdHighlightColor);
-            }
-            else if (noteType == (int)PMEditor.NoteType.Catch)
-            {
-                rectangle.Fill = isCurrentLineNote ? new SolidColorBrush(EditorColors.catchColor) : new SolidColorBrush(EditorColors.catchColorButNotOnThisLine);
-                rectangle.HighLightBorderBrush = new SolidColorBrush (EditorColors.catchHighlightColor);
-            }
             
             Expression = expressionString == null ? null : new Expression(expressionString);
         }
@@ -331,7 +313,7 @@ namespace PMEditor
         {
             this.typeId = typeId;
             this.events = events;
-            this.type = (EventType)Enum.Parse(typeof(EventType), typeId.ToString());
+            this.Type = (EventType)Enum.Parse(typeof(EventType), typeId.ToString());
         }
     }
 
@@ -404,11 +386,6 @@ namespace PMEditor
             this.EaseFunction = EaseFunctions.functions[easeFunctionID];
             this.Type = (EventType)Enum.Parse(typeof(EventType), typeId.ToString());
 
-            Rectangle = new(this)
-            {
-                Fill = new SolidColorBrush(EditorColors.GetEventColor(Type)),
-                HighLightBorderBrush = new SolidColorBrush(EditorColors.GetEventHighlightColor(Type))
-            };
             this.properties = properties;
         }
     }
@@ -431,13 +408,6 @@ namespace PMEditor
             this.time = time;
             this.rail = rail;
             this.functionName = functionName;
-
-            rectangle = new(this)
-            {
-                Fill = new SolidColorBrush(EditorColors.functionColor),
-                HighLightBorderBrush = new SolidColorBrush(EditorColors.functionHighlightColor)
-            };
-
         }
     }
 }

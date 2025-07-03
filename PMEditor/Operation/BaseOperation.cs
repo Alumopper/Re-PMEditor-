@@ -1,11 +1,10 @@
-﻿namespace PMEditor.Operation
+﻿namespace PMEditor.Operation;
+
+public abstract class BaseOperation
 {
-    public abstract class BaseOperation
-    {
-        public abstract void Redo();
+    public abstract void Redo();
 
-        public abstract void Undo();
+    public abstract void Undo();
 
-        public abstract string GetInfo();
-    }
+    public abstract string GetInfo();
 }

@@ -1,0 +1,26 @@
+<UserControl x:Class="PMEditor.Controls.ObjectRectangle"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:pmEditor="clr-namespace:PMEditor"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <Grid MouseLeftButtonDown="OnMouseLeftButtonDown" MouseMove="OnMouseMove">
+        <TextBlock Visibility="Collapsed" IsHitTestVisible="False" HorizontalAlignment="Center" VerticalAlignment="Top" x:Name="EndValue" Foreground="Black" FontWeight="Bold" Panel.ZIndex="2"/>
+        <Border x:Name="HighLightBorder" BorderThickness="0">
+            <Rectangle Name="Rect"/>
+        </Border> 
+        <Canvas Visibility="Collapsed" Width="{Binding ElementName=HighLightBorder, Path=ActualWidth}" Height="{Binding ElementName=HighLightBorder, Path=ActualHeight}" Panel.ZIndex="1">
+            <Path Stroke="Orange" StrokeThickness="4" x:Name="FunctionPath"/>
+        </Canvas>
+        <TextBlock Visibility="Collapsed" IsHitTestVisible="False" HorizontalAlignment="Center" VerticalAlignment="Bottom" x:Name="StartValue" Foreground="Black" FontWeight="Bold" Panel.ZIndex="2"/>
+        <Grid.ContextMenu>
+            <ContextMenu>
+                <MenuItem Header="复制" InputGestureText="Ctrl + C" Command="pmEditor:Commands.Copy"/>
+                <MenuItem Header="剪切" InputGestureText="Ctrl + X" Command="pmEditor:Commands.Cut"/>
+                <MenuItem Header="删除" InputGestureText="Delete" Command="pmEditor:Commands.Delete"/>
+            </ContextMenu>
+        </Grid.ContextMenu>     
+    </Grid>
+</UserControl>

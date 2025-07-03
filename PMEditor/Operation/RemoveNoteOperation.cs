@@ -1,51 +1,50 @@
 ﻿using PMEditor.Util;
 
-namespace PMEditor.Operation
+namespace PMEditor.Operation;
+
+public class RemoveNoteOperation : BaseOperation
 {
-    public class RemoveNoteOperation : BaseOperation
+    private readonly Line line;
+    private readonly Note note;
+
+
+    public RemoveNoteOperation(Note note, Line line)
     {
-        private readonly Line line;
-        private readonly Note note;
+        this.note = note;
+        this.line = line;
+    }
 
-
-        public RemoveNoteOperation(Note note, Line line)
+    public override void Undo()
+    {
+        if(note is FakeCatch f)
         {
-            this.note = note;
-            this.line = line;
+            line.FakeCatch.Add(f);
         }
-
-        public override void Undo()
+        else
         {
-            if(note is FakeCatch f)
-            {
-                line.FakeCatch.Add(f);
-            }
-            else
-            {
-                line.AddNote(note);
-            }
-            TrackEditorPage.Instance!.NotePanel.Children.Add(note.rectangle);
-            TrackEditorPage.Instance.UpdateNote();
+            line.AddNote(note);
         }
+        //TrackEditorPage.Instance!.NotePanel.Children.Add(note.rectangle);
+        TrackEditorPage.Instance.UpdateNote();
+    }
 
-        public override void Redo()
+    public override void Redo()
+    {
+        if(note is FakeCatch f)
         {
-            if(note is FakeCatch f)
-            {
-                line.FakeCatch.Remove(f);
-            }
-            else
-            {
-                line.RemoveNote(note);
-            }
-            TrackEditorPage.Instance!.NotePanel.Children.Remove(note.rectangle);
-            note.rectangle.Visibility = System.Windows.Visibility.Hidden;
-            TrackEditorPage.Instance.UpdateNote();
+            line.FakeCatch.Remove(f);
         }
+        else
+        {
+            line.RemoveNote(note);
+        }
+        //TrackEditorPage.Instance!.NotePanel.Children.Remove(note.rectangle);
+        //note.rectangle.Visibility = System.Windows.Visibility.Hidden;
+        TrackEditorPage.Instance.UpdateNote();
+    }
 
-        public override string GetInfo()
-        {
-            return "移除" + note.ToString();
-        }
+    public override string GetInfo()
+    {
+        return "移除" + note.ToString();
     }
 }

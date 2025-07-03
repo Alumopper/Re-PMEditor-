@@ -6,8 +6,6 @@ namespace PMEditor
 {
     public partial class Function
     {
-        public FunctionRectangle rectangle;
-
         public Line parentLine;
 
         public FileInfo linkedFile;

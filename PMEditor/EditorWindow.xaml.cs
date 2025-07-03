@@ -169,7 +169,7 @@ namespace PMEditor
             var result = System.Windows.MessageBox.Show("是否保存对谱面的修改", "Re:PMEditor", MessageBoxButton.YesNoCancel);
             if (result == MessageBoxResult.Yes)
             {
-                CommandBinding_Executed_4(sender, null);
+                SaveExecuted(sender, null);
             }
             else if (result == MessageBoxResult.Cancel)
             {

@@ -1,39 +1,27 @@
-﻿using PMEditor.Util;
+﻿using System.Collections.Generic;
+using PMEditor.Util;
 
 namespace PMEditor
 {
     public partial class EventList
     {
-        public EventType type;
+        public EventType Type;
 
-        public Line parentLine;
+        public Line ParentLine;
 
-        public EventList(Line parent)
+        public EventList(Line parent, EventType type = EventType.Unknown)
         {
-            this.parentLine = parent;
-            this.type = EventType.Unknown;
-            this.events = new();
-        }
-
-        public void SetType(EventType type)
-        {
-            this.type = type;
-            this.typeId = (int)type;
-            foreach (var item in events)
-            {
-                item.Type = type;
-                item.TypeId = (int)type;
-                item.Rectangle.Fill = new System.Windows.Media.SolidColorBrush(EditorColors.GetEventColor(type));
-                item.Rectangle.HighLightBorderBrush = new System.Windows.Media.SolidColorBrush(EditorColors.GetEventHighlightColor(type));
-            }
+            this.ParentLine = parent;
+            this.Type = type;
+            this.events = new List<Event>();
         }
 
         public bool IsMainEvent()
         {
-            int index = parentLine.EventLists.IndexOf(this);
-            for(int i = 0; i < parentLine.EventLists.Count; i++)
+            int index = ParentLine.EventLists.IndexOf(this);
+            for(int i = 0; i < ParentLine.EventLists.Count; i++)
             {
-                if (parentLine.EventLists[i].type == type)
+                if (ParentLine.EventLists[i].Type == Type)
                 {
                     return i == index;
                 }

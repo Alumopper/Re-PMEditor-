@@ -46,6 +46,11 @@
     <Compile Update="Controls\Panel\PropertySetBox.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Page Update="Controls\ObjectPanel.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <XamlRuntime>Wpf</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
 
   <ItemGroup>
@@ -81,9 +86,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Controls\EventRectangle.xaml.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <None Update="assets\font\Segoe Fluent Icons.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

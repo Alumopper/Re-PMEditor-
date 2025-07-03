@@ -17,41 +17,18 @@ namespace PMEditor.Controls
         {
             InitializeComponent();
             this.@event = e;
-            startTime.Value = e.StartTime;
-            endTime.Value = e.EndTime;
-            functions.ItemsSource = EaseFunctions.functions.Keys;
-            functions.SelectedItem = e.EaseFunctionID;
-            eventType.SelectedIndex = e.TypeId;
-            startValue.Value = e.StartValue;
-            endValue.Value = e.EndValue;
-        }
-
-        //事件类型修改
-        private void EventType_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if(init)
-            {
-                init = false;
-                return;
-            }
-            //修改整个轨道上此类事件的类型
-            if(@event.ParentList.Events.Count > 1)
-            {
-                var result = MessageBox.Show(
-                    "此轨道上有多个事件，无法修改类型\n可前往设置修改不再弹出提示",
-                    "PMEditor",
-                    MessageBoxButton.OKCancel,
-                    MessageBoxImage.Warning
-                    );
-                if (result != MessageBoxResult.OK) return;
-            }
-            @event.ParentList.SetType((EventType)eventType.SelectedIndex);
-            (EditorWindow.Instance.Page.Content as TrackEditorPage)?.UpdateEventTypeList();
+            StartTime.Value = e.StartTime;
+            EndTime.Value = e.EndTime;
+            Functions.ItemsSource = EaseFunctions.functions.Keys;
+            Functions.SelectedItem = e.EaseFunctionID;
+            EventType.SelectedIndex = e.TypeId;
+            StartValue.Value = e.StartValue;
+            EndValue.Value = e.EndValue;
         }
 
         private void Functions_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            @event.EaseFunctionID = functions.SelectedValue.ToString();
+            @event.EaseFunctionID = Functions.SelectedValue.ToString();
             @event.EaseFunction = EaseFunctions.functions[@event.EaseFunctionID];
         }
 

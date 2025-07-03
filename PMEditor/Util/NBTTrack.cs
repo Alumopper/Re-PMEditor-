@@ -7,7 +7,7 @@ using Expression = NCalc.Expression;
 
 namespace PMEditor.Util;
 
-internal struct Range
+public struct Range
 {
     public int start;
     public int end;
@@ -246,7 +246,7 @@ public class NBTTrack
         return nbtTrack;
     }
 
-    private static List<Range> AppearTickRange(Note note)
+    public static List<Range> AppearTickRange(Note note)
     {
         List<Range> rangeList = new();
         var start = -100000;

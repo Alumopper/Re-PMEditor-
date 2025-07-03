@@ -19,7 +19,6 @@ namespace PMEditor.Util
             set
             {
                 height = value;
-                rectangle.Fill = new SolidColorBrush(GetColor(height));
             }
         }
 
@@ -27,22 +26,11 @@ namespace PMEditor.Util
         public FakeCatch(double height, int rail, int noteType, int fallType, bool isFake, double actualTime, double actualHoldTime): base(rail, noteType, fallType, isFake, actualTime, actualHoldTime)
         {
             this.height = height;
-            rectangle.Fill = new SolidColorBrush(GetColor(height));
-            rectangle.MouseRightButtonUp += Rectangle_MouseRightButtonUp;
         }
 
         public FakeCatch(int rail, int fallType, double actualTime, double height) : base(rail, (int)PMEditor.NoteType.Catch, fallType, true, actualTime, 0)
         {
             this.height = height;
-            rectangle.Fill = new SolidColorBrush(GetColor(height));
-            rectangle.MouseRightButtonUp += Rectangle_MouseRightButtonUp;
-        }
-
-        public FakeCatch(int rail, int fallType, double actualTime, double height, bool isCurrentLineNote) : base(rail, (int)PMEditor.NoteType.Catch, fallType, true, actualTime, isCurrentLineNote, 0)
-        {
-            this.height = height;
-            rectangle.Fill = new SolidColorBrush(GetColor(height));
-            rectangle.MouseRightButtonUp += Rectangle_MouseRightButtonUp;
         }
 
         public static Color GetColor(double height)
@@ -55,16 +43,6 @@ namespace PMEditor.Util
                 (byte)Math.Clamp((GroundColor.B + (SkyColor.B - GroundColor.B) * height),0,255)
                 );
         }
-
-        //右键删除此note
-        protected void Rectangle_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            FakeCatch note = ((sender as NoteRectangle)!.note as FakeCatch)!;
-            note.ParentLine.FakeCatch.Remove(note);
-            TrackEditorPage.Instance.NotePanel.Children.Remove(sender as NoteRectangle);
-            OperationManager.AddOperation(new RemoveNoteOperation(note, note.ParentLine));
-        }
-
 
         public static Color GroundColor = EditorColors.DefaultGroundCatchColor;
         public static Color SkyColor = EditorColors.DefaultSkyCatchColor;
