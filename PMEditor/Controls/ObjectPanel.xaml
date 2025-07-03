@@ -7,14 +7,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <!--note放置区域-->
-    <Grid Background="Transparent" ClipToBounds="True"
-            MouseLeftButtonDown="OnMouseLeftButtonDown"
-            MouseLeftButtonUp="OnMouseLeftButtonUp"
-            MouseWheel="OnMouseWheel"
-            MouseMove="OnMouseMove"
-            MouseLeave="OnMouseLeave"
-            SizeChanged="OnSizeChanged"
-            >
+    <Grid Background="Transparent" ClipToBounds="True">
         <Canvas Panel.ZIndex="1">
             <Border BorderBrush="#23B1C7" BorderThickness="2" IsHitTestVisible="False" Visibility="Hidden" Name="SelectBorder">
                 <Rectangle Fill="#3223B1C7" IsHitTestVisible="False"/>

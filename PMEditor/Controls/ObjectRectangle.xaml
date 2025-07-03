@@ -6,7 +6,7 @@
              xmlns:pmEditor="clr-namespace:PMEditor"
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300">
-    <Grid MouseLeftButtonDown="OnMouseLeftButtonDown" MouseMove="OnMouseMove">
+    <Grid MouseLeftButtonDown="OnMouseLeftButtonDown" MouseLeftButtonUp="OnMouseLeftButtonUp" MouseMove="OnMouseMove" IsHitTestVisible="True">
         <TextBlock Visibility="Collapsed" IsHitTestVisible="False" HorizontalAlignment="Center" VerticalAlignment="Top" x:Name="EndValue" Foreground="Black" FontWeight="Bold" Panel.ZIndex="2"/>
         <Border x:Name="HighLightBorder" BorderThickness="0">
             <Rectangle Name="Rect"/>

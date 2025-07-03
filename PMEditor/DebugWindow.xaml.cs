@@ -51,5 +51,10 @@ namespace PMEditor
             }
             (Instance.Panel.Children[index] as TextBlock)!.Text = value;
         }
+
+        private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
+        {
+            Instance?.logListBox.Items.Clear();
+        }
     }
 }

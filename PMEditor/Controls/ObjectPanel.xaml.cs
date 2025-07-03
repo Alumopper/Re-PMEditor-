@@ -22,12 +22,10 @@ public partial class ObjectPanel
     public readonly EraserTool Eraser = new();
 
     public AbstractTool CurrTool;
-    
-    private static readonly Point NullPoint = new (-1, -1);
 
-    public MousePosInfo? DragStartInfo = null;
+    public MousePosInfo? DragStartInfo;
 
-    public bool IsDragging;
+    public bool IsDragging => DragStartInfo != null;
     private bool isClick = true;
     
     public readonly List<ObjectRectangle> ObjectRectangles = new();
@@ -105,7 +103,11 @@ public partial class ObjectPanel
                 if (obj.IsInViewRange)
                 {
                     var owo = obj.ExitViewRange();
-                    ObjCanvas.Children.Remove(owo);
+                    if (owo != null)
+                    {
+                        ObjCanvas.Children.Remove(owo);
+                        ObjectRectangles.Remove(owo);
+                    }
                 }
             }
             else
@@ -115,6 +117,7 @@ public partial class ObjectPanel
                     var owo = obj.EnterViewRange();
                     owo.ParentPanel = this;
                     ObjCanvas.Children.Add(owo);
+                    ObjectRectangles.Add(owo);
                 }
             }
             //在判定线上方
@@ -148,16 +151,15 @@ public partial class ObjectPanel
 
     
     //滚轮滚动
-    private void OnMouseWheel(object sender, MouseWheelEventArgs e)
+    public void OnMouseWheel(object _, MouseWheelEventArgs e)
     {
         var info = GetAlignedPoint(e.GetPosition(this));
         CurrTool.OnMouseWheel(this, new ToolWheelArgs(info, e.Delta, selectedObjectRectangles));
     }
     
-    private void OnMouseMove(object sender, MouseEventArgs e)
+    public void OnMouseMove(object _, MouseEventArgs e)
     {
         var dragEndInfo = GetAlignedPoint(e.GetPosition(this));
-        //DebugWindow.SetDebugContext(e.GetPosition(this) + " -=- " + Mouse.GetPosition(this), 0);
         if (IsDragging)
         {
             CurrTool.OnMouseDrag(this, new ToolDragArgs(DragStartInfo!, dragEndInfo, selectedObjectRectangles));
@@ -172,25 +174,23 @@ public partial class ObjectPanel
         }
     }
     
-    
-    private void OnMouseLeave(object sender, MouseEventArgs e)
+    public void OnMouseLeave(object _, MouseEventArgs e)
     {
         ObjPreview.Visibility = Visibility.Collapsed;
     }
 
     //放置note
-    private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    public void OnMouseLeftButtonDown(object _, MouseButtonEventArgs e)
     {
         if (Window.isPlaying) return;
         if (DragStartInfo != null) return;
         //获取鼠标位置
         DragStartInfo = GetAlignedPoint(e.GetPosition(this));
-        IsDragging = true;
         isClick = true;
     }
 
     //放置note，完成拖动
-    private void OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    public void OnMouseLeftButtonUp(object _, MouseButtonEventArgs e)
     {
         if (Window.isPlaying) return;
         if (DragStartInfo == null) return;
@@ -209,7 +209,7 @@ public partial class ObjectPanel
     }
 
     //调整note大小
-    private void OnSizeChanged(object sender, SizeChangedEventArgs e)
+    public void OnSizeChanged(object _, SizeChangedEventArgs e)
     {
         ObjPreview.Width = ActualWidth / 9;
         foreach (var obj in ObjectRectangles)
@@ -224,8 +224,6 @@ public partial class ObjectPanel
         selectedObjectRectangles.ForEach(n => { n.HighLight = false; });
         selectedObjectRectangles = obj;
         selectedObjectRectangles.ForEach(n => { n.HighLight = true; });
-        IsDragging  = selectedObjectRectangles.Count != 0;
-        DragStartInfo = GetAlignedPoint(Mouse.GetPosition(this));
     }
 
     public void UpdateSelectedObj(ObjectRectangle note, bool multiSelect = false)
@@ -238,8 +236,6 @@ public partial class ObjectPanel
 
         selectedObjectRectangles.Add(note);
         note.HighLight = true;
-        IsDragging = true;
-        DragStartInfo = GetAlignedPoint(Mouse.GetPosition(this));
     }
     
     public void UpdateSelectingBorder(double left, double top, double width, double height)
@@ -285,7 +281,7 @@ public partial class ObjectPanel
         var mousePos = p;
         var width = ActualWidth / 9;
         //x坐标对齐
-        var rail = (int)(mousePos.X / width);
+        var rail = (int)Math.Round(mousePos.X / width);
         
         //TODO 如果是Tap，额外需要对齐主线
         
@@ -529,7 +525,6 @@ public partial class ObjectPanel
             // OperationManager.AddOperation(new RemoveNoteOperation(note, note.ParentLine));
         }
         selectedObjectRectangles.Clear();
-        IsDragging = false;
     }
     
     public void CopyObj(List<ObjectAdapter> objs)

@@ -152,7 +152,13 @@
                             <TextBlock Grid.Column="8" Text="8" HorizontalAlignment="Center" VerticalAlignment="Bottom" FontSize="10" Foreground="White" Margin="0,0,0,5"/>
                         </Grid>
                     </Canvas>
-                    <Grid x:Name="ObjectPanels"/>
+                    <Grid x:Name="ObjectPanels"
+                          MouseLeftButtonDown="OnMouseLeftButtonDown"
+                          MouseLeftButtonUp="OnMouseLeftButtonUp"
+                          MouseWheel="OnMouseWheel"
+                          MouseMove="OnMouseMove"
+                          MouseLeave="OnMouseLeave"
+                          SizeChanged="OnSizeChanged"/>
                     <!--谱面预览区（有事件）-->
                     <Canvas x:Name="TrackPreviewWithEvent" Background="Transparent" ClipToBounds="True" Visibility="Hidden"
                             SizeChanged="trackPreviewWithEvent_SizeChanged">

@@ -973,4 +973,34 @@ public partial class TrackEditorPage : Page
             _ => currToolType
         };
     }
+
+    private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        CurrPanel.OnMouseLeftButtonDown(sender, e);
+    }
+
+    private void OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        CurrPanel.OnMouseLeftButtonUp(sender, e);
+    }
+    
+    private void OnMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        CurrPanel.OnMouseWheel(sender, e);
+    }
+    
+    private void OnMouseMove(object sender, MouseEventArgs e)
+    {
+        CurrPanel.OnMouseMove(sender, e);
+    }
+    
+    private void OnMouseLeave(object sender, MouseEventArgs e)
+    {
+        CurrPanel.OnMouseLeave(sender, e);
+    }
+
+    private void OnSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        CurrPanel.OnSizeChanged(sender, e);
+    }
 }

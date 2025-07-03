@@ -62,7 +62,7 @@ public partial class ObjectRectangle
 
     public void SetVisible(ObjectVisible visible)
     {
-        HighLightBorder.Opacity = visible switch
+        Rect.Fill.Opacity = visible switch
         {
             ObjectVisible.Visible => 1,
             ObjectVisible.Translucent => 0.5,
@@ -76,8 +76,14 @@ public partial class ObjectRectangle
     {
         //TrackEditorPage.Instance.InfoFrame.Content = new EventPropertyPanel(Event);
         ParentPanel.CurrTool.OnRectangleLeftClick(this);
+        e.Handled = true;
     }
-
+    
+    private void OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        e.Handled = true;
+    }
+    
     public void SetFromObject(object obj)
     {
         switch (obj)

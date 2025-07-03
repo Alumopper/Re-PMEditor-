@@ -61,8 +61,8 @@ public class ToolMoveArgs
 
 public class ToolWheelArgs
 {
-    
     public MousePosInfo Info { get; }
+    
     public int Delta { get; }
     public double Num => Delta / 60.0;
     public List<ObjectRectangle> SelectedObjs { get; private set; }
@@ -75,4 +75,12 @@ public class ToolWheelArgs
     }
 }
 
+/// <summary>
+/// 鼠标位置信息
+/// </summary>
+/// <param name="Pos">对齐后的位置</param>
+/// <param name="Time">对齐后的时间</param>
+/// <param name="Measure">小节数</param>
+/// <param name="Beat">当前小节中的第几拍</param>
+/// <param name="Rail">轨道</param>
 public record MousePosInfo(Point Pos, double Time, int Measure, int Beat, int Rail);

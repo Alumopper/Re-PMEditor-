@@ -133,7 +133,18 @@ namespace PMEditor
             // 使用系统默认的文件管理器打开指定路径
             System.Diagnostics.Process.Start("explorer.exe", path);
         }
-
+        
+        public static bool HasOverlap<T>(T a1, T a2, T b1, T b2) where T : IComparable<T>
+        {
+            return a1.CompareTo(a2) > 0
+                ? b1.CompareTo(b2) > 0
+                    ? a2.CompareTo(b1) <= 0 && a1.CompareTo(b2) >= 0
+                    : a2.CompareTo(b2) <= 0 && a1.CompareTo(b1) >= 0
+                : b1.CompareTo(b2) > 0
+                    ? a1.CompareTo(b1) <= 0 && a2.CompareTo(b2) >= 0
+                    : a1.CompareTo(b2) <= 0 && a2.CompareTo(b1) >= 0;
+        }
+        
     }
     
     public static class Extensions
@@ -142,6 +153,13 @@ namespace PMEditor
         {
             action(obj);
             return obj;
+        }
+        
+        public static bool IsBetween<T>(this T value, T bound1, T bound2) where T: IComparable<T>
+        {
+            return bound1.CompareTo(bound2) <= 0 
+                ? value.CompareTo(bound1) >= 0 && value.CompareTo(bound2) <= 0
+                : value.CompareTo(bound2) >= 0 && value.CompareTo(bound1) <= 0;
         }
     }
 

@@ -31,15 +31,11 @@ public class ArrowTool: AbstractTool
     //选中所有在这个区域内的note
     public override void OnMouseDragEnd(ObjectPanel target, ToolDragArgs e)
     {
-        var width = target.ActualWidth / 9;
-        var startRail = (int)(double.Min(e.StartInfo.Pos.X, e.EndInfo.Pos.X) / width);
-        var endRail = (int)(double.Max(e.StartInfo.Pos.X, e.EndInfo.Pos.X) / width);
-        var startT = target.GetTimeFromTopY(Math.Min(e.StartInfo.Pos.Y, e.EndInfo.Pos.Y));
-        var endT = target.GetTimeFromTopY(Math.Max(e.StartInfo.Pos.Y, e.EndInfo.Pos.Y));
         //框选note
         var notes = target.ObjectRectangles.Where(note =>
-            note.Rail >= startRail && note.Rail <= endRail && note.StartTime >= startT &&
-            note.StartTime <= endT).ToList();
+            note.Rail.IsBetween(e.StartInfo.Rail, e.EndInfo.Rail) &&
+            Utils.HasOverlap(note.StartTime, note.StartTime + note.LengthTime, e.StartInfo.Time, e.EndInfo.Time))
+            .ToList();
         target.UpdateSelectedObj(notes);
         target.UpdateSelectingBorder(false);
     }

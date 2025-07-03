@@ -10,8 +10,12 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="2*"/>
             <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <ListBox Name="logListBox" Grid.Column="0"/>
         <StackPanel Grid.Column="1" Margin="10" Name="Panel"/>
+        <StackPanel Grid.Column="2">
+            <Button Click="ButtonBase_OnClick">清除日志</Button>
+        </StackPanel>
     </Grid>
 </Window>
