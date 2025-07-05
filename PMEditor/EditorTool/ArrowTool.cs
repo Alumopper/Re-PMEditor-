@@ -19,10 +19,10 @@ public class ArrowTool: AbstractTool
     public override void OnMouseDrag(ObjectPanel target, ToolDragArgs e)
     {
         //更新选择框预览
-        var left = Math.Min(e.StartInfo.Pos.X, e.EndInfo.Pos.X);
-        var right = Math.Max(e.StartInfo.Pos.X, e.EndInfo.Pos.X);
-        var bottom = Math.Max(e.StartInfo.Pos.Y, e.EndInfo.Pos.Y);
-        var top = Math.Min(e.StartInfo.Pos.Y, e.EndInfo.Pos.Y);
+        var left = Math.Min(e.StartInfo.AlignedPos.X, e.EndInfo.AlignedPos.X);
+        var right = Math.Max(e.StartInfo.AlignedPos.X, e.EndInfo.AlignedPos.X);
+        var bottom = Math.Max(e.StartInfo.AlignedPos.Y, e.EndInfo.AlignedPos.Y);
+        var top = Math.Min(e.StartInfo.AlignedPos.Y, e.EndInfo.AlignedPos.Y);
         var width = right - left;
         var height = bottom - top;
         target.UpdateSelectingBorder(left, top, width, height);

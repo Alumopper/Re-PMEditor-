@@ -36,7 +36,7 @@ public class ToolDragArgs
 {
     public MousePosInfo StartInfo { get; }
     public MousePosInfo EndInfo { get; }
-    public Point DeltaPos => new Point(EndInfo.Pos.X - StartInfo.Pos.X, EndInfo.Pos.Y - StartInfo.Pos.Y);
+    public Point DeltaPos => new Point(EndInfo.AlignedPos.X - StartInfo.AlignedPos.X, EndInfo.AlignedPos.Y - StartInfo.AlignedPos.Y);
     public double DeltaTime => EndInfo.Time - StartInfo.Time;
     
     public List<ObjectRectangle> SelectedObjs { get; private set; }
@@ -78,9 +78,9 @@ public class ToolWheelArgs
 /// <summary>
 /// 鼠标位置信息
 /// </summary>
-/// <param name="Pos">对齐后的位置</param>
+/// <param name="AlignedPos">对齐后的位置</param>
 /// <param name="Time">对齐后的时间</param>
 /// <param name="Measure">小节数</param>
 /// <param name="Beat">当前小节中的第几拍</param>
 /// <param name="Rail">轨道</param>
-public record MousePosInfo(Point Pos, double Time, int Measure, int Beat, int Rail);
+public record MousePosInfo(Point OrgPos, Point AlignedPos, double Time, int Measure, int Beat, int Rail);

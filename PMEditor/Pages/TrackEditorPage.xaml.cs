@@ -122,6 +122,7 @@ public partial class TrackEditorPage : Page
             if(currPanel != null) Panel.SetZIndex(currPanel, 0);
             currPanel = value;
             Panel.SetZIndex(currPanel, 1);
+            UpdateToolBarStatus(currToolType);
         }
     }
     
@@ -153,6 +154,9 @@ public partial class TrackEditorPage : Page
         SpeedChooseBox.ItemsSource = Settings.currSetting.canSelectedSpeedList;
         LineListView.ItemsSource = Window.track.Lines;
         LineListView.SelectedIndex = 0;
+        var defaultPreviewColor = EditorColors.tapColor;
+        defaultPreviewColor.A = 100;
+        ObjPreview.Fill = new SolidColorBrush(defaultPreviewColor);
         init = true;
         previewRange = 30.0 / Window.track.Length;
         watchDog = new WatchDog(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(10));
@@ -972,6 +976,47 @@ public partial class TrackEditorPage : Page
             "EraserButton" => EditorToolType.Eraser,
             _ => currToolType
         };
+        UpdateToolBarStatus(currToolType);
+    }
+
+
+    private void UpdateToolBarStatus(EditorToolType type)
+    {
+        foreach (var button in ToolButtons.Children.OfType<Button>())
+        {
+            button.IsEnabled = true;
+        }
+
+        switch (type)
+        {
+            case EditorToolType.Arrow:
+                ArrowButton.IsEnabled = false;
+                CurrPanel.CurrTool = CurrPanel.Arrow;
+                ObjectPanels.Cursor = Cursors.Arrow;
+                break;
+            case EditorToolType.Resize:
+                ResizeButton.IsEnabled = false;
+                CurrPanel.CurrTool = CurrPanel.Resize;
+                ObjectPanels.Cursor = Cursors.SizeNS;
+                break;
+            case EditorToolType.Move:
+                MoveButton.IsEnabled = false;
+                CurrPanel.CurrTool = CurrPanel.Move;
+                ObjectPanels.Cursor = Cursors.SizeAll;
+                break;
+            case EditorToolType.Put:
+                PutButton.IsEnabled = false;
+                CurrPanel.CurrTool = CurrPanel.Put;
+                ObjectPanels.Cursor = Cursors.Pen;
+                break;
+            case EditorToolType.Eraser:
+                EraserButton.IsEnabled = false;
+                CurrPanel.CurrTool = CurrPanel.Eraser;
+                ObjectPanels.Cursor = Cursors.Cross;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(type), type, null);
+        }
     }
 
     private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -1001,6 +1046,43 @@ public partial class TrackEditorPage : Page
 
     private void OnSizeChanged(object sender, SizeChangedEventArgs e)
     {
+        ObjPreview.Width = ActualWidth / 9;
         CurrPanel.OnSizeChanged(sender, e);
+    }
+    
+    public void UpdateObjPreview(double left, double top, double width, double height)
+    {
+        ObjPreview.Visibility = Visibility.Visible;
+        ObjPreview.Width = width;
+        ObjPreview.Height = height;
+        Canvas.SetLeft(ObjPreview, left);
+        Canvas.SetTop(ObjPreview, top);
+    }
+
+    public void UpdateObjPreview(Visibility visibility)
+    {
+        ObjPreview.Visibility = visibility;
+    }
+
+    public void FlushObjPreviewFill()
+    {
+        Color color;
+        switch (editingMode)
+        {
+            case 0:
+                //note
+                color = Window.puttingTap ? EditorColors.tapColor : EditorColors.catchColor;
+                break;
+            case 1: 
+                return;
+            case 2:
+                color = FakeCatch.GetColor(CatchHeight);
+                break;
+            default:
+                return;
+        }
+
+        color.A = 100;
+        ObjPreview.Fill = new SolidColorBrush(color);
     }
 }

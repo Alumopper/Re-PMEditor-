@@ -11,18 +11,20 @@ public class EraserTool: AbstractTool
     public override void OnRectangleLeftClick(ObjectRectangle rect)
     {
         //删除note
-        rect.ParentLine.RemoveObj(rect);
+        rect.Data.ParentLine.RemoveObj(rect.Data.Value!);
         rect.ParentPanel.ObjectRectangles.Remove(rect);
         rect.ParentPanel.ObjCanvas.Children.Remove(rect);
+        rect.ParentPanel.Objects.Remove(rect.Data);
         OnErase?.Invoke(rect);
     }
 
     public override void OnRectangleDragOver(ObjectRectangle rect)
     {
         //删除note
-        rect.ParentLine.RemoveObj(rect);
+        rect.Data.ParentLine.RemoveObj(rect.Data.Value!);
         rect.ParentPanel.ObjectRectangles.Remove(rect);
         rect.ParentPanel.ObjCanvas.Children.Remove(rect);
+        rect.ParentPanel.Objects.Remove(rect.Data);
         OnErase?.Invoke(rect);
     }
 }

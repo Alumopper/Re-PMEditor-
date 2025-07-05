@@ -39,8 +39,6 @@ public partial class ObjectRectangle
         }
     }
 
-    public Line ParentLine;
-
     public ObjectPanel ParentPanel;
     
     public ObjectRectangle()
@@ -149,7 +147,6 @@ public partial class ObjectRectangle
             rect.Height = 10;
         }
         rect.Width = panel.ActualWidth / 9;
-        rect.ParentLine = note.ParentLine;
         return rect;
     }
 
@@ -157,7 +154,6 @@ public partial class ObjectRectangle
     {
         Data = new ObjectAdapter(e);
         Color = EditorColors.GetEventColor(e.Type);
-        ParentLine = e.ParentList.ParentLine;
     }
 
     public static ObjectRectangle FromEvent(ObjectPanel panel, Event e)
@@ -167,8 +163,7 @@ public partial class ObjectRectangle
             Data = new ObjectAdapter(e),
             Color = EditorColors.GetEventColor(e.Type),
             Height = panel.GetTopYFromTime(e.StartTime) - panel.GetTopYFromTime(e.EndTime),
-            Width = panel.ActualWidth / 9,
-            ParentLine = e.ParentList.ParentLine
+            Width = panel.ActualWidth / 9
         };
         return rect;
     }
@@ -177,7 +172,6 @@ public partial class ObjectRectangle
     {
         Data = new ObjectAdapter(fakeCatch);
         Color = FakeCatch.GetColor(fakeCatch.Height);
-        ParentLine = fakeCatch.ParentLine;
     }
 
     public static ObjectRectangle FromFakeCatch(ObjectPanel panel, FakeCatch fakeCatch)
@@ -187,8 +181,7 @@ public partial class ObjectRectangle
             Data = new ObjectAdapter(fakeCatch),
             Color = FakeCatch.GetColor(fakeCatch.Height),
             Height = 10,
-            Width = panel.ActualWidth / 9,
-            ParentLine = fakeCatch.ParentLine
+            Width = panel.ActualWidth / 9
         };
         return rect;
     }

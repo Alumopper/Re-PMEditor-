@@ -13,7 +13,6 @@
                 <Rectangle Fill="#3223B1C7" IsHitTestVisible="False"/>
             </Border>
         </Canvas>
-        <Rectangle Name="ObjPreview" Height="10"/>
         <Canvas x:Name="ObjCanvas"/>
         <Grid.ContextMenu>
             <ContextMenu Opened="ContextMenu_OnOpened">

@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Microsoft.Extensions.Logging.Abstractions;
 using PMEditor.EditorTool;
 using PMEditor.Operation;
 using PMEditor.Util;
+using Point = System.Windows.Point;
 
 namespace PMEditor.Controls;
 
@@ -176,7 +179,7 @@ public partial class ObjectPanel
     
     public void OnMouseLeave(object _, MouseEventArgs e)
     {
-        ObjPreview.Visibility = Visibility.Collapsed;
+        Page.UpdateObjPreview(Visibility.Collapsed);
     }
 
     //放置note
@@ -211,7 +214,6 @@ public partial class ObjectPanel
     //调整note大小
     public void OnSizeChanged(object _, SizeChangedEventArgs e)
     {
-        ObjPreview.Width = ActualWidth / 9;
         foreach (var obj in ObjectRectangles)
         {
             obj.Width = ActualWidth / 9;
@@ -251,20 +253,6 @@ public partial class ObjectPanel
     {
         SelectBorder.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
     }
-
-    public void UpdateObjPreview(double left, double top, double width, double height)
-    {
-        ObjPreview.Visibility = Visibility.Visible;
-        ObjPreview.Width = width;
-        ObjPreview.Height = height;
-        Canvas.SetLeft(ObjPreview, left);
-        Canvas.SetTop(ObjPreview, top);
-    }
-
-    public void UpdateObjPreview(bool visible)
-    {
-        ObjPreview.Visibility = visible? Visibility.Visible : Visibility.Collapsed;
-    }
     
     /// <summary>
     /// 坐标对齐转换。返回的x坐标是对齐的，y坐标是相对于顶部的长度
@@ -297,7 +285,7 @@ public partial class ObjectPanel
         //计算y坐标
         var time = Window.track.GetTimeRange(measure).startTime + beat/(double)Page.DivideNum * (60 / bpm);
         mousePos.Y = GetTopYFromTime(time);
-        return new MousePosInfo(mousePos, time, measure, beat, rail);
+        return new MousePosInfo(p, mousePos, time, measure, beat, rail);
     }
 
     /// <summary>
@@ -327,7 +315,7 @@ public partial class ObjectPanel
         }
     }
     
-    private static ObjectAdapter PutNote(PutTool.PutArgs note)
+    private static ObjectAdapter? PutNote(PutTool.PutArgs note)
     {
         Note willPutNote;
         if (note.LengthTime > 0 && Window.puttingTap)
@@ -341,7 +329,7 @@ public partial class ObjectPanel
                 actualHoldTime: note.LengthTime
             );
         }
-        else
+        else if(note.LengthTime >= 0)
         {
             willPutNote = new Note(
                 note.Rail,
@@ -351,11 +339,18 @@ public partial class ObjectPanel
                 note.StartTime
             );
         }
+        else
+        {
+            return null;
+        }
 
         if (Page.CurrLine == Window.track.FreeLine) willPutNote.ExpressionString = "[t]";
 
         //OperationManager.AddOperation(new PutNoteOperation(willPutNote, Page.CurrLine));
         
+        willPutNote.ParentLine = Page.CurrLine;
+        if (Page.CurrLine.IsNoteOverLap(willPutNote)) return null;
+        Page.CurrLine.AddNote(willPutNote);
         return new ObjectAdapter(willPutNote);
     }
 

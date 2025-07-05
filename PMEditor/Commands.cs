@@ -98,7 +98,7 @@ namespace PMEditor
         private void ChangeNoteTypeExecuted(object sender, ExecutedRoutedEventArgs e)
         {
             puttingTap = !puttingTap;
-            //TrackEditorPage.Instance!.CurrPanel.FlushNotePreview();
+            TrackEditorPage.Instance!.FlushObjPreviewFill();
         }
 
         //撤销

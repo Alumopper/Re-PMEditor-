@@ -161,6 +161,17 @@ public class ObjectAdapter
     
     public bool IsInViewRange;
 
+    public Line ParentLine
+    {
+        get
+        {
+            return note?.ParentLine??
+                   @event?.ParentList.ParentLine??
+                   fakeCatch?.ParentLine??
+                   throw new NullReferenceException("没有值");
+        }
+    }
+
     public ObjectAdapter(){}
     
     public ObjectAdapter(object obj)
@@ -185,5 +196,14 @@ public class ObjectAdapter
         Rect = null;
         return re;
     }
-    
+
+    public override bool Equals(object? obj)
+    {
+        return obj is ObjectAdapter adapter && adapter.Value == Value;
+    }
+
+    public override int GetHashCode()
+    {
+        return Value?.GetHashCode() ?? 0;
+    }
 }
