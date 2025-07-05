@@ -7,6 +7,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using PMEditor.Controls;
+using PMEditor.EditorTool;
 using PMEditor.Operation;
 using PMEditor.Pages;
 using PMEditor.Util;
@@ -20,11 +21,6 @@ namespace PMEditor;
 // ReSharper disable once RedundantExtendsListEntry
 public partial class TrackEditorPage : Page
 {
-
-    private enum EditorToolType
-    {
-        Arrow, Resize, Move, Put, Eraser
-    }
     
     private EditorToolType currToolType = EditorToolType.Arrow;
     
@@ -125,6 +121,8 @@ public partial class TrackEditorPage : Page
             UpdateToolBarStatus(currToolType);
         }
     }
+
+    private AbstractTool? lastTool;
     
 #pragma warning disable CS8618
     public TrackEditorPage()
@@ -183,6 +181,41 @@ public partial class TrackEditorPage : Page
             DrawPreview();
             init = false;
             Window.OperationInfo.Text = "就绪";
+        }
+        //快捷键检测
+        if (lastTool == null && !Utils.IsAnyKeyDown(Key.LeftCtrl, Key.LeftShift))
+        {
+            if (Keyboard.IsKeyDown(Key.A))
+            {
+                lastTool = CurrPanel.CurrTool;
+                UpdateToolBarStatus(EditorToolType.Arrow);
+            }
+            else if (Keyboard.IsKeyDown(Key.R))
+            {
+                lastTool = CurrPanel.CurrTool;
+                UpdateToolBarStatus(EditorToolType.Resize);
+            }
+            else if (Keyboard.IsKeyDown(Key.W))
+            {
+                lastTool = CurrPanel.CurrTool;
+                UpdateToolBarStatus(EditorToolType.Move);
+            }
+            else if (Keyboard.IsKeyDown(Key.E))
+            {
+                lastTool = CurrPanel.CurrTool;
+                UpdateToolBarStatus(EditorToolType.Put);
+            }
+            else if (Keyboard.IsKeyDown(Key.D))
+            {
+                lastTool = CurrPanel.CurrTool;
+                UpdateToolBarStatus(EditorToolType.Eraser);
+            }
+        }
+
+        if (lastTool != null && !Utils.IsAnyKeyDown(Key.A, Key.R, Key.W, Key.E, Key.D))
+        {
+            UpdateToolBarStatus(lastTool.ToolType);
+            lastTool = null;
         }
     }
     
@@ -980,13 +1013,14 @@ public partial class TrackEditorPage : Page
     }
 
 
-    private void UpdateToolBarStatus(EditorToolType type)
+    public void UpdateToolBarStatus(EditorToolType type)
     {
         foreach (var button in ToolButtons.Children.OfType<Button>())
         {
             button.IsEnabled = true;
         }
 
+        ObjPreview.Visibility = Visibility.Collapsed;
         switch (type)
         {
             case EditorToolType.Arrow:
@@ -1008,6 +1042,7 @@ public partial class TrackEditorPage : Page
                 PutButton.IsEnabled = false;
                 CurrPanel.CurrTool = CurrPanel.Put;
                 ObjectPanels.Cursor = Cursors.Pen;
+                ObjPreview.Visibility = Visibility.Visible;
                 break;
             case EditorToolType.Eraser:
                 EraserButton.IsEnabled = false;

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using PMEditor.Util;
@@ -22,6 +23,9 @@ public partial class ObjectRectangle
     public double LengthTime => Data.LengthTime;
 
     public int Rail => Data.Rail;
+
+    public Point BeforeMovePos;
+    public Point BeforeResizeSize;
     
     public Color Color
     {
@@ -55,6 +59,11 @@ public partial class ObjectRectangle
             highLight = value;
             //高亮
             HighLightBorder.BorderThickness = highLight ? new Thickness(2) : new Thickness(0);
+            if (highLight)
+            {
+                BeforeMovePos = new Point(Canvas.GetLeft(this), Canvas.GetTop(this));
+                BeforeResizeSize = new Point(Width, Height);
+            }
         }
     }
 

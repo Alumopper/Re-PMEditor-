@@ -7,7 +7,8 @@
       xmlns:t="clr-namespace:PMEditor.Controls"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800"
-      Title="TrackEditorPage" Unloaded="TrackEditorPage_OnUnloaded">
+      Title="TrackEditorPage" Unloaded="TrackEditorPage_OnUnloaded"
+      >
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="8*"/>
@@ -201,20 +202,65 @@
                         </Setter>
                     </Style>
                 </StackPanel.Resources>
-                <Button x:Name="ArrowButton" ToolTip="选择工具" Click="ToolButton_Click">
+                <Button x:Name="ArrowButton" Click="ToolButton_Click">
                     <TextBlock FontFamily="Segoe Fluent Icons" Text="&#xE962;"/>
+                    <Button.ToolTip>
+                        <ToolTip>
+                            <TextBlock>
+                                <Bold>箭头工具</Bold>(Ctrl + A)
+                                <LineBreak/>
+                                选择一个或多个对象
+                            </TextBlock>
+                        </ToolTip>
+                    </Button.ToolTip>
                 </Button>
-                <Button x:Name="ResizeButton" ToolTip="缩放工具" Click="ToolButton_Click">
+                <Button x:Name="ResizeButton" Click="ToolButton_Click">
                     <TextBlock FontFamily="Segoe Fluent Icons" Text="&#xE740;"/>
+                    <Button.ToolTip>
+                        <ToolTip>
+                            <TextBlock>
+                                <Bold>缩放工具</Bold>(Ctrl + R)
+                                <LineBreak/>
+                                修改被选中的Hold或事件的持续时间
+                            </TextBlock>
+                        </ToolTip>
+                    </Button.ToolTip>
                 </Button>
-                <Button x:Name="MoveButton" ToolTip="移动工具" Click="ToolButton_Click">
+                <Button x:Name="MoveButton" Click="ToolButton_Click">
                     <TextBlock FontFamily="Segoe Fluent Icons" Text="&#xE7C2;"/>
+                    <Button.ToolTip>
+                        <ToolTip>
+                            <TextBlock>
+                                <Bold>移动工具</Bold>(Ctrl + W)
+                                <LineBreak/>
+                                移动被选中的对象
+                            </TextBlock>
+                        </ToolTip>
+                    </Button.ToolTip>
                 </Button>
-                <Button x:Name="PutButton" ToolTip="放置工具" Click="ToolButton_Click">
+                <Button x:Name="PutButton" Click="ToolButton_Click">
                     <TextBlock FontFamily="Segoe Fluent Icons" Text="&#xE70F;"/>
+                    <Button.ToolTip>
+                        <ToolTip>
+                            <TextBlock>
+                                <Bold>放置工具</Bold>(Ctrl + A)
+                                <LineBreak/>
+                                放置对象。拖动可修改将要放置对象的持续时间。
+                            </TextBlock>
+                        </ToolTip>
+                    </Button.ToolTip>
                 </Button>
-                <Button x:Name="EraserButton" ToolTip="橡皮擦工具" Click="ToolButton_Click">
+                <Button x:Name="EraserButton" Click="ToolButton_Click">
                     <TextBlock FontFamily="Segoe Fluent Icons" Text="&#xE75C;"/>
+                    <Button.ToolTip>
+                        <ToolTip>
+                            <TextBlock>
+                                <Bold>橡皮擦工具</Bold>(Ctrl + A)
+                                <LineBreak/>
+                                点击对象将其擦除，或按住擦除路径上的所有对象。
+                            </TextBlock>
+                        </ToolTip>
+                    </Button.ToolTip>
                 </Button>
             </StackPanel>
             <!--谱面预览（无事件，纯配置）-->

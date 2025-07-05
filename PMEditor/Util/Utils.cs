@@ -144,6 +144,11 @@ namespace PMEditor
                     ? a1.CompareTo(b1) <= 0 && a2.CompareTo(b2) >= 0
                     : a1.CompareTo(b2) <= 0 && a2.CompareTo(b1) >= 0;
         }
+
+        public static bool IsAnyKeyDown(params Key[] keys)
+        {
+            return keys.Any(Keyboard.IsKeyDown);
+        }
         
     }
     

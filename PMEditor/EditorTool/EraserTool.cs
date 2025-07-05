@@ -5,6 +5,7 @@ namespace PMEditor.EditorTool;
 
 public class EraserTool: AbstractTool
 {
+    public override EditorToolType ToolType => EditorToolType.Eraser;
     
     public event Action<ObjectRectangle>? OnErase;
     

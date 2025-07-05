@@ -7,6 +7,7 @@ namespace PMEditor.EditorTool;
 
 public abstract class AbstractTool
 {
+    public abstract EditorToolType ToolType { get; }
     public bool Active { get; set; } = true;
     public virtual void OnMouseClick(ObjectPanel target, ToolClickArgs e){}
     public virtual void OnMouseDrag(ObjectPanel target, ToolDragArgs e){}
@@ -20,6 +21,11 @@ public abstract class AbstractTool
     }
 
     public virtual void OnRectangleDragOver(ObjectRectangle rect) { }
+}
+
+public enum EditorToolType
+{
+    Arrow, Resize, Move, Put, Eraser
 }
 
 public class ToolClickArgs
@@ -36,7 +42,7 @@ public class ToolDragArgs
 {
     public MousePosInfo StartInfo { get; }
     public MousePosInfo EndInfo { get; }
-    public Point DeltaPos => new Point(EndInfo.AlignedPos.X - StartInfo.AlignedPos.X, EndInfo.AlignedPos.Y - StartInfo.AlignedPos.Y);
+    public Point AlignedDeltaPos => new Point(EndInfo.AlignedPos.X - StartInfo.AlignedPos.X, EndInfo.AlignedPos.Y - StartInfo.AlignedPos.Y);
     public double DeltaTime => EndInfo.Time - StartInfo.Time;
     
     public List<ObjectRectangle> SelectedObjs { get; private set; }

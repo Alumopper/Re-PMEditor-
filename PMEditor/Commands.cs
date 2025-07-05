@@ -3,66 +3,102 @@ using PMEditor.Operation;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
+using PMEditor.EditorTool;
 
 namespace PMEditor
 {
     public static class Commands
     {
         public static readonly RoutedUICommand PlayOrPause = new(
-            "开始/暂停", "Play", typeof(Commands), new InputGestureCollection()
+            "开始/暂停", "Play", typeof(Commands), new InputGestureCollection
             {
                 new KeyGesture(Key.Space)
             });
 
         public static readonly RoutedUICommand ChangeNoteType = new(
-            "Catch/Tap", "Change Note", typeof(Commands), new InputGestureCollection()
+            "Catch/Tap", "Change Note", typeof(Commands), new InputGestureCollection
             {
-                new KeyGesture(Key.D,ModifierKeys.Control)
+                new KeyGesture(Key.F,ModifierKeys.Control)
             });
 
         public static readonly RoutedUICommand Undo = new(
-            "撤销", "Undo", typeof(Commands), new InputGestureCollection()
+            "撤销", "Undo", typeof(Commands), new InputGestureCollection
             {
                 new KeyGesture(Key.Z,ModifierKeys.Control)
             });
 
         public static readonly RoutedUICommand Redo = new(
-            "重做", "Redo", typeof(Commands), new InputGestureCollection()
+            "重做", "Redo", typeof(Commands), new InputGestureCollection
             {
                 new KeyGesture(Key.Z,ModifierKeys.Control | ModifierKeys.Shift)
             });
 
         public static readonly RoutedUICommand Save = new(
-            "保存", "Save", typeof(Commands), new InputGestureCollection()
+            "保存", "Save", typeof(Commands), new InputGestureCollection
             {
                 new KeyGesture (Key.S,ModifierKeys.Control)
             });
 
         public static readonly RoutedUICommand Copy = new(
-            "复制", "Copy", typeof(Commands), new InputGestureCollection()
+            "复制", "Copy", typeof(Commands), new InputGestureCollection
             {
                 new KeyGesture(Key.C, ModifierKeys.Control)
             }
         );
 
         public static readonly RoutedUICommand Paste = new(
-            "粘贴", "Paste", typeof(Commands), new InputGestureCollection()
+            "粘贴", "Paste", typeof(Commands), new InputGestureCollection
             {
                 new KeyGesture(Key.V, ModifierKeys.Control)
             }
         );
         
         public static readonly RoutedUICommand Cut = new(
-            "剪切", "Cut", typeof(Commands), new InputGestureCollection()
+            "剪切", "Cut", typeof(Commands), new InputGestureCollection
             {
                 new KeyGesture(Key.X, ModifierKeys.Control)
             }
         );
 
         public static readonly RoutedUICommand Delete = new(
-            "删除", "Delete", typeof(Commands), new InputGestureCollection()
+            "删除", "Delete", typeof(Commands), new InputGestureCollection
             {
                 new KeyGesture(Key.Delete)
+            }
+        );
+
+        public static readonly RoutedUICommand ArrowTool = new(
+            "箭头工具", "ArrowTool", typeof(Commands), new InputGestureCollection
+            {
+                new KeyGesture(Key.A, ModifierKeys.Control)
+            }
+        );
+
+        public static readonly RoutedUICommand EraserTool = new(
+            "橡皮擦", "EraserTool", typeof(Commands), new InputGestureCollection
+            {
+                new KeyGesture(Key.D, ModifierKeys.Control)
+            }
+        );
+
+        public static readonly RoutedUICommand MoveTool = new(
+            "移动工具", "MoveTool", typeof(Commands), new InputGestureCollection
+            {
+                new KeyGesture(Key.W, ModifierKeys.Control)
+            }
+        );
+
+        public static readonly RoutedUICommand ResizeTool = new(
+            "缩放工具", "ResizeTool", typeof(Commands), new InputGestureCollection
+            {
+                new KeyGesture(Key.R, ModifierKeys.Control)
+            }
+        );
+
+        public static readonly RoutedUICommand PutTool = new(
+            "放置工具", "PutTool", typeof(Commands), new InputGestureCollection
+            {
+                new KeyGesture(Key.E, ModifierKeys.Control)
             }
         );
     }
@@ -244,6 +280,35 @@ namespace PMEditor
                 case 0:
                     TrackEditorPage.Instance!.CurrPanel.DeleteExecuted(sender, e);
                     break;
+            }
+        }
+
+        private void ToolCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = currPageIndex == 0;
+        }
+
+        private void ToolExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.Command == Commands.ArrowTool)
+            {
+                TrackEditorPage.Instance!.UpdateToolBarStatus(EditorToolType.Arrow);
+            }
+            else if(e.Command == Commands.EraserTool)
+            {
+                TrackEditorPage.Instance!.UpdateToolBarStatus(EditorToolType.Eraser);
+            }
+            else if (e.Command == Commands.MoveTool)
+            {
+                TrackEditorPage.Instance!.UpdateToolBarStatus(EditorToolType.Move);
+            }
+            else if (e.Command == Commands.ResizeTool)
+            {
+                TrackEditorPage.Instance!.UpdateToolBarStatus(EditorToolType.Resize);
+            }
+            else if (e.Command == Commands.PutTool)
+            {
+                TrackEditorPage.Instance!.UpdateToolBarStatus(EditorToolType.Put);
             }
         }
     }

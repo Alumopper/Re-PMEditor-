@@ -9,6 +9,8 @@ namespace PMEditor.EditorTool;
 
 public class ArrowTool: AbstractTool
 {
+    public override EditorToolType ToolType => EditorToolType.Arrow;
+
     //选中note。若点击到面板，说明没有点击到任何note，此时清空选中的note
     public override void OnMouseClick(ObjectPanel target, ToolClickArgs e)
     {

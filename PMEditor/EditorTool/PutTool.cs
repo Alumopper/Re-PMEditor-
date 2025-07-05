@@ -7,6 +7,7 @@ namespace PMEditor.EditorTool;
 
 public class PutTool: AbstractTool
 {
+    public override EditorToolType ToolType => EditorToolType.Put;
     public record PutArgs(double StartTime, double LengthTime, int Rail);
     
     public event Func<PutArgs, ObjectAdapter?>? OnPut;

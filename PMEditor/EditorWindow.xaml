@@ -17,6 +17,11 @@
         <CommandBinding Command="local:Commands.Cut" CanExecute="CutCanExecute" Executed="CutExecuted"/>
         <CommandBinding Command="local:Commands.Paste" CanExecute="PasteCanExecute" Executed="PasteExecuted"/>
         <CommandBinding Command="local:Commands.Delete" CanExecute="DeleteCanExecute" Executed="DeleteExecuted"/>
+        <CommandBinding Command="local:Commands.ArrowTool" CanExecute="ToolCanExecute" Executed="ToolExecuted"/>
+        <CommandBinding Command="local:Commands.EraserTool" CanExecute="ToolCanExecute" Executed="ToolExecuted"/>
+        <CommandBinding Command="local:Commands.MoveTool" CanExecute="ToolCanExecute" Executed="ToolExecuted"/>
+        <CommandBinding Command="local:Commands.PutTool" CanExecute="ToolCanExecute" Executed="ToolExecuted"/>
+        <CommandBinding Command="local:Commands.ResizeTool" CanExecute="ToolCanExecute" Executed="ToolExecuted"/>
     </Window.CommandBindings>
     <Window.Resources>
         <Style TargetType="Button">
