@@ -3,55 +3,49 @@ using System.Linq;
 
 namespace PMEditor.Operation;
 
-public class OperationManager
+public static class OperationManager
 {
     //列表迭代指针（指向下一次撤销的操作。若重做则是index+1）
-    static int index = -1;
-    public static int Index
-    {
-        get { return index; }
-    }
+    public static int Index { get; private set; } = -1;
 
-    public static int savedOperationIndex = index;
+    public static int savedOperationIndex = Index;
 
     //进行过的操作的列表
-    static List<BaseOperation> ops = new();
-
-    private OperationManager() { }
+    private static List<BaseOperation> _ops = new();
 
     public static bool CanRedo
     {
-        get => index < ops.Count - 1 && index >= -1;
+        get => Index < _ops.Count - 1 && Index >= -1;
     }
 
     public static bool CanUndo
     {
-        get => index < ops.Count && index >= 0;
+        get => Index < _ops.Count && Index >= 0;
     }
 
     public static bool HasSaved
     {
-        get => savedOperationIndex == index;
+        get => savedOperationIndex == Index;
     }
 
     public static BaseOperation? Redo()
     {
-        if (index < ops.Count - 1)
+        if (Index < _ops.Count - 1)
         {
-            index++;
-            ops[index].Redo();
-            return ops[index];
+            Index++;
+            _ops[Index].Redo();
+            return _ops[Index];
         }
         return null;
     }
 
     public static BaseOperation? Undo()
     {
-        if (index >= 0)
+        if (Index >= 0)
         {
-            ops[index].Undo();
-            index--;
-            return ops[index + 1];
+            _ops[Index].Undo();
+            Index--;
+            return _ops[Index + 1];
         }
         return null;
     }
@@ -60,13 +54,13 @@ public class OperationManager
     {
         EditorWindow.Instance.UpdateStatusBar();
         //记录截取
-        if (index != ops.Count)
+        if (Index != _ops.Count)
         {
-            ops = ops.Take(index + 1).ToList();
+            _ops = _ops.Take(Index + 1).ToList();
         }
-        ops.Add(op);
+        _ops.Add(op);
         //更改标题
         EditorWindow.Instance.Title = "Re:PMEditor - " + EditorWindow.Instance.info.TrackName + " *";
-        index++;
+        Index++;
     }
 }

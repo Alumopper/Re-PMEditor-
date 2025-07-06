@@ -117,7 +117,6 @@ public partial class ObjectRectangle
 
     public void SetFromNote(Note note, ObjectPanel panel)
     {
-        Data = new ObjectAdapter(note);
         IsResizable = note.type == NoteType.Hold;
         Width = panel.ActualWidth / 9;
         Height = note.type == NoteType.Hold
@@ -146,7 +145,6 @@ public partial class ObjectRectangle
     {
         var rect = new ObjectRectangle
         {
-            Data = new ObjectAdapter(note),
             IsResizable = note.type == NoteType.Hold,
             Color = note.type switch
             {
@@ -188,7 +186,6 @@ public partial class ObjectRectangle
 
     public void SetFromEvent(Event e, ObjectPanel panel)
     {
-        Data = new ObjectAdapter(e);
         Width = panel.ActualWidth / 9;
         Height = panel.GetTopYFromTime(e.StartTime) - panel.GetTopYFromTime(e.EndTime);
         ParentPanel = panel;
@@ -204,7 +201,6 @@ public partial class ObjectRectangle
     {
         var rect = new ObjectRectangle
         {
-            Data = new ObjectAdapter(e),
             Color = EditorColors.GetEventColor(e.Type),
             Height = panel.GetTopYFromTime(e.StartTime) - panel.GetTopYFromTime(e.EndTime),
             Width = panel.ActualWidth / 9,
@@ -226,7 +222,6 @@ public partial class ObjectRectangle
 
     public void SetFromFakeCatch(FakeCatch fakeCatch, ObjectPanel panel)
     {
-        Data = new ObjectAdapter(fakeCatch);
         Color = FakeCatch.GetColor(fakeCatch.Height);
         Height = 10;
         Width = panel.ActualWidth / 9;
@@ -240,7 +235,6 @@ public partial class ObjectRectangle
     {
         var rect = new ObjectRectangle
         {
-            Data = new ObjectAdapter(fakeCatch),
             Color = FakeCatch.GetColor(fakeCatch.Height),
             Height = 10,
             Width = panel.ActualWidth / 9,

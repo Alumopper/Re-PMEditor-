@@ -35,7 +35,7 @@
             <TextBlock Text="结束时间" Style="{StaticResource PropertyLabel}"/>
             <attrPanel:PropertySetBox x:Name="EndTime" Style="{StaticResource PropertyInput}" PropertyChangeEvent="endTime_PropertyChangeEvent"/>
             <TextBlock Text="缓动函数" Style="{StaticResource PropertyLabel}"/>
-            <ComboBox x:Name="Functions" SelectionChanged="Functions_SelectionChanged"/>
+            <ComboBox x:Name="Functions" />
             <TextBlock Text="起始值" Style="{StaticResource PropertyLabel}"/>
             <attrPanel:PropertySetBox x:Name="StartValue" Style="{StaticResource PropertyInput}" PropertyChangeEvent="startValue_PropertyChangeEvent"/>
             <TextBlock Text="结束值" Style="{StaticResource PropertyLabel}"/>

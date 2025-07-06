@@ -159,7 +159,7 @@ public class ObjectAdapter
 
     public ObjectRectangle? Rect;
     
-    public bool IsInViewRange;
+    public bool IsInViewRange => Rect != null;
 
     public Line ParentLine
     {
@@ -181,15 +181,14 @@ public class ObjectAdapter
 
     public ObjectRectangle EnterViewRange(ObjectPanel panel)
     {
-        IsInViewRange = true;
         Rect = ObjectRectangle.ObjectRectanglePool.Get();
+        Rect.Data = this;
         Rect.SetFromObject(Value!, panel);
         return Rect;
     }
 
     public ObjectRectangle? ExitViewRange()
     {
-        IsInViewRange = false;
         if (Rect == null) return null;
         ObjectRectangle.ObjectRectanglePool.Release(Rect);
         var re = Rect;
@@ -205,5 +204,33 @@ public class ObjectAdapter
     public override int GetHashCode()
     {
         return Value?.GetHashCode() ?? 0;
+    }
+
+    public override string ToString()
+    {
+        return Value?.ToString() ?? "null";
+    }
+
+    public ObjectAdapter Clone()
+    {
+        return Value switch
+        {
+            FakeCatch fakeCatch1 => new ObjectAdapter(fakeCatch1.Clone()),
+            Note note1 => new ObjectAdapter(note1.Clone()),
+            Event event1 => new ObjectAdapter(event1.Clone()),
+            _ => throw new NullReferenceException("没有值")
+        };
+    }
+
+    public bool IsOverlap(ObjectAdapter adapter)
+    {
+        if (this.GetType() != adapter.GetType()) return false;
+        return this.Value switch
+        {
+            FakeCatch fakeCatch1 => fakeCatch1.IsOverlap((FakeCatch)adapter.Value!),
+            Note note1 => note1.IsOverlap((Note)adapter.Value!),
+            Event event1 => event1.IsOverlap((Event)adapter.Value!),
+            _ => throw new NullReferenceException("没有值")
+        };
     }
 }

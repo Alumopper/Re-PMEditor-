@@ -527,12 +527,16 @@ public partial class ObjectPanel
     {
         foreach (var obj in objs)
         {
-            RemoveObj(obj);
             if (obj.IsInViewRange)
             {
-                obj.Rect!.Visibility = Visibility.Hidden;
-                obj.ExitViewRange();
+                var owo = obj.ExitViewRange();
+                if (owo != null)
+                {
+                    ObjCanvas.Children.Remove(owo);
+                    ObjectRectangles.Remove(owo);
+                }
             }
+            RemoveObj(obj);
             // OperationManager.AddOperation(new RemoveNoteOperation(note, note.ParentLine));
         }
         selectedObjectRectangles.Clear();
@@ -555,36 +559,58 @@ public partial class ObjectPanel
         DeleteObj(objs);
     }
 
-    public void PasteObj(List<ObjectAdapter> objs, double startTime)
+    public void PasteObj(List<ObjectAdapter> objs, MousePosInfo startInfo)
     {
-        foreach (var obj in objs)
+        List<ObjectAdapter> objAdapter = new();
+        if (objs.Count == 1)
         {
-            obj.StartTime += startTime - _clipBoardStartTime;
+            var obj = objs[0].Clone();
+            obj.StartTime = startInfo.Time;
+            obj.Rail = (int)(startInfo.OrgPos.X / ActualWidth * 9);
+            if(obj.StartTime < 0) return;
+            if(Objects.Any(o => o.IsOverlap(obj))) return;
+            objAdapter.Add(obj);
             AddObj(obj);
+            ParentLine.AddObj(obj);
         }
-        if(objs.Count != 0) Update();
-        UpdateSelectedObj(objs.Select(obj => obj.Rect!).ToList());
+        else
+        {
+            foreach (var obj in objs.Select(it => it.Clone()))
+            {
+                obj.StartTime += startInfo.Time - _clipBoardStartTime;
+                if(obj.StartTime <= 0) continue;
+                if(Objects.Any(o => o.IsOverlap(obj))) continue;
+                objAdapter.Add(obj);
+                AddObj(obj);
+                ParentLine.AddObj(obj);
+            }
+        }
+        if(objAdapter.Count != 0) Update();
+        UpdateSelectedObj(objAdapter.Select(obj => obj.Rect).Where(it => it != null).ToList()!);
     }
 
     public void CopyClick(object sender, RoutedEventArgs e)
     {
         CopyObj(selectedObjectRectangles.Select(obj => obj.Data).ToList());
+        contextMenuOpenPoint = null;
     }
 
     public void CutClick(object sender, RoutedEventArgs e)
     {
         CutObj(selectedObjectRectangles.Select(obj => obj.Data).ToList());
+        contextMenuOpenPoint = null;
     }
 
     public void DeleteClick(object sender, RoutedEventArgs e)
     {
         DeleteObj(selectedObjectRectangles.Select(obj => obj.Data).ToList());
+        contextMenuOpenPoint = null;
     }
 
     public void PasteClick(object sender, RoutedEventArgs e)
     {
-        double time = GetAlignedPoint(contextMenuOpenPoint).Time;
-        PasteObj(Clipboard, time);
+        PasteObj(Clipboard, GetAlignedPoint(contextMenuOpenPoint!.Value));
+        contextMenuOpenPoint = null;
     }
     
     public void CopyCanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -604,7 +630,8 @@ public partial class ObjectPanel
 
     public void PasteExecuted(object sender, ExecutedRoutedEventArgs e)
     {
-        PasteObj(Clipboard, GetAlignedPoint(contextMenuOpenPoint).Time);
+        
+        PasteObj(Clipboard, GetAlignedPoint(Mouse.GetPosition(this)));
     }
 
     public void CutCanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -627,7 +654,7 @@ public partial class ObjectPanel
         DeleteObj(selectedObjectRectangles.Select(obj => obj.Data).ToList());
     }
     
-    private Point contextMenuOpenPoint;
+    private Point? contextMenuOpenPoint;
     private void ContextMenu_OnOpened(object sender, RoutedEventArgs e)
     {
         contextMenuOpenPoint = Mouse.GetPosition(this);

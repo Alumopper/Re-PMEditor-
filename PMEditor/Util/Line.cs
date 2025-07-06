@@ -226,6 +226,7 @@ public partial class Line
                 break;
             case Event e:
                 e.ParentList.Events.Add(e);
+                e.ParentList.GroupEvent();
                 break;
         }
     }
@@ -242,6 +243,7 @@ public partial class Line
                 break;
             case Event e:
                 e.ParentList.Events.Remove(e);
+                e.ParentList.GroupEvent();
                 break;
         }
     }

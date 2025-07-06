@@ -33,6 +33,11 @@ namespace PMEditor.Util
             this.height = height;
         }
 
+        public new FakeCatch Clone()
+        {
+            return new FakeCatch(height, rail, noteType, fallType, isFake, actualTime, actualHoldTime);
+        }
+
         public static Color GetColor(double height)
         {
             //根据高度返回颜色

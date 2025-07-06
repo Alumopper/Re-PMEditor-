@@ -17,12 +17,12 @@ public class RemoveLineOperation : BaseOperation
     public override void Redo()
     {
         EditorWindow.Instance.track.Lines.Remove(line);
-        TrackEditorPage.Instance.UpdateNote();
+        TrackEditorPage.Instance!.UpdateNote();
     }
 
     public override void Undo()
     {
         EditorWindow.Instance.track.Lines.Add(line);
-        TrackEditorPage.Instance.UpdateNote();
+        TrackEditorPage.Instance!.UpdateNote();
     }
 }

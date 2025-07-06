@@ -103,7 +103,21 @@ namespace PMEditor
                 _ => double.NaN
             };
 
-        }    
+        }
+
+        public Event Clone()
+        {
+            return new Event(StartTime, EndTime, EaseFunctionID, StartValue, EndValue);
+        }
+        
+        
+        public bool IsOverlap(Event e)
+        {
+            if(!(e.Rail == Rail && e.ParentList == ParentList)) return false;
+            return StartTime <= e.StartTime && e.StartTime <= EndTime ||
+                   StartTime <= e.EndTime && e.EndTime <= StartTime;
+
+        }
     }
 
     public enum EventType

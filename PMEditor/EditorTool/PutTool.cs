@@ -1,6 +1,7 @@
 using System;
 using System.Windows.Media;
 using PMEditor.Controls;
+using PMEditor.Operation;
 using PMEditor.Util;
 
 namespace PMEditor.EditorTool;
@@ -45,13 +46,15 @@ public class PutTool: AbstractTool
         {
             target.AddObj(re);
             target.Update();
+            OperationManager.AddOperation(new PutObjOperation(target, re));
         }
     }
 
     public override void OnMouseMove(ObjectPanel target, ToolMoveArgs e)
     {
         var rail = (int) (e.Info.OrgPos.X / target.ActualWidth * 9);
-        TrackEditorPage.Instance!.UpdateObjPreview(rail * target.ActualWidth / 9.0, e.Info.AlignedPos.Y - 10,target.ActualWidth / 9, 10);
+        TrackEditorPage.Instance!.UpdateObjPreview(rail * target.ActualWidth / 9.0, e.Info.AlignedPos.Y - 10,
+            target.ActualWidth / 9, 10);
     }
 
     public override void OnMouseWheel(ObjectPanel target, ToolWheelArgs e) { }

@@ -28,7 +28,7 @@ namespace PMEditor.Controls.AttrPanel
 
         private void Functions_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            @event.EaseFunctionID = Functions.SelectedValue.ToString();
+            @event.EaseFunctionID = Functions.SelectedValue.ToString()!;
             @event.EaseFunction = EaseFunctions.Functions[@event.EaseFunctionID];
         }
 

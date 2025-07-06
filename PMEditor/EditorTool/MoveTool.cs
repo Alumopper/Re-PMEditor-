@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media.Animation;
 using PMEditor.Controls;
+using PMEditor.Operation;
+using PMEditor.Util;
 
 namespace PMEditor.EditorTool;
 
@@ -37,9 +38,11 @@ public class MoveTool: AbstractTool
 
     public override void OnMouseDragEnd(ObjectPanel target, ToolDragArgs e)
     {
+        List<(ObjectAdapter, double, int, double, int)> objs = new();
         //确定obj属性
         foreach (var obj in e.SelectedObjs)
         {
+            var qwq =(obj.Data, obj.StartTime, obj.Rail, obj.StartTime, obj.Rail);
             obj.Data.StartTime += e.DeltaTime;
             if(obj.Data.StartTime < 0) obj.Data.StartTime = 0;
             obj.Data.Rail += (int)(e.AlignedDeltaPos.X / target.ActualWidth * 9);
@@ -49,8 +52,12 @@ public class MoveTool: AbstractTool
             {
                 obj.Data.IsJudged = true;
             }
+            qwq.Item4 = obj.Data.StartTime;
+            qwq.Item5 = obj.Data.Rail;
+            objs.Add(qwq);
             obj.BeforeMovePos = new Point(Canvas.GetLeft(obj), Canvas.GetTop(obj));
         }
+        OperationManager.AddOperation(new MoveObjOperation(target, objs));
         OnMoveEnd?.Invoke(e.SelectedObjs);
     }
 
