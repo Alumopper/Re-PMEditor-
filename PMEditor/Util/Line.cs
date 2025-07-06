@@ -153,7 +153,8 @@ public partial class Line
                 if (e.StartTime <= time && time <= e.EndTime)
                 {
                     isDefaultSpeed = false;
-                    value = EaseFunctions.Interpolate(e.StartValue, e.EndValue, (time - e.StartTime)/(e.EndTime - e.StartTime), e.EaseFunction);
+                    value = EaseFunctions.Interpolate(e.StartValue, e.EndValue,
+                        (time - e.StartTime) / (e.EndTime - e.StartTime), e.EaseFunction);
                     break;
                 }
             }

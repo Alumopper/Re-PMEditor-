@@ -1,9 +1,10 @@
-﻿<UserControl x:Class="PMEditor.Controls.EventPropertyPanel"
+﻿<UserControl x:Class="PMEditor.Controls.AttrPanel.EventPropertyPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:PMEditor.Controls"
+             xmlns:attrPanel="clr-namespace:PMEditor.Controls.AttrPanel"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
@@ -19,7 +20,7 @@
                     <Setter Property="FontSize" Value="14"/>
                     <Setter Property="Foreground" Value="White"/>
                 </Style>
-                <Style TargetType="local:PropertySetBox" x:Key="PropertyInput">
+                <Style TargetType="attrPanel:PropertySetBox" x:Key="PropertyInput">
                     <Setter Property="Margin" Value="0,10,0,0"/>
                     <Setter Property="Height" Value="24"/>
                 </Style>
@@ -30,15 +31,15 @@
                 <TextBlock>Y</TextBlock>
             </ComboBox>
             <TextBlock Text="起始时间" Style="{StaticResource PropertyLabel}"/>
-            <local:PropertySetBox x:Name="StartTime" Style="{StaticResource PropertyInput}" PropertyChangeEvent="startTime_PropertyChangeEvent"/>
+            <attrPanel:PropertySetBox x:Name="StartTime" Style="{StaticResource PropertyInput}" PropertyChangeEvent="startTime_PropertyChangeEvent"/>
             <TextBlock Text="结束时间" Style="{StaticResource PropertyLabel}"/>
-            <local:PropertySetBox x:Name="EndTime" Style="{StaticResource PropertyInput}" PropertyChangeEvent="endTime_PropertyChangeEvent"/>
+            <attrPanel:PropertySetBox x:Name="EndTime" Style="{StaticResource PropertyInput}" PropertyChangeEvent="endTime_PropertyChangeEvent"/>
             <TextBlock Text="缓动函数" Style="{StaticResource PropertyLabel}"/>
             <ComboBox x:Name="Functions" SelectionChanged="Functions_SelectionChanged"/>
             <TextBlock Text="起始值" Style="{StaticResource PropertyLabel}"/>
-            <local:PropertySetBox x:Name="StartValue" Style="{StaticResource PropertyInput}" PropertyChangeEvent="startValue_PropertyChangeEvent"/>
+            <attrPanel:PropertySetBox x:Name="StartValue" Style="{StaticResource PropertyInput}" PropertyChangeEvent="startValue_PropertyChangeEvent"/>
             <TextBlock Text="结束值" Style="{StaticResource PropertyLabel}"/>
-            <local:PropertySetBox x:Name="EndValue" Style="{StaticResource PropertyInput}" PropertyChangeEvent="endValue_PropertyChangeEvent"/>
+            <attrPanel:PropertySetBox x:Name="EndValue" Style="{StaticResource PropertyInput}" PropertyChangeEvent="endValue_PropertyChangeEvent"/>
         </StackPanel>
     </Grid>
 </UserControl>

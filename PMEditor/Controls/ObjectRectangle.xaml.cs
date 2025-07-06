@@ -44,6 +44,11 @@ public partial class ObjectRectangle
     }
 
     public ObjectPanel ParentPanel;
+
+    public bool IsNote => Data.Value is Note;
+    public bool IsEvent => Data.Value is Event;
+    public bool IsFakeCatch => Data.Value is FakeCatch;
+    public ObjectVisible Visible = ObjectVisible.Visible;
     
     public ObjectRectangle()
     {
@@ -69,6 +74,7 @@ public partial class ObjectRectangle
 
     public void SetVisible(ObjectVisible visible)
     {
+        Visible = visible;
         Rect.Fill.Opacity = visible switch
         {
             ObjectVisible.Visible => 1,
@@ -91,28 +97,34 @@ public partial class ObjectRectangle
         e.Handled = true;
     }
     
-    public void SetFromObject(object obj)
+    public void SetFromObject(object obj, ObjectPanel panel)
     {
         switch (obj)
         {
             case FakeCatch fakeCatch:
-                SetFromFakeCatch(fakeCatch);
+                SetFromFakeCatch(fakeCatch, panel);
                 break;
             case Note note:
-                SetFromNote(note);
+                SetFromNote(note, panel);
                 break;
             case Event e:
-                SetFromEvent(e);
+                SetFromEvent(e, panel);
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(obj), obj, null);
         }
     }
 
-    public void SetFromNote(Note note)
+    public void SetFromNote(Note note, ObjectPanel panel)
     {
         Data = new ObjectAdapter(note);
         IsResizable = note.type == NoteType.Hold;
+        Width = panel.ActualWidth / 9;
+        Height = note.type == NoteType.Hold
+            ? panel.GetTopYFromTime(note.ActualTime) -
+              panel.GetTopYFromTime(note.ActualTime + note.ActualHoldTime)
+            : 10;
+        ParentPanel = panel;
         Color = note.type switch
         {
             NoteType.Tap => EditorColors.tapColor,
@@ -125,6 +137,9 @@ public partial class ObjectRectangle
             NoteType.Hold => EditorColors.holdHighlightColor,
             _ => EditorColors.catchHighlightColor
         };
+        StartValue.Visibility = Visibility.Collapsed;
+        EndValue.Visibility = Visibility.Collapsed;
+        PathCanvas.Visibility = Visibility.Collapsed;
     }
 
     public static ObjectRectangle FromNote(ObjectPanel panel, Note note)
@@ -144,6 +159,18 @@ public partial class ObjectRectangle
                 NoteType.Tap => EditorColors.tapHighlightColor,
                 NoteType.Hold => EditorColors.holdHighlightColor,
                 _ => EditorColors.catchHighlightColor
+            },
+            StartValue =
+            {
+                Visibility = Visibility.Collapsed
+            },
+            EndValue =
+            {
+                Visibility = Visibility.Collapsed
+            },
+            PathCanvas =
+            {
+                Visibility = Visibility.Collapsed
             }
         };
         if (note.type == NoteType.Hold)
@@ -159,10 +186,18 @@ public partial class ObjectRectangle
         return rect;
     }
 
-    public void SetFromEvent(Event e)
+    public void SetFromEvent(Event e, ObjectPanel panel)
     {
         Data = new ObjectAdapter(e);
+        Width = panel.ActualWidth / 9;
+        Height = panel.GetTopYFromTime(e.StartTime) - panel.GetTopYFromTime(e.EndTime);
+        ParentPanel = panel;
         Color = EditorColors.GetEventColor(e.Type);
+        StartValue.Visibility = Visibility.Visible;
+        EndValue.Visibility = Visibility.Visible;
+        PathCanvas.Visibility = Visibility.Visible;
+        UpdateText();
+        DrawFunction();
     }
 
     public static ObjectRectangle FromEvent(ObjectPanel panel, Event e)
@@ -172,15 +207,33 @@ public partial class ObjectRectangle
             Data = new ObjectAdapter(e),
             Color = EditorColors.GetEventColor(e.Type),
             Height = panel.GetTopYFromTime(e.StartTime) - panel.GetTopYFromTime(e.EndTime),
-            Width = panel.ActualWidth / 9
+            Width = panel.ActualWidth / 9,
+            StartValue =
+            {
+                Visibility = Visibility.Visible
+            },
+            EndValue =
+            {
+                Visibility = Visibility.Visible
+            },
+            PathCanvas =
+            {
+                Visibility = Visibility.Visible
+            }
         };
         return rect;
     }
 
-    public void SetFromFakeCatch(FakeCatch fakeCatch)
+    public void SetFromFakeCatch(FakeCatch fakeCatch, ObjectPanel panel)
     {
         Data = new ObjectAdapter(fakeCatch);
         Color = FakeCatch.GetColor(fakeCatch.Height);
+        Height = 10;
+        Width = panel.ActualWidth / 9;
+        ParentPanel = panel;
+        StartValue.Visibility = Visibility.Collapsed;
+        EndValue.Visibility = Visibility.Collapsed;
+        PathCanvas.Visibility = Visibility.Collapsed;
     }
 
     public static ObjectRectangle FromFakeCatch(ObjectPanel panel, FakeCatch fakeCatch)
@@ -190,7 +243,19 @@ public partial class ObjectRectangle
             Data = new ObjectAdapter(fakeCatch),
             Color = FakeCatch.GetColor(fakeCatch.Height),
             Height = 10,
-            Width = panel.ActualWidth / 9
+            Width = panel.ActualWidth / 9,
+            StartValue =
+            {
+                Visibility = Visibility.Collapsed
+            },
+            EndValue =
+            {
+                Visibility = Visibility.Collapsed
+            },
+            PathCanvas =
+            {
+                Visibility = Visibility.Collapsed
+            }
         };
         return rect;
     }
@@ -202,42 +267,32 @@ public partial class ObjectRectangle
         EndValue.Text = e.EndValue.ToString(CultureInfo.InvariantCulture);
     }
     
-    public static void DrawFunction(List<ObjectRectangle> eventRectangles)
+    public void DrawFunction()
     {
         //获取曲线的较大点和较小点
-        double max = double.MinValue, min = double.MaxValue;
-        foreach(var eventRectangle in eventRectangles)
-        {
-            max = Math.Max(max, ((Event)eventRectangle.Data.Value!).StartValue);
-            max = Math.Max(max, ((Event)eventRectangle.Data.Value).EndValue);
-            min = Math.Min(min, ((Event)eventRectangle.Data.Value).StartValue);
-            min = Math.Min(min, ((Event)eventRectangle.Data.Value).EndValue);
-        }
+        if(Data.Value is not Event e) return;
+        double max = e.EventGroup.MaxValue, min = e.EventGroup.MinValue;
         //宽度
-        var width = eventRectangles[0].ActualWidth;
-        foreach(var er in eventRectangles)
+        var width = Width;
+        if(FunctionPath.Data is not PathGeometry)
         {
-            if(er.FunctionPath.Data is not PathGeometry)
+            PathGeometry pg = new();
+            pg.Figures.Add(new PathFigure());
+            FunctionPath.Data = pg;
+        }
+        (FunctionPath.Data as PathGeometry)!.Figures[0].Segments.Clear();
+        var pathGeometry = (FunctionPath.Data as PathGeometry)!;
+        var pathFigure = pathGeometry.Figures[0];
+        var height = Height;
+        for(double i = 0; i <= height; i++)
+        {
+            var value = EaseFunctions.Interpolate(e.StartValue, e.EndValue, i / height, e.EaseFunction);
+            Point point = new((value - min) / (max - min) * width, height - i);
+            if(pathFigure.Segments.Count == 0)
             {
-                PathGeometry pg = new();
-                pg.Figures.Add(new PathFigure());
-                er.FunctionPath.Data = pg;
+                pathFigure.StartPoint = point;
             }
-            (er.FunctionPath.Data as PathGeometry)!.Figures[0].Segments.Clear();
-            var e = (Event)er.Data.Value!;
-            var pathGeometry = (er.FunctionPath.Data as PathGeometry)!;
-            var pathFigure = pathGeometry.Figures[0];
-            var height = er.ActualHeight;
-            for(double i = 0; i <= height; i++)
-            {
-                var value = EaseFunctions.Interpolate(e.StartValue, e.EndValue, i / height, e.EaseFunction);
-                Point point = new((value - min) / (max - min) * width, height - i);
-                if(pathFigure.Segments.Count == 0)
-                {
-                    pathFigure.StartPoint = point;
-                }
-                pathFigure.Segments.Add(new LineSegment(point, true));
-            }
+            pathFigure.Segments.Add(new LineSegment(point, true));
         }
     }
 

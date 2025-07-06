@@ -29,11 +29,11 @@ public partial class TrackEditorPage : Page
     public const double FPS = double.NaN;
     
     // ReSharper disable once InconsistentNaming
-    private const byte NOTE = 0;
+    public const byte NOTE = 0;
     // ReSharper disable once InconsistentNaming
-    private const byte EVENT = 1;
+    public const byte EVENT = 1;
     // ReSharper disable once InconsistentNaming
-    private const byte FAKE_CATCH = 2;
+    public const byte FAKE_CATCH = 2;
     // ReSharper disable once InconsistentNaming
     private const byte MAX_MODE = 3;
 
@@ -103,7 +103,7 @@ public partial class TrackEditorPage : Page
 
     private FastDrawing? fastDrawing;
 
-    private WatchDog watchDog;
+    private readonly WatchDog watchDog;
 
     private readonly List<ObjectPanel> notePanels = new();
     private readonly List<ObjectPanel> eventPanels = new();
@@ -1011,7 +1011,6 @@ public partial class TrackEditorPage : Page
         };
         UpdateToolBarStatus(currToolType);
     }
-
 
     public void UpdateToolBarStatus(EditorToolType type)
     {

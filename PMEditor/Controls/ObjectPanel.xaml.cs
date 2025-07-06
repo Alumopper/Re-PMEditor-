@@ -50,6 +50,13 @@ public partial class ObjectPanel
 
     private bool isFirstLoaded = true;
 
+    public ObjectVisible Visible;
+
+    /// <summary>
+    /// 同<see cref="TrackEditorPage"/>中的<see cref="TrackEditorPage.editingMode"/>
+    /// </summary>
+    public byte Type;
+    
     public ObjectPanel()
     {
         InitializeComponent();
@@ -58,6 +65,7 @@ public partial class ObjectPanel
 
     public void SetVisible(ObjectVisible visible)
     {
+        Visible = visible;
         switch (visible)
         {
             case ObjectVisible.Visible:
@@ -117,8 +125,8 @@ public partial class ObjectPanel
             {
                 if(!obj.IsInViewRange)
                 {
-                    var owo = obj.EnterViewRange();
-                    owo.ParentPanel = this;
+                    var owo = obj.EnterViewRange(this);
+                    owo.SetVisible(Visible);
                     ObjCanvas.Children.Add(owo);
                     ObjectRectangles.Add(owo);
                 }
@@ -389,6 +397,7 @@ public partial class ObjectPanel
             }
         };
         panel.ParentLine = line;
+        panel.Type = TrackEditorPage.NOTE;
         return panel;
     }
 
@@ -415,7 +424,7 @@ public partial class ObjectPanel
         var willPutEvent = new Event(
             rect.StartTime,
             rect.StartTime + rect.LengthTime,
-            EaseFunctions.linearName,
+            EaseFunctions.LinearName,
             v,
             v
         );
@@ -465,6 +474,7 @@ public partial class ObjectPanel
             }
         };
         panel.ParentLine = line;
+        panel.Type = TrackEditorPage.EVENT;
         return panel;
     }
 
@@ -509,6 +519,7 @@ public partial class ObjectPanel
             }
         };
         panel.ParentLine = line;
+        panel.Type = TrackEditorPage.FAKE_CATCH;
         return panel;
     }
 
@@ -517,6 +528,11 @@ public partial class ObjectPanel
         foreach (var obj in objs)
         {
             RemoveObj(obj);
+            if (obj.IsInViewRange)
+            {
+                obj.Rect!.Visibility = Visibility.Hidden;
+                obj.ExitViewRange();
+            }
             // OperationManager.AddOperation(new RemoveNoteOperation(note, note.ParentLine));
         }
         selectedObjectRectangles.Clear();

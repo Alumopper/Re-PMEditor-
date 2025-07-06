@@ -383,7 +383,7 @@ namespace PMEditor
             this.startValue = startValue;
             this.endValue = endValue;
 
-            this.EaseFunction = EaseFunctions.functions[easeFunctionID];
+            this.EaseFunction = EaseFunctions.Functions[easeFunctionID];
             this.Type = (EventType)Enum.Parse(typeof(EventType), typeId.ToString());
 
             this.properties = properties;

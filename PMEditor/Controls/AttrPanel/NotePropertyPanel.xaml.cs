@@ -1,14 +1,14 @@
-﻿using PMEditor.Util;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
+using PMEditor.Util;
 using Expression = NCalc.Expression;
 
-namespace PMEditor.Controls
+namespace PMEditor.Controls.AttrPanel
 {
     /// <summary>
     /// NotePropertyPanel.xaml 的交互逻辑
     /// </summary>
-    public partial class NotePropertyPanel : UserControl
+    public partial class NotePropertyPanel
     {
         Note note;
 

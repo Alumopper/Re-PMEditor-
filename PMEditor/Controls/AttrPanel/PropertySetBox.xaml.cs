@@ -2,7 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace PMEditor.Controls;
+namespace PMEditor.Controls.AttrPanel;
 
 /// <summary>
 /// PropertySetBox.xaml 的交互逻辑

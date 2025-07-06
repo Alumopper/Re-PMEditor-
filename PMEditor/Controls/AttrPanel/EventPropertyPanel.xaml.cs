@@ -1,8 +1,8 @@
-﻿using PMEditor.Util;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
+using PMEditor.Util;
 
-namespace PMEditor.Controls
+namespace PMEditor.Controls.AttrPanel
 {
     /// <summary>
     /// PropertyPanel.xaml 的交互逻辑
@@ -19,7 +19,7 @@ namespace PMEditor.Controls
             this.@event = e;
             StartTime.Value = e.StartTime;
             EndTime.Value = e.EndTime;
-            Functions.ItemsSource = EaseFunctions.functions.Keys;
+            Functions.ItemsSource = EaseFunctions.Functions.Keys;
             Functions.SelectedItem = e.EaseFunctionID;
             EventType.SelectedIndex = e.TypeId;
             StartValue.Value = e.StartValue;
@@ -29,7 +29,7 @@ namespace PMEditor.Controls
         private void Functions_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             @event.EaseFunctionID = Functions.SelectedValue.ToString();
-            @event.EaseFunction = EaseFunctions.functions[@event.EaseFunctionID];
+            @event.EaseFunction = EaseFunctions.Functions[@event.EaseFunctionID];
         }
 
         private void startTime_PropertyChangeEvent(object sender, RoutedEventArgs e)

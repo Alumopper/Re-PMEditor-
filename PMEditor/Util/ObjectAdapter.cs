@@ -179,11 +179,11 @@ public class ObjectAdapter
         Value = obj;
     }
 
-    public ObjectRectangle EnterViewRange()
+    public ObjectRectangle EnterViewRange(ObjectPanel panel)
     {
         IsInViewRange = true;
         Rect = ObjectRectangle.ObjectRectanglePool.Get();
-        Rect.SetFromObject(Value!);
+        Rect.SetFromObject(Value!, panel);
         return Rect;
     }
 

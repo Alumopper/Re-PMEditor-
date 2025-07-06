@@ -7,146 +7,163 @@ namespace PMEditor.Util
     {
         private EaseFunctions() { }
 
-        public readonly static Func<double, double> linear = (t) 
+        public readonly static Func<double, double> Linear = (t) 
             => t;
-        public readonly static Func<double, double> sineIn = (t) 
+        public readonly static Func<double, double> SineIn = (t) 
             => (float)Math.Sin(t * Math.PI / 2);
-        public readonly static Func<double, double> sineOut = (t) 
+        public readonly static Func<double, double> SineOut = (t) 
             => (float)Math.Sin(t * Math.PI / 2 + Math.PI / 2);
-        public readonly static Func<double, double> sineInOut = (t) 
+        public readonly static Func<double, double> SineInOut = (t) 
             => (float)(Math.Sin(t * Math.PI - Math.PI / 2) / 2 + 0.5);
-        public readonly static Func<double, double> quadIn = (t) 
+        public readonly static Func<double, double> QuadIn = (t) 
             => t * t;
-        public readonly static Func<double, double> quadOut = (t) 
+        public readonly static Func<double, double> QuadOut = (t) 
             => 1 - (1 - t) * (1 - t);
-        public readonly static Func<double, double> quadInOut = (t) 
+        public readonly static Func<double, double> QuadInOut = (t) 
             => t < 0.5 ? 2 * t * t : 1 - Math.Pow(-2 * t + 2, 2) / 2;
-        public readonly static Func<double, double> cubicIn = (t) 
+        public readonly static Func<double, double> CubicIn = (t) 
             => t * t * t;
-        public readonly static Func<double, double> cubicOut = (t) 
+        public readonly static Func<double, double> CubicOut = (t) 
             => 1 - Math.Pow(1 - t, 3);
-        public readonly static Func<double, double> cubicInOut = (t) 
+        public readonly static Func<double, double> CubicInOut = (t) 
             => t < 0.5 ? 4 * t * t * t : 1 - Math.Pow(-2 * t + 2, 3) / 2;
-        public readonly static Func<double, double> quartIn = (t) 
+        public readonly static Func<double, double> QuartIn = (t) 
             => t * t * t * t;
-        public readonly static Func<double, double> quartOut = (t) 
+        public readonly static Func<double, double> QuartOut = (t) 
             => 1 - Math.Pow(1 - t, 4);
-        public readonly static Func<double, double> quartInOut = (t) 
+        public readonly static Func<double, double> QuartInOut = (t) 
             => t < 0.5 ? 8 * t * t * t * t : 1 - Math.Pow(-2 * t + 2, 4) / 2;
-        public readonly static Func<double, double> quintIn = (t) 
+        public readonly static Func<double, double> QuintIn = (t) 
             => t * t * t * t * t;
-        public readonly static Func<double, double> quintOut = (t) 
+        public readonly static Func<double, double> QuintOut = (t) 
             => 1 - Math.Pow(1 - t, 5);
-        public readonly static Func<double, double> quintInOut = (t) 
+        public readonly static Func<double, double> QuintInOut = (t) 
             => t < 0.5 ? 16 * t * t * t * t * t : 1 - Math.Pow(-2 * t + 2, 5) / 2;
-        public readonly static Func<double, double> expoIn = (t) 
+        public readonly static Func<double, double> ExpoIn = (t) 
             => (float)Math.Pow(2, 10 * (t - 1));
-        public readonly static Func<double, double> expoOut = (t) 
+        public readonly static Func<double, double> ExpoOut = (t) 
             => (float)(1 - Math.Pow(2, -10 * t));
-        public readonly static Func<double, double> expoInOut = (t) 
+        public readonly static Func<double, double> ExpoInOut = (t) 
             => t < 0.5 ? (float)(Math.Pow(2, 10 * (2 * t - 1)) / 2) : (float)(2 - Math.Pow(2, -10 * (2 * t - 1)) / 2);
-        public readonly static Func<double, double> circIn = (t) 
+        public readonly static Func<double, double> CircIn = (t) 
             => (float)(1 - Math.Sqrt(1 - t * t));
-        public readonly static Func<double, double> circOut = (t) 
+        public readonly static Func<double, double> CircOut = (t) 
             => (float)Math.Sqrt(1 - Math.Pow(t - 1, 2));
-        public readonly static Func<double, double> circInOut = (t) 
+        public readonly static Func<double, double> CircInOut = (t) 
             => t < 0.5 ? (float)(0.5 * (1 - Math.Sqrt(1 - 4 * t * t))) : (float)(0.5 * (Math.Sqrt(-((2 * t - 3) * (2 * t - 1))) + 1));
-        public readonly static Func<double, double> backIn = (t) 
-            => (float)(t * t * ((1.70158 + 1) * t - 1.70158));
-        public readonly static Func<double, double> backOut = (t) 
-            => (float)(1 - Math.Pow(1 - t, 2) * ((1.70158 + 1) * (1 - t) - 1.70158));
-        public readonly static Func<double, double> backInOut = (t) 
+        public readonly static Func<double, double> BackIn = (t) 
+            => (float)(t * t * (2.70158 * t - 1.70158));
+        public readonly static Func<double, double> BackOut = (t) 
+            => (float)(1 - Math.Pow(1 - t, 2) * (-2.70158 * t + 1));
+        public readonly static Func<double, double> BackInOut = (t) 
             => t < 0.5 ? (float)(0.5 * (Math.Pow(2 * t, 2) * (((1.70158 * 1.525) + 1) * 2 * t - (1.70158 * 1.525)))) : (float)(0.5 * (Math.Pow(2 * t - 2, 2) * (((1.70158 * 1.525) + 1) * (t * 2 - 2) + (1.70158 * 1.525)) + 2));
-        public readonly static Func<double, double> elasticIn = (t) 
+        public readonly static Func<double, double> ElasticIn = (t) 
             => (float)(Math.Sin(13 * Math.PI / 2 * t) * Math.Pow(2, 10 * (t - 1)));
-        public readonly static Func<double, double> elasticOut = (t) 
+        public readonly static Func<double, double> ElasticOut = (t) 
             => (float)(Math.Sin(-13 * Math.PI / 2 * (t + 1)) * Math.Pow(2, -10 * t) + 1);
-        public readonly static Func<double, double> elasticInOut = (t) 
-            => t < 0.5 ? (float)(0.5 * (Math.Sin(13 * Math.PI / 2 * (2 * t)) * Math.Pow(2, 10 * ((2 * t) - 1)) - 1)) : (float)(0.5 * (Math.Sin(-13 * Math.PI / 2 * ((2 * t - 1) + 1)) * Math.Pow(2, -10 * (2 * t - 1)) + 2));
-        public readonly static Func<double, double> bounceOut = 
-            BounceOut;
-        public readonly static Func<double, double> bounceIn = (t) 
-            => 1 - BounceOut(1 - t);
-        public readonly static Func<double, double> bounceInOut = (t) 
-            => t < 0.5 ? 0.5f * (1 - BounceOut(1 - 2 * t)) : 0.5f * BounceOut(2 * t - 1) + 0.5f;
+        public readonly static Func<double, double> ElasticInOut = (t) 
+            => t < 0.5 ? (float)(0.5 * (Math.Sin(13 * Math.PI * t) * Math.Pow(2, 20 * t - 10) + 1)) : (float)(0.5 * (Math.Sin(-13 * Math.PI * t) * Math.Pow(2, -20 * t + 10) - 1));
+        public readonly static Func<double, double> BounceOut = 
+            _BounceOut;
+        public readonly static Func<double, double> BounceIn = (t) 
+            => 1 - _BounceOut(1 - t);
+        public readonly static Func<double, double> BounceInOut = (t) 
+            => t < 0.5 ? 0.5f * (1 - _BounceOut(1 - 2 * t)) : 0.5f * _BounceOut(2 * t - 1) + 0.5f;
 
-        public const string linearName = "Linear";
-        public const string sineInName = "SineIn";
-        public const string sineOutName = "SineOut";
-        public const string sineInOutName = "SineInOut";
-        public const string quadInName = "QuadIn";
-        public const string quadOutName = "QuadOut";
-        public const string quadInOutName = "QuadInOut";
-        public const string cubicInName = "CubicIn";
-        public const string cubicOutName = "CubicOut";
-        public const string cubicInOutName = "CubicInOut";
-        public const string quartInName = "QuartIn";
-        public const string quartOutName = "QuartOut";
-        public const string quartInOutName = "QuartInOut";
-        public const string quintInName = "QuintIn";
-        public const string quintOutName = "QuintOut";
-        public const string quintInOutName = "QuintInOut";
-        public const string expoInName = "ExpoIn";
-        public const string expoOutName = "ExpoOut";
-        public const string expoInOutName = "ExpoInOut";
-        public const string circInName = "CircIn";
-        public const string circOutName = "CircOut";
-        public const string circInOutName = "CircInOut";
-        public const string backInName = "BackIn";
-        public const string backOutName = "BackOut";
-        public const string backInOutName = "BackInOut";
-        public const string elasticInName = "ElasticIn";
-        public const string elasticOutName = "ElasticOut";
-        public const string elasticInOutName = "ElasticInOut";
-        public const string bounceOutName = "BounceOut";
-        public const string bounceInName = "BounceIn";
-        public const string bounceInOutName = "BounceInOut";
-
-        public static Dictionary<string, Func<double, double>> functions = new()
+        #region 函数名字
+        public const string LinearName = "Linear";
+        public const string SineInName = "SineIn";
+        public const string SineOutName = "SineOut";
+        public const string SineInOutName = "SineInOut";
+        public const string QuadInName = "QuadIn";
+        public const string QuadOutName = "QuadOut";
+        public const string QuadInOutName = "QuadInOut";
+        public const string CubicInName = "CubicIn";
+        public const string CubicOutName = "CubicOut";
+        public const string CubicInOutName = "CubicInOut";
+        public const string QuartInName = "QuartIn";
+        public const string QuartOutName = "QuartOut";
+        public const string QuartInOutName = "QuartInOut";
+        public const string QuintInName = "QuintIn";
+        public const string QuintOutName = "QuintOut";
+        public const string QuintInOutName = "QuintInOut";
+        public const string ExpoInName = "ExpoIn";
+        public const string ExpoOutName = "ExpoOut";
+        public const string ExpoInOutName = "ExpoInOut";
+        public const string CircInName = "CircIn";
+        public const string CircOutName = "CircOut";
+        public const string CircInOutName = "CircInOut";
+        public const string BackInName = "BackIn";
+        public const string BackOutName = "BackOut";
+        public const string BackInOutName = "BackInOut";
+        public const string ElasticInName = "ElasticIn";
+        public const string ElasticOutName = "ElasticOut";
+        public const string ElasticInOutName = "ElasticInOut";
+        public const string BounceOutName = "BounceOut";
+        public const string BounceInName = "BounceIn";
+        public const string BounceInOutName = "BounceInOut";
+        #endregion
+        
+        public static readonly Dictionary<string, Func<double, double>> Functions = new()
         {
-            {linearName, linear},
+            {LinearName, Linear},
 
-            {sineInName, sineIn},
-            {sineOutName, sineOut},
-            {sineInOutName, sineInOut},
+            {SineInName, SineIn},
+            {SineOutName, SineOut},
+            {SineInOutName, SineInOut},
             
-            {quadInName, quadIn},
-            {quadOutName, quadOut},
-            {quadInOutName, quadInOut},
+            {QuadInName, QuadIn},
+            {QuadOutName, QuadOut},
+            {QuadInOutName, QuadInOut},
             
-            {cubicInName, cubicIn},
-            {cubicOutName, cubicOut},
-            {cubicInOutName, cubicInOut},
+            {CubicInName, CubicIn},
+            {CubicOutName, CubicOut},
+            {CubicInOutName, CubicInOut},
             
-            {quartInName, quartIn},
-            {quartOutName, quartOut},
-            {quartInOutName, quartInOut},
+            {QuartInName, QuartIn},
+            {QuartOutName, QuartOut},
+            {QuartInOutName, QuartInOut},
             
-            {quintInName, quintIn},
-            {quintOutName, quintOut},
-            {quintInOutName, quintInOut},
+            {QuintInName, QuintIn},
+            {QuintOutName, QuintOut},
+            {QuintInOutName, QuintInOut},
             
-            {expoInName, expoIn},
-            {expoOutName, expoOut},
-            {expoInOutName, expoInOut},
+            {ExpoInName, ExpoIn},
+            {ExpoOutName, ExpoOut},
+            {ExpoInOutName, ExpoInOut},
             
-            {circInName, circIn},
-            {circOutName, circOut},
-            {circInOutName, circInOut},
+            {CircInName, CircIn},
+            {CircOutName, CircOut},
+            {CircInOutName, CircInOut},
             
-            {backInName, backIn},
-            {backOutName, backOut},
-            {backInOutName, backInOut},
+            {BackInName, BackIn},
+            {BackOutName, BackOut},
+            {BackInOutName, BackInOut},
             
-            {elasticInName, elasticIn},
-            {elasticOutName, elasticOut},
-            {elasticInOutName, elasticInOut},
+            {ElasticInName, ElasticIn},
+            {ElasticOutName, ElasticOut},
+            {ElasticInOutName, ElasticInOut},
             
-            {bounceInName, bounceIn},
-            {bounceOutName, bounceOut},
-            {bounceInOutName, bounceInOut}
+            {BounceInName, BounceIn},
+            {BounceOutName, BounceOut},
+            {BounceInOutName, BounceInOut}
         };
 
+        public static readonly Dictionary<string, (double, double)> FunctionMaxValues = new()
+        {
+            { LinearName, (0, 1) },
+            { SineInName, (0, 1) }, { SineOutName, (0, 1) }, { SineInOutName, (0, 1) },
+            { QuadInName, (0, 1) }, { QuadOutName, (0, 1) }, { QuadInOutName, (0, 1) },
+            { CubicInName, (0, 1) }, { CubicOutName, (0, 1) }, { CubicInOutName, (0, 1) },
+            { QuartInName, (0, 1) }, { QuartOutName, (0, 1) }, { QuartInOutName, (0, 1) },
+            { QuintInName, (0, 1) }, { QuintOutName, (0, 1) }, { QuintInOutName, (0, 1) },
+            { ExpoInName, (0, 1) }, { ExpoOutName, (0, 1) }, { ExpoInOutName, (0, 1) },
+            { CircInName, (0, 1) }, { CircOutName, (0, 1) }, { CircInOutName, (0, 1) },
+            { BackInName, (-0.1, 1) }, { BackOutName, (0, 1.1) }, { BackInOutName, (-0.05, 1.05) },
+            { ElasticInName, (-0.36428, 1) }, { ElasticOutName, (0, 1.36428) }, { ElasticInOutName, (-0.18214, 1.18214) },
+            { BounceInName, (0, 1) }, { BounceOutName, (0, 1) }, { BounceInOutName, (0, 1) }
+        };
+        
         /*
         public static double MaxOf(string funcName)
         {
@@ -159,7 +176,7 @@ namespace PMEditor.Util
         }
         */
 
-        private static double BounceOut(double t)
+        private static double _BounceOut(double t)
         {
             if (t < 1 / 2.75)
                 return (float)(7.5625 * t * t);

@@ -284,7 +284,6 @@
                 <TextBlock Foreground="White" FontSize="12" TextAlignment="Center" Text="Note" t:RotatingButton.ContextBackgroundProperty="#FF8B2FFF"/>
                 <TextBlock Foreground="White" FontSize="12" TextAlignment="Center" Text="事件" t:RotatingButton.ContextBackgroundProperty="#FF8AAFFF"/>
                 <TextBlock Foreground="White" FontSize="12" TextAlignment="Center" Text="假Catch" t:RotatingButton.ContextBackgroundProperty="#FFFF80A2"/>
-                <TextBlock Foreground="White" FontSize="12" TextAlignment="Center" Text="函数" t:RotatingButton.ContextBackgroundProperty="#FFCB8FF2"/>
             </t:RotatingButton>
             <!--切换预览模式-->
             <t:RotatingButton x:Name="EditOrPreview" Height="16" Width="50" 

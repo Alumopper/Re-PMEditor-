@@ -1,11 +1,49 @@
 ﻿using PMEditor.Util;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
 
 namespace PMEditor
 {
+    public class EventGroup
+    {
+        public List<Event> Events;
+        public EventType Type;
+        public Event HeaderEvent;
+        public double MinValue;
+        public double MaxValue;
+
+        public EventGroup(List<Event> events)
+        {
+            Events = events;
+            Type = events[0].Type;
+            HeaderEvent = events[0];
+            //寻找最大值
+            double max = double.MinValue, min = double.MaxValue;
+            foreach (var e in events)
+            {
+                var (fmax, fmin) = EaseFunctions.FunctionMaxValues[e.EaseFunctionID];
+                var emax = e.StartValue + (e.EndValue - e.StartValue) * fmax;
+                var emin = e.StartValue + (e.EndValue - e.StartValue) * fmin;
+                if (emax > max) max = emax;
+                if (emax < min) min = emax;
+                if (emin > max) max = emin;
+                if (emin < min) min = emin;
+            }
+            MaxValue = max;
+            MinValue = min;
+        }
+
+        public static void BuildGroup(List<Event> events)
+        {
+            if(events.Count == 0) return;
+            var groups = new EventGroup(events);
+            events.ForEach(e => e.EventGroup = groups);
+        }
+    }
+    
     public partial class Event
     {
 
@@ -17,7 +55,7 @@ namespace PMEditor
 
         public bool IsHeaderEvent;
 
-        public readonly List<Event> EventGroup = new();
+        public EventGroup EventGroup;
 
         public EventType Type;
 
@@ -30,7 +68,7 @@ namespace PMEditor
         {
             this.Type = type;
             this.typeId = (int)type;
-            EaseFunction = EaseFunctions.functions[easeFunctionID];
+            EaseFunction = EaseFunctions.Functions[easeFunctionID];
         }
 
         public static Dictionary<string, object> InitProperties(EventType type)

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using PMEditor.Util;
 
 namespace PMEditor
@@ -32,23 +33,28 @@ namespace PMEditor
         public void GroupEvent()
         {
             double lastEndTime = -1;
-            Event? headEvent = null;
+            List<Event> group = new();
             foreach (var item in events)
             {
                 if(item.StartTime > lastEndTime)
                 {
+                    EventGroup.BuildGroup(group);
+                    group = new List<Event>();
                     item.IsHeaderEvent = true;
-                    item.EventGroup.Add(item);
-                    headEvent = item;
+                    group.Add(item);
                 }
                 else if (item.StartTime == lastEndTime)
                 {
                     item.IsHeaderEvent = false;
-                    headEvent!.EventGroup.Add(item);
-
+                    group.Add(item);
                 }
                 lastEndTime = item.EndTime;
             }
+        }
+
+        public List<EventGroup> GetEventGroups()
+        {
+            return (from item in events where item.IsHeaderEvent select item.EventGroup).ToList();
         }
     }
 }

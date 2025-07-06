@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace PMEditor.Controls
+namespace PMEditor.Controls.AttrPanel
 {
     /// <summary>
     /// FunctionPropertyPanel.xaml 的交互逻辑
